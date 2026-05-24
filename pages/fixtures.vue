@@ -273,11 +273,17 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 20px;
-  padding-bottom: 90px;
-  padding-top: 80px;
+  padding: var(--page-padding);
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
+  padding-top: calc(var(--header-height) + 16px);
   max-width: 860px;
   margin: 0 auto;
+
+  @media (max-width: 576px) {
+    padding: var(--page-padding-mobile);
+    padding-bottom: calc(var(--bottom-nav-height) + 34px);
+    padding-top: calc(var(--header-height-mobile) + 14px);
+  }
 }
 
 // ── Filter bar ─────────────────────────────────────────────────────────────────
@@ -609,14 +615,7 @@ useSeoMeta({
   flex-shrink: 0;
 }
 
-// ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 600px) {
-  .page-wrap {
-    padding: 14px;
-    padding-bottom: 90px;
-    padding-top: 70px;
-  }
-
   .match-row {
     grid-template-columns: 44px 1fr;
     grid-template-rows: auto auto;

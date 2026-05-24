@@ -122,7 +122,9 @@ const handleStatClick = (stat) => {
     gap: 0.875rem;
     margin-bottom: 1.5rem;
     &.cols-4,
-    &.cols-3,
+    &.cols-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
     &.cols-2 {
       grid-template-columns: 1fr;
     }
@@ -130,6 +132,10 @@ const handleStatClick = (stat) => {
 
   @media (max-width: 375px) {
     gap: 0.75rem;
+    &.cols-4,
+    &.cols-3 {
+      grid-template-columns: 1fr;
+    }
   }
 }
 
@@ -149,9 +155,11 @@ const handleStatClick = (stat) => {
     }
   }
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
   }
 
   .stat-content {

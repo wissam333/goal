@@ -275,11 +275,17 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 20px;
-  padding-bottom: 90px;
+  padding: var(--page-padding);
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
+  padding-top: calc(var(--header-height) + 16px);
   max-width: 960px;
   margin: 0 auto;
-  padding-top: 80px;
+
+  @media (max-width: 576px) {
+    padding: var(--page-padding-mobile);
+    padding-bottom: calc(var(--bottom-nav-height) + 34px);
+    padding-top: calc(var(--header-height-mobile) + 14px);
+  }
 }
 
 .mb-4 { margin-bottom: 24px; }
@@ -488,7 +494,6 @@ useSeoMeta({
 .trophy-icon { color: #ca8a04; }
 
 @media (max-width: 576px) {
-  .page-wrap { padding: 14px; padding-bottom: 90px; padding-top: 70px; }
   .groups-grid { grid-template-columns: 1fr; }
 }
 </style>

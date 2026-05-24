@@ -294,10 +294,14 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding-bottom: 90px;
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
   max-width: 800px;
   margin: 0 auto;
-  padding-top: 64px;
+  padding-top: var(--header-height);
+
+  @media (max-width: 576px) {
+    padding-top: var(--header-height-mobile);
+  }
 }
 
 @keyframes sh { to { background-position: -200% 0; } }
@@ -458,7 +462,6 @@ useSeoMeta({
 
 // ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 576px) {
-  .page-wrap { padding-top: 56px; }
   .stats-section { padding: 14px; }
   .section-card { margin: 0 14px 14px; padding: 16px; }
   .hero-inner { flex-direction: column; text-align: center; }

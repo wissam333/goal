@@ -1,10 +1,5 @@
-/* ---------------------------------------------------------
-   1. Imports & Configuration
---------------------------------------------------------- */
 @use "./theme/variables.scss" as *;
 
-
-/* --- THEME VARIABLES --- */
 :root {
     --primary: #22c55e;
     --primary-soft: rgba(34, 197, 94, 0.1);
@@ -23,6 +18,23 @@
     --text-primary: #0c1739;
     --text-muted: #94a3b8;
     --text-sub: #64748b;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+
+    --touch-target: 44px;
+
+    --header-height: 64px;
+    --header-height-mobile: 56px;
+    --bottom-nav-height: 56px;
+
+    --page-padding: 20px;
+    --page-padding-mobile: 14px;
+    --page-max-width: 1280px;
 }
 
 :root.dark {
@@ -54,7 +66,10 @@
     font-display: swap;
 }
 
-html,
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     margin: 0;
     -webkit-font-smoothing: antialiased;
@@ -62,6 +77,11 @@ body {
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
     font-family: "Tajawal", "sans-serif";
+    overscroll-behavior: contain;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
 }
 
 /* Body Direction Helpers */
@@ -127,11 +147,23 @@ label {
     margin-bottom: 0.5rem;
 }
 
+.touch-target {
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .custom-input,
 .form-control {
     border: 1px solid $main;
     border-radius: 5px;
     padding: 10px;
+    @media (max-width: 768px) {
+        min-height: var(--touch-target);
+        font-size: 16px;
+    }
     &:focus {
         box-shadow: 0 0 0 0.25rem rgba(185, 147, 63, 0.25);
         border-color: $main;
@@ -165,16 +197,14 @@ label {
     }
 }
 .nav-margin {
-    margin-top: 126px;
-}
-.nav-margin-mobile {
-    @media (max-width: 991px) {
+    margin-top: 125px;
+    @media (max-width: 991.98px) {
         margin-top: 80px;
     }
 }
-.nav-margin {
-    margin-top: 125px;
-    @media (max-width: 991px) {
+
+.nav-margin-mobile {
+    @media (max-width: 991.98px) {
         margin-top: 80px;
     }
 }
@@ -199,6 +229,10 @@ label {
     transition:
         color 0.4s ease,
         transform 0.3s ease;
+    @media (max-width: 768px) {
+        min-height: var(--touch-target);
+        padding: 12px 20px;
+    }
 }
 
 .main-btn::before {
@@ -329,7 +363,7 @@ label {
     display: flex !important;
 }
 
-@media (min-width: 991px) {
+@media (min-width: 992px) {
     .mobile {
         display: none !important;
     }
@@ -338,13 +372,25 @@ label {
     }
 }
 
-@media (max-width: 991px) {
+@media (max-width: 991.98px) {
     .mobile {
         display: flex !important;
     }
     .pc {
         display: none !important;
     }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .text-primary {
@@ -486,22 +532,32 @@ label {
 // ── Page transitions ──────────────────────────────────────────────────────────
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(10px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
 }
 
 .layout-enter-active,
 .layout-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 .layout-enter-from,
 .layout-leave-to {
   opacity: 0;
+}
+
+.nuxt-icon {
+  vertical-align: middle;
 }

@@ -187,11 +187,17 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 20px;
-  padding-bottom: 90px;
-  padding-top: 80px;
+  padding: var(--page-padding);
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
+  padding-top: calc(var(--header-height) + 16px);
   max-width: 1000px;
   margin: 0 auto;
+
+  @media (max-width: 576px) {
+    padding: var(--page-padding-mobile);
+    padding-bottom: calc(var(--bottom-nav-height) + 34px);
+    padding-top: calc(var(--header-height-mobile) + 14px);
+  }
 }
 
 .mb-4 { margin-bottom: 24px; }
@@ -318,9 +324,7 @@ useSeoMeta({
 }
 .team-card:hover .card-arrow { opacity: 1; transform: translateX(2px); }
 
-// ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 576px) {
-  .page-wrap { padding: 14px; padding-bottom: 90px; padding-top: 70px; }
   .teams-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .card-logo { width: 52px; height: 52px; }
   .card-name { font-size: 0.88rem; }

@@ -378,11 +378,11 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding-top: 64px;
-  padding-bottom: 80px;
+  padding-top: var(--header-height);
+  padding-bottom: calc(var(--bottom-nav-height) + 24px);
 
-  @media (max-width: 991px) {
-    padding-top: 56px;
+  @media (max-width: 991.98px) {
+    padding-top: var(--header-height-mobile);
   }
 }
 

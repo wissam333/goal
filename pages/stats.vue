@@ -271,11 +271,17 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 20px;
-  padding-bottom: 90px;
+  padding: var(--page-padding);
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
+  padding-top: calc(var(--header-height) + 16px);
   max-width: 860px;
   margin: 0 auto;
-  padding-top: 80px;
+
+  @media (max-width: 576px) {
+    padding: var(--page-padding-mobile);
+    padding-bottom: calc(var(--bottom-nav-height) + 34px);
+    padding-top: calc(var(--header-height-mobile) + 14px);
+  }
 }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
@@ -433,6 +439,6 @@ useSeoMeta({
 }
 
 @media (max-width: 576px) {
-  .page-wrap { padding: 14px; padding-bottom: 90px; padding-top: 70px; }
+  .section { margin-bottom: 20px; }
 }
 </style>

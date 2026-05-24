@@ -60,8 +60,8 @@ const { locale } = useI18n();
 const router = useRouter();
 const route = useRoute();
 
-// Only show on Capacitor OR narrow viewport (same breakpoint as isMobile in dashboard.vue)
 const show = ref(false);
+const mql = ref(null);
 const checkShow = () => {
   show.value =
     (typeof window !== "undefined" && !!window?.Capacitor) ||
@@ -69,9 +69,20 @@ const checkShow = () => {
 };
 onMounted(() => {
   checkShow();
-  window.addEventListener("resize", checkShow);
+  mql.value = window.matchMedia("(max-width: 991px)");
+  if (mql.value) {
+    mql.value.addEventListener("change", checkShow);
+  } else {
+    window.addEventListener("resize", checkShow);
+  }
 });
-onUnmounted(() => window.removeEventListener("resize", checkShow));
+onUnmounted(() => {
+  if (mql.value) {
+    mql.value.removeEventListener("change", checkShow);
+  } else {
+    window.removeEventListener("resize", checkShow);
+  }
+});
 
 const isActive = (item) => item.to && route.path === item.to;
 
@@ -82,20 +93,15 @@ const go = (item) => {
 </script>
 
 <style lang="scss" scoped>
-// ─── Bar shell ────────────────────────────────────────────────────────────────
 .mbb {
   position: fixed;
   inset-inline: 0;
   bottom: 0;
   z-index: 900;
   height: 56px;
-
-  // Account for iPhone home indicator
   padding-bottom: env(safe-area-inset-bottom, 0px);
-
   display: flex;
   align-items: stretch;
-
   background: var(--bg-surface);
   border-top: 1px solid var(--border-color);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
@@ -109,27 +115,32 @@ const go = (item) => {
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
 }
 
-// ─── Tab button ───────────────────────────────────────────────────────────────
+:global(body) {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 .mbb__tab {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 6px 2px 4px;
+  padding: 6px 2px 2px;
   position: relative;
   -webkit-tap-highlight-color: transparent;
   outline: none;
-  transition: background 0.12s;
+  transition: background 0.12s, transform 0.12s;
   border-radius: 12px;
   margin: 4px 2px;
+  min-height: var(--touch-target);
 
   &:active {
     background: var(--primary-soft);
+    transform: scale(0.95);
   }
 }
 

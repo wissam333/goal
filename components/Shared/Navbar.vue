@@ -81,23 +81,26 @@
 
     <!-- Mobile dropdown menu -->
     <Transition name="mobile-nav">
-      <div v-if="mobileOpen" class="mobile-nav" @click="mobileOpen = false">
-        <NuxtLink
-          v-for="item in navItems"
-          :key="item.key"
-          :to="item.to"
-          class="mobile-nav-item"
-          :class="{ active: route.path === item.to }"
-        >
-          <Icon :name="item.icon" size="18" aria-hidden="true" />
-          <span>{{ $t(item.label) }}</span>
-          <Icon
-            name="mdi:chevron-left"
-            size="16"
-            class="mobile-nav-arrow"
-            aria-hidden="true"
-          />
-        </NuxtLink>
+      <div v-if="mobileOpen" class="mobile-nav-overlay" @click="mobileOpen = false">
+        <div class="mobile-nav" @click.stop>
+          <NuxtLink
+            v-for="item in navItems"
+            :key="item.key"
+            :to="item.to"
+            class="mobile-nav-item"
+            :class="{ active: route.path === item.to }"
+            @click="mobileOpen = false"
+          >
+            <Icon :name="item.icon" size="18" aria-hidden="true" />
+            <span>{{ $t(item.label) }}</span>
+            <Icon
+              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+              size="16"
+              class="mobile-nav-arrow"
+              aria-hidden="true"
+            />
+          </NuxtLink>
+        </div>
       </div>
     </Transition>
   </header>
@@ -185,14 +188,13 @@ onMounted(() => {
     box-shadow: 0 1px 0 var(--border-color);
   }
 
-  @media (max-width: 991px) {
-    height: 56px;
-    // Always blurred on mobile — page content scrolls immediately
-    background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 1px 0 var(--border-color);
-  }
+    @media (max-width: 991.98px) {
+        height: 56px;
+        background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 1px 0 var(--border-color);
+    }
 }
 
 .navbar-inner {
@@ -224,7 +226,7 @@ onMounted(() => {
   object-fit: contain;
   border-radius: 8px;
 
-  @media (max-width: 991px) {
+  @media (max-width: 991.98px) {
     width: 30px;
     height: 30px;
   }
@@ -313,6 +315,12 @@ onMounted(() => {
     background: var(--primary-soft);
     color: var(--primary);
   }
+
+  @media (max-width: 991.98px) {
+    width: var(--touch-target);
+    height: var(--touch-target);
+    border-radius: 12px;
+  }
 }
 
 .lang-btn {
@@ -328,10 +336,18 @@ onMounted(() => {
 }
 
 // ── Mobile dropdown ───────────────────────────────────────────────────────────
-.mobile-nav {
-  position: absolute;
+.mobile-nav-overlay {
+  position: fixed;
+  inset: 0;
   top: 56px;
-  inset-inline: 0;
+  z-index: 700;
+  background: rgba(0, 0, 0, 0.3);
+  @media (min-width: 992px) {
+    display: none;
+  }
+}
+
+.mobile-nav {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-color);
   padding: 8px;
@@ -339,36 +355,34 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-
-  @media (min-width: 992px) {
-    display: none;
-  }
 }
 
 .mobile-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
+  gap: 12px;
+  padding: 14px 14px;
+  border-radius: 12px;
   text-decoration: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--text-sub);
+  font-size: 0.95rem;
   font-weight: 500;
   transition: all 0.15s;
+  min-height: var(--touch-target);
 
   .mobile-nav-arrow {
     margin-inline-start: auto;
     color: var(--text-muted);
-    // Flip arrow for LTR
-    [dir="ltr"] & {
-      transform: scaleX(-1);
-    }
   }
 
   &:hover {
     background: var(--bg-elevated);
     color: var(--text-primary);
+  }
+
+  &:active {
+    background: var(--primary-soft);
+    transform: scale(0.98);
   }
 
   &.active {
@@ -382,12 +396,22 @@ onMounted(() => {
 .mobile-nav-enter-active,
 .mobile-nav-leave-active {
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity 0.2s ease;
+}
+.mobile-nav-enter-active .mobile-nav {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mobile-nav-leave-active .mobile-nav {
+  transition: transform 0.15s ease;
 }
 .mobile-nav-enter-from,
 .mobile-nav-leave-to {
   opacity: 0;
+}
+.mobile-nav-enter-from .mobile-nav {
+  transform: translateY(-12px);
+}
+.mobile-nav-leave-to .mobile-nav {
   transform: translateY(-8px);
 }
 </style>

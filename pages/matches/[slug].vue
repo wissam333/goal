@@ -498,10 +498,14 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 0 0 90px;
+  padding: 0 0 calc(var(--bottom-nav-height) + 34px);
   max-width: 800px;
   margin: 0 auto;
-  padding-top: 64px;
+  padding-top: var(--header-height);
+
+  @media (max-width: 576px) {
+    padding-top: var(--header-height-mobile);
+  }
 }
 
 // ── Back ───────────────────────────────────────────────────────────────────────
@@ -829,7 +833,6 @@ useSeoMeta({
 
 // ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 600px) {
-  .page-wrap { padding-top: 56px; }
   .scoreboard-hero { margin: 12px 14px 0; padding: 20px 14px 18px; }
   .section-card { margin: 12px 14px 0; padding: 16px; }
   .share-row { margin: 12px 14px 0; }

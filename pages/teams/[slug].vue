@@ -304,10 +304,14 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding-bottom: 90px;
+  padding-bottom: calc(var(--bottom-nav-height) + 34px);
   max-width: 900px;
   margin: 0 auto;
-  padding-top: 64px;
+  padding-top: var(--header-height);
+
+  @media (max-width: 576px) {
+    padding-top: var(--header-height-mobile);
+  }
 }
 
 @keyframes sh { to { background-position: -200% 0; } }
@@ -478,7 +482,6 @@ useSeoMeta({
 
 // ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 576px) {
-  .page-wrap { padding-top: 56px; }
   .stats-wrap { padding: 14px; }
   .section { padding: 0 14px 20px; }
   .players-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }

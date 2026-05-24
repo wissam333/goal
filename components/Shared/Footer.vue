@@ -117,6 +117,10 @@ const navItems = [
   max-width: 1280px;
   margin: 0 auto;
   padding: 48px 20px 24px;
+
+  @media (max-width: 576px) {
+    padding: 32px 14px 20px;
+  }
 }
 
 // ── Top section ───────────────────────────────────────────────────────────────
@@ -215,9 +219,16 @@ const navItems = [
   color: var(--text-sub);
   text-decoration: none;
   transition: color 0.15s;
+  padding: 4px 0;
 
   &:hover {
     color: var(--primary);
+  }
+
+  @media (max-width: 768px) {
+    min-height: var(--touch-target);
+    display: flex;
+    align-items: center;
   }
 }
 
