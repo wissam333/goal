@@ -53,12 +53,13 @@
             </div>
 
             <div class="rank-avatar">
-              <NuxtImg
+              <img
                 v-if="p.photo"
                 :src="p.photo"
                 :alt="p.title"
                 width="40" height="40"
-                format="webp" loading="lazy"
+                loading="lazy"
+                @error="onImgError"
               />
               <span v-else class="rank-initial">{{ p.title?.charAt(0) }}</span>
             </div>
@@ -105,12 +106,13 @@
               <span v-else class="rank-num">{{ i + 1 }}</span>
             </div>
             <div class="rank-avatar small">
-              <NuxtImg
+              <img
                 v-if="p.photo"
                 :src="p.photo"
                 :alt="p.title"
                 width="32" height="32"
-                format="webp" loading="lazy"
+                loading="lazy"
+                @error="onImgError"
               />
               <span v-else class="rank-initial">{{ p.title?.charAt(0) }}</span>
             </div>
@@ -264,6 +266,11 @@ const albumPhotos = computed(() => {
   });
   return photos;
 });
+
+const onImgError = (e) => {
+  e.target.src = '/default-avatar.jpg'
+  e.target.onerror = null
+}
 
 useSeoMeta({
   title: () => locale.value === 'ar' ? 'الإحصائيات | دوري القرية' : 'Stats | Village League',

@@ -162,12 +162,13 @@
         <div v-if="match.motmWinner" class="motm-winner">
           <div class="winner-glow" />
           <div class="winner-avatar">
-            <NuxtImg
+            <img
               v-if="getPlayerPhoto(match.motmWinner)"
               :src="getPlayerPhoto(match.motmWinner)"
               :alt="getPlayerName(match.motmWinner)"
               width="80" height="80"
-              format="webp" loading="lazy"
+              loading="lazy"
+              @error="onImgError"
             />
             <span v-else class="winner-initial">{{ getPlayerName(match.motmWinner)?.charAt(0) }}</span>
           </div>
@@ -487,6 +488,11 @@ const shareWhatsApp = () => {
     : `${ht} ${hs}–${as} ${at} 🏆 | Week ${match.value.week} | Details: ${window.location.href}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 };
+
+const onImgError = (e) => {
+  e.target.src = '/default-avatar.jpg'
+  e.target.onerror = null
+}
 
 // ── SEO ────────────────────────────────────────────────────────────────────────
 useSeoMeta({

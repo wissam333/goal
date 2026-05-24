@@ -26,12 +26,13 @@
         <div class="hero-inner">
           <!-- Avatar -->
           <div class="hero-avatar">
-            <NuxtImg
+            <img
               v-if="player.photo"
               :src="player.photo"
               :alt="player.title"
               width="100" height="100"
-              format="webp" loading="lazy"
+              loading="lazy"
+              @error="onImgError"
             />
             <span v-else class="avatar-initial">{{ player.title?.charAt(0) }}</span>
             <span v-if="player.number" class="hero-number">#{{ player.number }}</span>
@@ -43,12 +44,13 @@
             <div class="hero-badges">
               <span v-if="player.position" class="badge-pos">{{ player.position }}</span>
               <span v-if="teamName" class="badge-team" @click="navigateTo(`/teams/${player.team}`)">
-                <NuxtImg
-                  v-if="teamLogo"
-                  :src="teamLogo"
-                  width="16" height="16"
-                  format="webp" loading="lazy"
-                />
+              <img
+                v-if="teamLogo"
+                :src="teamLogo"
+                width="16" height="16"
+                loading="lazy"
+                @error="onImgError"
+              />
                 {{ teamName }}
               </span>
             </div>
@@ -286,6 +288,11 @@ const sharePlayer = () => {
     : `${name} 🌟 | ${team} | ${goals} goals this season | ${window.location.href}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 };
+
+const onImgError = (e) => {
+  e.target.src = '/default-avatar.jpg'
+  e.target.onerror = null
+}
 
 useSeoMeta({
   title: () => player.value ? `${player.value.title} | ${locale.value === 'ar' ? 'دوري القرية' : 'Village League'}` : 'Player',
