@@ -8,7 +8,6 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@nuxtjs/color-mode",
-    "@vite-pwa/nuxt",
     "nuxt-beastcss",
     "nuxt-vitalizer",
     "nuxt-studio",
@@ -89,8 +88,9 @@ export default defineNuxtConfig({
   },
 
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
-    layoutTransition: { name: "layout", mode: "out-in" },
+    pageTransition: { name: "page" },
+    layoutTransition: false,
+
 
     head: {
       title: "دوري كرة القدم السنوي",
@@ -122,38 +122,6 @@ export default defineNuxtConfig({
     },
   },
 
-  pwa: {
-    registerType: "autoUpdate",
-    manifest: {
-      name: "دوري القرية",
-      short_name: "الدوري",
-      description: "نتائج دوري كرة القدم",
-      theme_color: "#22c55e",
-      background_color: "#0e0f0d",
-      display: "standalone",
-      lang: "ar",
-      dir: "rtl",
-      icons: [
-        { src: "/logo/logo-web.png", sizes: "192x192", type: "image/png" },
-        { src: "/logo/logo-web.png", sizes: "512x512", type: "image/png" },
-      ],
-    },
-    workbox: {
-      globPatterns: ["**/*.{js,css,html,png,webp,svg,woff2}"],
-      globIgnores: ["**/node_modules/**", "**/_studio-app/**"],
-      navigateFallback: "/",
-      navigateFallbackDenylist: [/^\/studio\//, /^\/_studio\//, /^\/__nuxt_studio\//],
-      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\/api\/.*$/,
-          handler: "NetworkFirst",
-          options: { cacheName: "api-cache", expiration: { maxAgeSeconds: 60 * 60 * 2 } },
-        },
-      ],
-    },
-  },
-
   vite: {
     css: {
       preprocessorOptions: {
@@ -169,12 +137,6 @@ export default defineNuxtConfig({
     minify: true,
     prerender: {
       failOnError: false,
-    },
-  },
-
-  hooks: {
-    "nitro:config": (config) => {
-      config.handlers = config.handlers.filter((h) => h.route !== "/sw.js");
     },
   },
 
