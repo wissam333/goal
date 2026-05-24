@@ -11,11 +11,21 @@ export default defineNuxtConfig({
     "@vite-pwa/nuxt",
     "nuxt-beastcss",
     "nuxt-vitalizer",
+    "nuxt-studio",
   ],
 
   content: {
-    studio: { enabled: true },
     highlight: { theme: "github-dark" },
+  },
+
+  studio: {
+    route: "/_studio",
+    repository: {
+      provider: "github",
+      owner: "wissam333",
+      repo: "goal",
+      branch: "main",
+    },
   },
 
   colorMode: {
