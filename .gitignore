@@ -4,6 +4,7 @@
 .nitro
 .cache
 dist
+.output
 .history
 # Repomix
 repomix-output

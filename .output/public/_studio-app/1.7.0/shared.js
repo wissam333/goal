@@ -1,1 +1,0 @@
-import{E as a,e,b as o,d as i,g as m,r as s}from"./shared--ESjFm2d.js";export{a as EMOJI_REGEXP,e as emojiList,o as emojiNameToUnicodeMap,i as getEmojiName,m as getEmojiUnicode,s as remarkEmojiPlugin};
