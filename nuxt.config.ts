@@ -59,7 +59,6 @@ export default defineNuxtConfig({
     "/fixtures": { prerender: true },
     "/bracket": { prerender: true },
     "/stats": { prerender: true },
-    "/studio/**": { ssr: false },
   },
 
   i18n: {
@@ -143,7 +142,7 @@ export default defineNuxtConfig({
       globPatterns: ["**/*.{js,css,html,png,webp,svg,woff2}"],
       globIgnores: ["**/node_modules/**", "**/_studio-app/**"],
       navigateFallback: "/",
-      navigateFallbackDenylist: [/^\/studio\//],
+      navigateFallbackDenylist: [/^\/studio\//, /^\/_studio\//, /^\/__nuxt_studio\//],
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [
         {
@@ -170,6 +169,12 @@ export default defineNuxtConfig({
     minify: true,
     prerender: {
       failOnError: false,
+    },
+  },
+
+  hooks: {
+    "nitro:config": (config) => {
+      config.handlers = config.handlers.filter((h) => h.route !== "/sw.js");
     },
   },
 
