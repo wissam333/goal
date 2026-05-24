@@ -181,7 +181,7 @@ const {
   pending,
   error,
 } = await useAsyncData("fixtures-matches", () =>
-  queryCollection("matches").sort("date", 1).all().then(r => r || []).catch(() => []),
+  queryCollection("matches").order("date", "ASC").all().then(r => r || []).catch(() => []),
 );
 
 const { data: teamsData } = await useAsyncData("fixtures-teams", () =>
