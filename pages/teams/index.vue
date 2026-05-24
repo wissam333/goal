@@ -111,13 +111,11 @@
 const { locale, t } = useI18n();
 
 const { data: teamsData, pending: teamsPending, error: teamsError } = await useAsyncData(
-  'teams-list',
-  () => queryCollection('teams').all()
+  "teams-list", () => queryCollection("teams").all().then(r => r || []).catch(() => [])
 );
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  'teams-matches',
-  () => queryCollection('matches').where('status', '=', 'played').all()
+  "teams-matches", () => queryCollection("matches").all().then(r => r || []).catch(() => [])
 );
 
 const pending = computed(() => teamsPending.value || matchesPending.value);

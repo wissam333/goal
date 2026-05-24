@@ -11,12 +11,12 @@
 
       <!-- Title -->
       <h3 v-if="title" class="empty-state-title">
-        {{ $t(title) }}
+        {{ title }}
       </h3>
 
       <!-- Description -->
       <p v-if="description" class="empty-state-description">
-        {{ $t(description) }}
+        {{ description }}
       </p>
 
       <!-- Additional Content Slot -->

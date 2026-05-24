@@ -179,14 +179,14 @@ const {
   data: teamsData,
   pending: teamsPending,
   error: teamsError,
-} = await useAsyncData("standings-teams", () => queryCollection("teams").all().catch(() => []));
+} = await useAsyncData("standings-teams", () => queryCollection("teams").all().then(r => r || []).catch(() => []));
 
 const {
   data: matchesData,
   pending: matchesPending,
   error: matchesError,
 } = await useAsyncData("standings-matches", () =>
-  queryCollection("matches").all().catch(() => []),
+  queryCollection("matches").all().then(r => r || []).catch(() => []),
 );
 
 const pending = computed(() => teamsPending.value || matchesPending.value);

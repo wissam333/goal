@@ -327,17 +327,17 @@ const { data: match, pending, error } = await useAsyncData(
 
 const { data: teamsData } = await useAsyncData(
   `match-teams-${slug.value}`,
-  () => queryCollection('teams').all()
+  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
 );
 
 const { data: playersData } = await useAsyncData(
   `match-players-${slug.value}`,
-  () => queryCollection('players').all()
+  () => queryCollection('players').all().then(r => r || []).catch(() => [])
 );
 
 const { data: allMatchesData } = await useAsyncData(
   `match-allmatches-${slug.value}`,
-  () => queryCollection('matches').where('status', '=', 'played').all()
+  () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
 );
 
 const teams = computed(() => teamsData.value || []);

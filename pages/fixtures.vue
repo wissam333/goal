@@ -178,11 +178,11 @@ const {
   pending,
   error,
 } = await useAsyncData("fixtures-matches", () =>
-  queryCollection("matches").sort("date", 1).all().catch(() => []),
+  queryCollection("matches").sort("date", 1).all().then(r => r || []).catch(() => []),
 );
 
 const { data: teamsData } = await useAsyncData("fixtures-teams", () =>
-  queryCollection("teams").all().catch(() => []),
+  queryCollection("teams").all().then(r => r || []).catch(() => []),
 );
 
 const matches = computed(() => matchesData.value || []);

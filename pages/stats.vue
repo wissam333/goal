@@ -162,13 +162,13 @@
 const { locale } = useI18n();
 
 const { data: playersData, pending: playersPending, error: playersError } = await useAsyncData(
-  'stats-players', () => queryCollection('players').all().catch(() => [])
+  'stats-players', () => queryCollection('players').all().then(r => r || []).catch(() => [])
 );
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  'stats-matches', () => queryCollection('matches').where('status', '=', 'played').all().catch(() => [])
+  'stats-matches', () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
 );
 const { data: teamsData } = await useAsyncData(
-  'stats-teams', () => queryCollection('teams').all().catch(() => [])
+  'stats-teams', () => queryCollection('teams').all().then(r => r || []).catch(() => [])
 );
 
 const pending = computed(() => playersPending.value || matchesPending.value);

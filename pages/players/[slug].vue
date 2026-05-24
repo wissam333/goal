@@ -168,22 +168,22 @@ const { data: player, pending: playerPending, error: playerError } = await useAs
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
   `player-matches-${slug.value}`,
-  () => queryCollection('matches').where('status', '=', 'played').all()
+  () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
 );
 
 const { data: allMatchesData } = await useAsyncData(
   `player-all-matches-${slug.value}`,
-  () => queryCollection('matches').all()
+  () => queryCollection('matches').all().then(r => r || []).catch(() => [])
 );
 
 const { data: teamsData } = await useAsyncData(
   `player-teams-${slug.value}`,
-  () => queryCollection('teams').all()
+  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
 );
 
 const { data: playersData } = await useAsyncData(
   `player-all-players-${slug.value}`,
-  () => queryCollection('players').all()
+  () => queryCollection('players').all().then(r => r || []).catch(() => [])
 );
 
 const pending = computed(() => playerPending.value || matchesPending.value);

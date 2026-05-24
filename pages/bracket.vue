@@ -179,19 +179,17 @@ const { locale, t } = useI18n();
 const activeTab = ref('groups');
 
 const tabs = computed(() => [
-  { key: 'groups', label: t('bracket.groupStage'), icon: 'mdi:table' },
-  { key: 'knockout', label: t('bracket.knockout'), icon: 'mdi:trophy-outline' },
+  { value: 'groups', label: t('bracket.groupStage'), icon: 'mdi:table' },
+  { value: 'knockout', label: t('bracket.knockout'), icon: 'mdi:trophy-outline' },
 ]);
 
 const { data: teamsData, pending: teamsPending } = await useAsyncData(
-  'bracket-teams', () => queryCollection('teams').all().catch(() => [])
+  'bracket-teams', () => queryCollection('teams').all().then(r => r || []).catch(() => [])
 );
 const { data: matchesData, pending: matchesPending, error } = await useAsyncData(
-  'bracket-matches', () => queryCollection('matches').all().catch(() => [])
+  'bracket-matches', () => queryCollection('matches').all().then(r => r || []).catch(() => [])
 );
-const { data: settings } = await useAsyncData(
-  'bracket-settings', () => queryCollection('settings').first().catch(() => null)
-);
+
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const teams = computed(() => teamsData.value || []);

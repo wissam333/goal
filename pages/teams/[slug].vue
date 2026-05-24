@@ -194,17 +194,17 @@ const { data: team, pending: teamPending, error: teamError } = await useAsyncDat
 
 const { data: playersData, pending: playersPending } = await useAsyncData(
   `team-players-${slug.value}`,
-  () => queryCollection('players').where('team', '=', slug.value).all()
+  () => queryCollection('players').where('team', '=', slug.value).all().then(r => r || []).catch(() => [])
 );
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
   `team-matches-${slug.value}`,
-  () => queryCollection('matches').all()
+  () => queryCollection('matches').all().then(r => r || []).catch(() => [])
 );
 
 const { data: teamsData } = await useAsyncData(
   `all-teams-${slug.value}`,
-  () => queryCollection('teams').all()
+  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
 );
 
 const pending = computed(() => teamPending.value || playersPending.value || matchesPending.value);

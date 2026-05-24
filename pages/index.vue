@@ -2,7 +2,7 @@
   <div class="page-wrap">
     <!-- ── Next Match Hero ──────────────────────────────────────────────────── -->
     <section class="hero-section">
-      <div v-if="upcoming" class="next-match-card">
+      <div v-if="upcoming?.slug" class="next-match-card">
         <div class="next-match-badge">
           <Icon name="mdi:clock-outline" size="13" aria-hidden="true" />
           {{ $t("match.upcoming") }} · {{ $t("match.week") }}
@@ -17,13 +17,11 @@
               class="team-logo-wrap"
             >
               <NuxtImg
-                :src="`/teams/${upcoming.homeTeam}.png`"
+                :src="`/teams/${upcoming.homeTeam}.svg`"
                 :alt="upcoming.homeTeam"
                 width="72"
                 height="72"
-                format="webp"
                 class="team-logo"
-                @error="(e) => (e.target.src = '/default-avatar.jpg')"
               />
             </NuxtLink>
             <span class="team-name">{{ getTeamName(upcoming.homeTeam) }}</span>
@@ -70,13 +68,11 @@
               class="team-logo-wrap"
             >
               <NuxtImg
-                :src="`/teams/${upcoming.awayTeam}.png`"
+                :src="`/teams/${upcoming.awayTeam}.svg`"
                 :alt="upcoming.awayTeam"
                 width="72"
                 height="72"
-                format="webp"
                 class="team-logo"
-                @error="(e) => (e.target.src = '/default-avatar.jpg')"
               />
             </NuxtLink>
             <span class="team-name">{{ getTeamName(upcoming.awayTeam) }}</span>
@@ -168,13 +164,11 @@
               </td>
               <td class="team-cell">
                 <NuxtImg
-                  :src="`/teams/${team.slug}.png`"
+                  :src="`/teams/${team.slug}.svg`"
                   :alt="team.title"
                   width="24"
                   height="24"
-                  format="webp"
                   class="mini-logo"
-                  @error="(e) => (e.target.src = '/default-avatar.jpg')"
                 />
                 <span>{{ team.title }}</span>
               </td>
@@ -208,14 +202,11 @@
             class="team-card"
           >
             <NuxtImg
-              :src="`/teams/${team.slug}.png`"
+              :src="`/teams/${team.slug}.svg`"
               :alt="team.title"
               width="56"
               height="56"
-              format="webp"
-              loading="lazy"
               class="team-card-logo"
-              @error="(e) => (e.target.src = '/default-avatar.jpg')"
             />
             <span class="team-card-name">{{ team.title }}</span>
             <span class="team-card-pts">
@@ -256,24 +247,28 @@ const [
       .where("status", "=", "played")
       .order("date", "DESC")
       .limit(6)
-      .all().catch(() => []),
+      .all().then(r => r || []).catch(() => []),
   ),
   useAsyncData("home-all-matches", () =>
-    queryCollection("matches").where("status", "=", "played").all().catch(() => []),
+    queryCollection("matches").where("status", "=", "played").all().then(r => r || []).catch(() => []),
   ),
-  useAsyncData("home-teams", () => queryCollection("teams").all().catch(() => [])),
-  useAsyncData("home-players", () => queryCollection("players").all().catch(() => [])),
+  useAsyncData("home-teams", () => queryCollection("teams").all().then(r => r || []).catch(() => [])),
+  useAsyncData("home-players", () => queryCollection("players").all().then(r => r || []).catch(() => [])),
 ]);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const getTeamName = (slug) =>
   teams.value?.find((t) => t.slug === slug)?.title ?? slug;
 
-const formatMatchTime = (dateStr) =>
-  format(new Date(dateStr), "HH:mm", { locale: dateLocale.value });
+const formatMatchTime = (dateStr) => {
+  if (!dateStr) return "--:--";
+  return format(new Date(dateStr), "HH:mm", { locale: dateLocale.value });
+};
 
-const formatMatchDate = (dateStr) =>
-  format(new Date(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
+const formatMatchDate = (dateStr) => {
+  if (!dateStr) return "";
+  return format(new Date(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
+};
 
 // ── Standings calculation ─────────────────────────────────────────────────────
 const standingsMap = computed(() => {
