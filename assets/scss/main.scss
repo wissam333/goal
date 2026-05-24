@@ -530,25 +530,37 @@ label {
 }
 
 // ── Page transitions ──────────────────────────────────────────────────────────
-.page-enter-active,
+// Fast crossfade — no blank gap since there's no "out-in" mode.
+// Opacity-only = GPU composited, no layout thrash.
+
+.page-enter-active {
+  transition: opacity 0.15s ease-out;
+}
 .page-leave-active {
-  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
+  transition: opacity 0.1s ease-in;
 }
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
+.page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-6px);
+}
+
+@media (max-width: 768px) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: opacity 0.08s ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
 }
 
 .layout-enter-active,
 .layout-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.15s ease;
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }

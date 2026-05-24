@@ -251,7 +251,7 @@
           <Icon name="mdi:image-multiple-outline" size="18" />
           {{ $t('match.album') }}
         </h3>
-        <ElementsImagegallery :images="match.photos" />
+        <ElementsAlbum :images="match.photos" :columns="3" />
       </div>
       <div v-else-if="match.status === 'played'" class="section-card empty-album">
         <Icon name="mdi:camera-off-outline" size="32" class="empty-icon" />

@@ -144,9 +144,7 @@
           </span>
         </div>
 
-        <div v-if="albumPhotos.length" class="album-grid">
-          <ElementsImagegallery :images="albumPhotos" />
-        </div>
+        <ElementsAlbum v-if="albumPhotos.length" :images="albumPhotos" :columns="3" />
         <SharedUiFeedbackEmptyState
           v-else
           :title="$t('match.noPhotos')"

@@ -25,6 +25,14 @@ export default defineNuxtConfig({
       repo: "goal",
       branch: "main",
     },
+    i18n: {
+      defaultLocale: "ar",
+    },
+    editor: {
+      commands: {
+        exclude: [],
+      },
+    },
   },
 
   colorMode: {
