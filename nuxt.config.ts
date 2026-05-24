@@ -100,6 +100,12 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", href: "/logo/logo-web.png", type: "image/png" },
+        {
+          rel: "stylesheet",
+          href: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+          media: "print",
+          onload: "this.media='all'",
+        },
       ],
     },
   },
