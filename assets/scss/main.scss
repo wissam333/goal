@@ -1,0 +1,507 @@
+/* ---------------------------------------------------------
+   1. Imports & Configuration
+--------------------------------------------------------- */
+@use "./theme/variables.scss" as *;
+
+
+/* --- THEME VARIABLES --- */
+:root {
+    --primary: #22c55e;
+    --primary-soft: rgba(34, 197, 94, 0.1);
+    --primary-mid: rgba(34, 197, 94, 0.2);
+
+    --secondary: #0f172a;
+    --secondary-soft: rgba(15, 23, 42, 0.1);
+    --secondary-mid: rgba(15, 23, 42, 0.2);
+
+    --bg-page: #f1f5f9;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f8fafc;
+
+    --border-color: #e2e8f0;
+
+    --text-primary: #0c1739;
+    --text-muted: #94a3b8;
+    --text-sub: #64748b;
+}
+
+:root.dark {
+    --bg-page: #0f1117;
+    --bg-surface: #1a1d27;
+    --bg-elevated: #22263a;
+    --border-color: #2e3347;
+    --text-primary: #f1f5f9;
+    --text-muted: #64748b;
+    --text-sub: #94a3b8;
+    --secondary: #4ade80;
+    --secondary-soft: rgba(74, 222, 128, 0.15);
+    --secondary-mid: rgba(74, 222, 128, 0.25);
+}
+
+@font-face {
+    font-family: 'Tajawal';
+    src: url('/fonts/tajawal-v12-latin-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Tajawal';
+    src: url('/fonts/tajawal-v12-latin-700.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+html,
+body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    font-family: "Tajawal", "sans-serif";
+}
+
+/* Body Direction Helpers */
+.bodyAR {
+    font-family: "Tajawal", "sans-serif";
+    direction: rtl;
+
+    select {
+        background-position: left 0.75rem center !important;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]) {
+        background-position: left calc(0.375em + 0.1875rem) center !important;
+    }
+
+    .me-1 {
+        margin-left: 0.25rem !important;
+        margin-right: 0rem !important;
+    }
+
+    .me-2 {
+        margin-left: 0.5rem !important;
+        margin-right: 0rem !important;
+    }
+    .me-3 {
+        margin-left: 1rem !important;
+        margin-right: 0rem !important;
+    }
+}
+
+.bodyEN {
+    font-family: "Tajawal", sans-serif;
+    direction: ltr;
+
+    .me-2 {
+        margin-right: 0.5rem !important;
+        margin-left: 0rem !important;
+    }
+}
+
+/* ---------------------------------------------------------
+   3. Base / Resets
+--------------------------------------------------------- */
+a {
+    text-decoration: none;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+.box {
+    border: 1px solid $main;
+    border-radius: 15px;
+    padding: 30px;
+    background: var(--bg-surface);
+}
+
+label {
+    color: $main;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.custom-input,
+.form-control {
+    border: 1px solid $main;
+    border-radius: 5px;
+    padding: 10px;
+    &:focus {
+        box-shadow: 0 0 0 0.25rem rgba(185, 147, 63, 0.25);
+        border-color: $main;
+    }
+}
+
+.page-title {
+    color: $main;
+}
+
+.text-start {
+    text-align: start !important;
+}
+
+.separator {
+    border-top: 1px solid var(--border-color);
+}
+
+.row-reverse {
+    flex-direction: row-reverse;
+}
+
+/* ---------------------------------------------------------
+   4. Layout & Utilities
+--------------------------------------------------------- */
+.cont {
+    margin: 0px 20px;
+
+    @media (max-width: 768px) {
+        margin: 0px 10px;
+    }
+}
+.nav-margin {
+    margin-top: 126px;
+}
+.nav-margin-mobile {
+    @media (max-width: 991px) {
+        margin-top: 80px;
+    }
+}
+.nav-margin {
+    margin-top: 125px;
+    @media (max-width: 991px) {
+        margin-top: 80px;
+    }
+}
+.pointer {
+    cursor: pointer !important;
+}
+
+.main-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition:
+        color 0.4s ease,
+        transform 0.3s ease;
+}
+
+.main-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline-start: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: #39d3ee;
+    transition: all 0.4s ease;
+    z-index: -1;
+}
+
+.main-btn:hover {
+    color: #000;
+    transform: translateY(-3px);
+}
+
+.main-btn:hover::before {
+    inset-inline-start: 0;
+}
+
+.main-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Animations */
+.pulse-animation {
+    animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(#b8d91a, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 15px rgba(#b8d91a, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(#b8d91a, 0);
+    }
+}
+
+/* ---------------------------------------------------------
+   5. Forms
+--------------------------------------------------------- */
+.form-control {
+    padding-right: 0 !important;
+    padding-inline-start: 0.75rem !important;
+    padding-inline-end: calc(0.75rem + 1.5rem) !important;
+}
+
+.form-control,
+.form-select {
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+}
+
+.form-select-en {
+    background-position: right 0.75rem center !important;
+}
+
+.form-select-ar {
+    background-position: left 0.75rem center !important;
+}
+
+/* ==========================================================
+   Scrollbar Styling
+========================================================== */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--bg-elevated);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-elevated);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+    border: 2px solid var(--bg-elevated);
+
+    &:hover {
+        background: var(--secondary);
+    }
+
+    &:active {
+        background: var(--text-muted);
+    }
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--bg-elevated);
+}
+
+/* For Firefox - also support hover state */
+* {
+    scrollbar-color: var(--primary) var(--bg-elevated);
+    scrollbar-width: thin;
+
+    // &:hover {
+    //     scrollbar-color: var(--secondary) var(--bg-elevated);
+    // }
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.mobile {
+    display: none !important;
+}
+.pc {
+    display: flex !important;
+}
+
+@media (min-width: 991px) {
+    .mobile {
+        display: none !important;
+    }
+    .pc {
+        display: flex !important;
+    }
+}
+
+@media (max-width: 991px) {
+    .mobile {
+        display: flex !important;
+    }
+    .pc {
+        display: none !important;
+    }
+}
+
+.text-primary {
+    color: $main !important;
+}
+
+/* vueUse reveal animations */
+.v-reveal-init {
+    opacity: 0;
+    transition-duration: 1.2s;
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+    transition-property: transform, opacity;
+    will-change: transform, opacity;
+    perspective: 1200px;
+}
+
+.v-hide-fade-up {
+    @extend .v-reveal-init;
+    transform: translateY(40px);
+}
+
+.v-hide-fade-down {
+    @extend .v-reveal-init;
+    transform: translateY(-40px);
+}
+
+.v-hide-flip-right {
+    @extend .v-reveal-init;
+    transform: rotateY(-90deg);
+}
+
+.v-hide-flip-left {
+    @extend .v-reveal-init;
+    transform: rotateY(90deg);
+}
+
+.v-hide-zoom-in {
+    @extend .v-reveal-init;
+    transform: scale(0.9);
+}
+
+.v-hide-slide-left {
+    @extend .v-reveal-init;
+    transform: translateX(-60px);
+}
+
+.v-hide-slide-right {
+    @extend .v-reveal-init;
+    transform: translateX(60px);
+}
+
+.v-show-reveal {
+    opacity: 1 !important;
+    transform: translate(0, 0) rotate(0) scale(1) !important;
+}
+
+.v-duration-fast {
+    transition-duration: 0.6s;
+}
+.v-duration-slow {
+    transition-duration: 1.8s;
+}
+.v-duration-extra-slow {
+    transition-duration: 2.5s;
+}
+
+@for $i from 1 through 10 {
+    .v-delay-#{$i} {
+        transition-delay: #{$i * 0.1}s;
+    }
+}
+
+// swipeer =========================================
+
+.mainheaderslider,
+.items-slider {
+    .swiper-pagination {
+        display: flex !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
+        border-radius: 0;
+        padding: 0.5rem 1rem;
+        bottom: 0 !important;
+        @media (max-width: 768px) {
+            padding: 0.2rem 0.2rem;
+        }
+    }
+
+    .swiper-pagination-bullet {
+        opacity: 0.8 !important;
+        background: var(--text-muted) !important;
+    }
+
+    .swiper-pagination-bullet,
+    .swiper-pagination-bullet-active {
+        width: 60px !important;
+        height: 8px !important;
+        border-radius: 0 !important;
+
+        @media (max-width: 768px) {
+            width: 20px !important;
+            height: 4px !important;
+        }
+    }
+
+    .swiper-pagination-bullet-active {
+        opacity: 1 !important;
+        background: $primary2 !important;
+    }
+}
+
+// global loader ===============================
+.triathlon-loader {
+    #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 99999;
+        background: linear-gradient(45deg, #e1d4bf, #ffffff, #e1d4bf);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.8s cubic-bezier(0.55, 0.09, 0.76, 0.76);
+        transform: translateY(-100%);
+        overflow: hidden;
+
+        &.show {
+            transform: translateY(0%);
+            transition: none;
+        }
+        &.hide {
+            transform: translateY(-100%);
+        }
+    }
+}
+
+// ── Page transitions ──────────────────────────────────────────────────────────
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.layout-enter-active,
+.layout-leave-active {
+  transition: opacity 0.3s ease;
+}
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+}

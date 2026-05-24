@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "Home",
+    "standings": "Standings",
+    "fixtures": "Fixtures",
+    "teams": "Teams",
+    "stats": "Stats",
+    "bracket": "Bracket"
+  },
+  "match": {
+    "upcoming": "Upcoming",
+    "played": "Finished",
+    "live": "Live",
+    "week": "Week",
+    "venue": "Venue",
+    "goals": "Goals",
+    "motm": "Man of the Match",
+    "vote": "Vote",
+    "voted": "Voted",
+    "album": "Photos",
+    "video": "Video",
+    "share": "Share Result",
+    "home": "Home",
+    "away": "Away",
+    "hours": "hr",
+    "minutes": "min",
+    "seconds": "sec",
+    "viewDetails": "View Details",
+    "noUpcoming": "No upcoming matches",
+    "votePrompt": "Choose your Man of the Match",
+    "noPhotos": "No photos yet",
+    "h2h": "Head to Head"
+  },
+  "home": {
+    "latestResults": "Latest Results",
+    "fullTable": "Full Table",
+    "allTeams": "All Teams",
+    "stats": {
+      "played": "Matches",
+      "goals": "Goals",
+      "topScorer": "Top Scorer",
+      "currentWeek": "Current Week"
+    }
+  },
+  "team": {
+    "players": "Players",
+    "results": "Results",
+    "upcoming": "Upcoming",
+    "stats": "Stats",
+    "founded": "Founded",
+    "noPlayers": "No players"
+  },
+  "player": {
+    "goals": "Goals",
+    "assists": "Assists",
+    "appearances": "Apps",
+    "motmWins": "MOTM Wins",
+    "seasonProgress": "Season Progress",
+    "matchHistory": "Match History",
+    "noMatches": "No matches played",
+    "share": "Share Player"
+  },
+  "standings": {
+    "team": "Team",
+    "played": "P",
+    "won": "W",
+    "drawn": "D",
+    "lost": "L",
+    "gf": "GF",
+    "ga": "GA",
+    "gd": "GD",
+    "points": "Pts",
+    "form": "Form",
+    "group": "Group",
+    "advance": "Advance",
+    "danger": "Danger"
+  },
+  "fixtures": {
+    "all": "All",
+    "matches": "matches",
+    "back": "Back"
+  },
+  "stats": {
+    "totalTeams": "Total Teams",
+    "totalGoals": "Total Goals",
+    "avgGoals": "Avg Goals",
+    "topScorer": "Top Scorer",
+    "topAssists": "Top Assists",
+    "motmLeader": "MOTM Leader",
+    "matchStats": "Match Stats",
+    "totalMatches": "Total Matches",
+    "mostGoals": "Most Goals in a Match",
+    "cleanSheets": "Clean Sheets",
+    "album": "Season Album"
+  },
+  "bracket": {
+    "groupStage": "Group Stage",
+    "knockout": "Knockout",
+    "placeholder": "Coming soon",
+    "final": "Final",
+    "semifinal": "Semi Final"
+  },
+  "footer": {
+    "tagline": "Follow results, standings and match details of the annual football league",
+    "joinWhatsApp": "Join WhatsApp Group",
+    "quickLinks": "Quick Links",
+    "season": "Season",
+    "teamsCount": "8 teams",
+    "location": "Main Stadium",
+    "builtWith": "Built with"
+  },
+  "error": {
+    "noData": "No data available"
+  },
+  "lightMode": "Light Mode",
+  "darkMode": "Dark Mode",
+  "menu": "Menu",
+  "leagueName": "Village League"
+}

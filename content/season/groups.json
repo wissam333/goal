@@ -1,0 +1,14 @@
+{
+  "groups": [
+    {
+      "name": "A",
+      "teams": ["alnour", "aytam"],
+      "matches": ["w1-alnour-vs-aytam"]
+    },
+    {
+      "name": "B",
+      "teams": [],
+      "matches": []
+    }
+  ]
+}

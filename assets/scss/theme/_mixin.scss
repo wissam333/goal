@@ -1,0 +1,56 @@
+/* Medium Layout: 1280px */
+@mixin large {
+  @media (min-width: 992px) and (max-width: 1199.98px) {
+    @content;
+  }
+}
+
+/* Tablet Layout: 768px */
+@mixin medium {
+  @media (min-width: 768px) and (max-width: 991.98px) {
+    @content;
+  }
+}
+
+/* Mobile Layout: 320px */
+@mixin tablet {
+  @media (min-width: 576px) and (max-width: 767.98px) {
+    @content;
+  }
+}
+
+/* Wide Mobile Layout: 480px */
+@mixin wide-mobile {
+  @media (min-width: 480px) and (max-width: 767.98px) {
+    @content;
+  }
+}
+
+/* Thin Mobile Layout: 575px */
+@mixin sm-mobile {
+  @media (max-width: 575.98px) {
+    @content;
+  }
+}
+
+
+@mixin cmq($min, $max) {
+  @media (min-width: $min) and (max-width: $max) {
+    @content;
+  }
+}
+
+
+@mixin vertical-scrollbar($width, $bgTrack, $bgTumb, $bgHover) {
+  &::-webkit-scrollbar { width: $width; }
+  &::-webkit-scrollbar-track { background: $bgTrack; }
+  &::-webkit-scrollbar-thumb { background: $bgTumb; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb:hover { background: $bgHover; }
+}
+
+@mixin horizontal-scrollbar($height, $bgTrack, $bgTumb, $bgHover) {
+  &::-webkit-scrollbar { height: $height; }
+  &::-webkit-scrollbar-track { background: $bgTrack; }
+  &::-webkit-scrollbar-thumb { background: $bgTumb; border-radius: 10px; }
+  &::-webkit-scrollbar-thumb:hover { background: $bgHover; }
+}

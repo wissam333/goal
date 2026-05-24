@@ -1,0 +1,8 @@
+{
+  "name": "دوري القرية السنوي",
+  "season": "2025",
+  "groups": ["A", "B"],
+  "teamsPerGroup": 4,
+  "currentWeek": 3,
+  "totalWeeks": 6
+}

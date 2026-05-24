@@ -1,0 +1,1 @@
+import{u}from"./Dn2KEzno.js";import{r,o as i}from"./JmflaFIn.js";const c=(n=.1)=>{const e=r(null),o=r(!1);return i(()=>{if(e.value){const t=e.value.getBoundingClientRect();if(t.top<window.innerHeight&&t.bottom>0){o.value=!0;return}}const{stop:s}=u(e,([{isIntersecting:t}])=>{t&&(o.value=!0,s())},{threshold:n})}),{target:e,isVisible:o}};export{c as u};

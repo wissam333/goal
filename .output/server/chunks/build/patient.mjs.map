@@ -1,0 +1,1 @@
+{"version":3,"file":"patient.mjs","sources":["../../../../middleware/patient.js"],"names":["patient","defineNuxtRouteMiddleware","to"],"mappings":"wgBAAA,MAAAA,EAAeC,GAA2BC,IAAD"}

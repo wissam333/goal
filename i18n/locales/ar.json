@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "standings": "الترتيب",
+    "fixtures": "المباريات",
+    "teams": "الفرق",
+    "stats": "الإحصائيات",
+    "bracket": "الكأس"
+  },
+  "match": {
+    "upcoming": "قادمة",
+    "played": "منتهية",
+    "live": "مباشر",
+    "week": "الجولة",
+    "venue": "الملعب",
+    "goals": "الأهداف",
+    "motm": "أفضل لاعب",
+    "vote": "صوّت",
+    "voted": "تم التصويت",
+    "album": "الصور",
+    "video": "الفيديو",
+    "share": "شارك النتيجة",
+    "home": "主场",
+    "away": "ضيف",
+    "hours": "ساعة",
+    "minutes": "دقيقة",
+    "seconds": "ثانية",
+    "viewDetails": "عرض التفاصيل",
+    "noUpcoming": "لا توجد مباريات قادمة",
+    "votePrompt": "اختر أفضل لاعب في المباراة",
+    "noPhotos": "لا توجد صور بعد",
+    "h2h": "المواجهات السابقة"
+  },
+  "home": {
+    "latestResults": "آخر النتائج",
+    "fullTable": "عرض الجدول كاملاً",
+    "allTeams": "جميع الفرق",
+    "stats": {
+      "played": "المباريات",
+      "goals": "الأهداف",
+      "topScorer": "الهداف",
+      "currentWeek": "الأسبوع الحالي"
+    }
+  },
+  "team": {
+    "players": "اللاعبون",
+    "results": "النتائج",
+    "upcoming": "القادمة",
+    "stats": "الإحصائيات",
+    "founded": "تأسس",
+    "noPlayers": "لا يوجد لاعبون"
+  },
+  "player": {
+    "goals": "أهداف",
+    "assists": "تمريرات",
+    "appearances": "مباريات",
+    "motmWins": "أفضل لاعب",
+    "seasonProgress": "التقدم الموسمي",
+    "matchHistory": "سجل المباريات",
+    "noMatches": "لا توجد مباريات",
+    "share": "مشاركة اللاعب"
+  },
+  "standings": {
+    "team": "الفريق",
+    "played": "لعب",
+    "won": "فاز",
+    "drawn": "تعادل",
+    "lost": "خسر",
+    "gf": "له",
+    "ga": "عليه",
+    "gd": "الفارق",
+    "points": "نقاط",
+    "form": "الشكل",
+    "group": "مجموعة",
+    "advance": "تأهل",
+    "danger": "خطر"
+  },
+  "fixtures": {
+    "all": "الكل",
+    "matches": "مباراة",
+    "back": "عودة"
+  },
+  "stats": {
+    "totalTeams": "عدد الفرق",
+    "totalGoals": "إجمالي الأهداف",
+    "avgGoals": "متوسط الأهداف",
+    "topScorer": "الهداف",
+    "topAssists": "أكثر تمريرات",
+    "motmLeader": "الأكثر تتويجاً",
+    "matchStats": "إحصائيات المباريات",
+    "totalMatches": "إجمالي المباريات",
+    "mostGoals": "الأهداف في مباراة",
+    "cleanSheets": "شباك نظيفة",
+    "album": "ألبوم الموسم"
+  },
+  "bracket": {
+    "groupStage": "دور المجموعات",
+    "knockout": "الأدوار الإقصائية",
+    "placeholder": "سيتم الإعلان قريباً",
+    "final": "النهائي",
+    "semifinal": "نصف النهائي"
+  },
+  "footer": {
+    "tagline": "تابع نتائج وجدول دوري كرة القدم السنوي",
+    "joinWhatsApp": "انضم لمجموعة واتساب",
+    "quickLinks": "روابط سريعة",
+    "season": "الموسم",
+    "teamsCount": "8 فرق",
+    "location": "الملعب الرئيسي",
+    "builtWith": "بُني بـ"
+  },
+  "error": {
+    "noData": "لا توجد بيانات"
+  },
+  "lightMode": "وضع النهار",
+  "darkMode": "وضع الليل",
+  "menu": "القائمة",
+  "leagueName": "دوري القرية السنوي"
+}
