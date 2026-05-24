@@ -25,14 +25,6 @@ export default defineNuxtConfig({
       repo: "goal",
       branch: "main",
     },
-    i18n: {
-      defaultLocale: "ar",
-    },
-    editor: {
-      commands: {
-        exclude: [],
-      },
-    },
   },
 
   colorMode: {
@@ -97,9 +89,6 @@ export default defineNuxtConfig({
 
   app: {
     pageTransition: { name: "page" },
-    layoutTransition: false,
-
-
     head: {
       title: "دوري كرة القدم السنوي",
       htmlAttrs: { lang: "ar" },
@@ -111,12 +100,6 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", href: "/logo/logo-web.png", type: "image/png" },
-        {
-          rel: "stylesheet",
-          href: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
-          media: "print",
-          onload: "this.media='all'",
-        },
       ],
     },
   },
