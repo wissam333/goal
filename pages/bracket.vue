@@ -1,11 +1,11 @@
 <template>
   <div class="page-wrap">
-    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.bracket')"
       icon="mdi:tournament"
       :is-rtl="locale === 'ar'"
     />
+    <div class="container">
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-wrap">
@@ -276,7 +276,6 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 32px); }
-.container { padding-top: 20px; }
 
 .mb-4 { margin-bottom: 24px; }
 

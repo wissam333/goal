@@ -1,11 +1,11 @@
 <template>
   <div class="page-wrap">
-    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.teams')"
       icon="mdi:shield-outline"
       :is-rtl="locale === 'ar'"
     />
+    <div class="container">
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-grid">
@@ -189,7 +189,6 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 34px); }
-.container { padding-top: 20px; }
 
 .mb-4 { margin-bottom: 24px; }
 

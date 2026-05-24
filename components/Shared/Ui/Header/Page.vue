@@ -1,5 +1,5 @@
 <template>
-  <div class="page-header" :class="{ 'has-back': showBack }">
+  <div class="page-header container" :class="{ 'has-back': showBack }">
     <!-- Left: back btn + title block -->
     <div class="ph-left">
       <button v-if="showBack" class="ph-back-btn" @click="handleBack">

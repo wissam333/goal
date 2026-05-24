@@ -1,11 +1,11 @@
 <template>
   <div class="page-wrap">
-    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.fixtures')"
       icon="mdi:calendar-outline"
       :is-rtl="locale === 'ar'"
     />
+    <div class="container">
 
     <!-- Filter bar -->
     <div class="filter-bar">
@@ -275,7 +275,6 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 32px); }
-.container { padding-top: 20px; }
 
 // ── Filter bar ─────────────────────────────────────────────────────────────────
 .filter-bar {

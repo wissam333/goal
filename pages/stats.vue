@@ -1,11 +1,11 @@
 <template>
   <div class="page-wrap">
-    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.stats')"
       icon="mdi:chart-bar"
       :is-rtl="locale === 'ar'"
     />
+    <div class="container">
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-wrap">
@@ -278,7 +278,6 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 32px); }
-.container { padding-top: 20px; }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
 .skeleton-wrap { display: flex; flex-direction: column; gap: 20px; }
