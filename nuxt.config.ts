@@ -59,9 +59,6 @@ export default defineNuxtConfig({
     "/fixtures": { prerender: true },
     "/bracket": { prerender: true },
     "/stats": { prerender: true },
-    "/teams/**": { prerender: true },
-    "/players/**": { prerender: true },
-    "/matches/**": { prerender: true },
     "/studio/**": { ssr: false },
   },
 
@@ -144,8 +141,10 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ["**/*.{js,css,html,png,webp,svg,woff2}"],
+      globIgnores: ["**/node_modules/**", "**/_studio-app/**"],
       navigateFallback: "/",
       navigateFallbackDenylist: [/^\/studio\//],
+      maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/.*\/api\/.*$/,
@@ -169,6 +168,9 @@ export default defineNuxtConfig({
   nitro: {
     compressPublicAssets: true,
     minify: true,
+    prerender: {
+      failOnError: false,
+    },
   },
 
   compatibilityDate: "2025-12-29",

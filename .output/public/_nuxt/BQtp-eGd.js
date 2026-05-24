@@ -1,1 +1,0 @@
-import{_ as t}from"./BxnOArdW.js";import{_ as a,c as o,t as c,a as s}from"./JmflaFIn.js";const _={class:"center-wrap"},n={__name:"index",setup(r){return(p,m)=>{const e=t;return s(),o("div",_,[c(e,{src:"/uae-handbal-logo.png",alt:""})])}}},l=a(n,[["__scopeId","data-v-78fb9579"]]);export{l as default};

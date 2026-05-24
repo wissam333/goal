@@ -1,2 +1,0 @@
-const a=[".c[data-v-54211be6]{background:#ea1c24;color:#b3b3b3;font-size:15px;font-weight:700}@media(max-width:768px){.c[data-v-54211be6]{font-size:12px;margin:60px 0 0;width:100vw}}.c .wrap[data-v-54211be6]{align-items:center;display:flex;justify-content:center;padding:30px 0}@media(max-width:991px){.c .wrap[data-v-54211be6]{flex-direction:column;row-gap:20px}}"];export{a as default};
-//# sourceMappingURL=CopyRight-styles.2_tDf25T.mjs.map
