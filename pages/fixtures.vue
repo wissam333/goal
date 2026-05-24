@@ -1,12 +1,11 @@
 <template>
   <div class="page-wrap">
+    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.fixtures')"
       icon="mdi:calendar-outline"
       :is-rtl="locale === 'ar'"
     />
-
-    <div class="container">
 
     <!-- Filter bar -->
     <div class="filter-bar">

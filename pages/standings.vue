@@ -1,12 +1,11 @@
 <template>
   <div class="page-wrap">
+    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.standings')"
       icon="mdi:table"
       :is-rtl="locale === 'ar'"
     />
-
-    <div class="container">
       <!-- Loading -->
       <div v-if="pending" class="skeleton-wrap">
         <div v-for="i in 8" :key="i" class="skeleton-row" />

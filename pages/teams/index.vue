@@ -1,12 +1,11 @@
 <template>
   <div class="page-wrap">
+    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.teams')"
       icon="mdi:shield-outline"
       :is-rtl="locale === 'ar'"
     />
-
-    <div class="container">
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-grid">

@@ -1,12 +1,11 @@
 <template>
   <div class="page-wrap">
+    <div class="container">
     <SharedUiHeaderPage
       :title="$t('nav.stats')"
       icon="mdi:chart-bar"
       :is-rtl="locale === 'ar'"
     />
-
-    <div class="container">
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-wrap">
