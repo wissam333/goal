@@ -1,0 +1,208 @@
+{
+  "leagueName": "Annual Village League",
+  "lightMode": "Light Mode",
+  "darkMode": "Dark Mode",
+  "menu": "Menu",
+  "Theme": "Theme",
+  "Mode": "Mode",
+  "Light": "Light",
+  "Dark": "Dark",
+  "Color": "Color",
+  "logout": "Logout",
+  "confirmLogout": "Confirm Logout",
+  "logoutConfirmMessage": "Are you sure you want to logout?",
+  "cancel": "Cancel",
+  "collapse": "Collapse",
+  "close_dialog": "Close",
+  "no-data": "No data available",
+  "barcode": "Barcode",
+  "closeCamera": "Close Camera",
+  "scanBarcode": "Scan Barcode",
+  "scannerReady": "Scanner Ready",
+  "scannerOff": "Scanner Off",
+  "nativeScannerActive": "Native Scanner Active",
+  "centerBarcode": "Center the barcode",
+  "startingCamera": "Starting Camera",
+  "videoName": "Video Name",
+  "enterVideoName": "Enter video name",
+  "imageName": "Image Name",
+  "enterImageName": "Enter image name",
+  "viewFile": "View File",
+  "deleteEntry": "Delete",
+  "fileName": "File Name",
+  "enterFileName": "Enter file name",
+  "searchPlaceholder": "Search...",
+  "firstPage": "First Page",
+  "previousPage": "Previous Page",
+  "nextPage": "Next Page",
+  "lastPage": "Last Page",
+  "close": "Close",
+  "dragOrClickVideo": "Drag & drop video here or click to upload",
+  "videoFormatsHint": "Supported formats: MP4, WebM, Ogg",
+  "processing": "Processing",
+  "addVideo": "Add Video",
+  "dragOrClickFile": "Drag & drop file here or click to upload",
+  "fileFormatsHint": "All formats supported",
+  "file": "File",
+  "addFile": "Add File",
+  "dragOrClickImage": "Drag & drop image here or click to upload",
+  "imageFormatsHint": "Supported formats: JPG, PNG, WebP",
+  "addImage": "Add Image",
+  "filters": "Filters",
+  "clearAll": "Clear All",
+  "apply": "Apply",
+  "loading": "Loading",
+  "actions": "Actions",
+  "previous": "Previous",
+  "next": "Next",
+  "showing": "Showing",
+  "of": "of",
+  "page": "Page",
+  "allDates": "All Dates",
+  "today": "Today",
+  "thisWeek": "This Week",
+  "thisMonth": "This Month",
+  "thisYear": "This Year",
+  "reset": "Reset",
+  "No options found": "No options found",
+  "noResults": "No results found",
+  "exit_title": "Exit",
+  "exit_subtitle": "Are you sure you want to exit?",
+  "exit": "Exit",
+  "videosOnly": "Videos Only",
+  "fileReadError": "Error reading file",
+  "imagesOnly": "Images Only",
+  "bottomNav": "Bottom Navigation",
+
+  "nav": {
+    "home": "Home",
+    "standings": "Standings",
+    "fixtures": "Fixtures",
+    "teams": "Teams",
+    "stats": "Stats",
+    "bracket": "Bracket"
+  },
+
+  "match": {
+    "upcoming": "Upcoming",
+    "played": "Played",
+    "live": "Live",
+    "week": "Week",
+    "goals": "Goals",
+    "motm": "Man of the Match",
+    "vote": "Vote",
+    "voted": "Voted",
+    "album": "Photos",
+    "video": "Video",
+    "share": "Share",
+    "home": "Home",
+    "away": "Away",
+    "hours": "hours",
+    "minutes": "min",
+    "seconds": "sec",
+    "noUpcoming": "No upcoming matches",
+    "votePrompt": "Who was the man of the match?",
+    "noPhotos": "No photos available",
+    "h2h": "Head to Head",
+    "venue": "Venue",
+    "viewDetails": "View Details"
+  },
+
+  "home": {
+    "nextMatch": "Next Match",
+    "viewMatch": "View Match",
+    "lastMatch": "Last Match",
+    "fullTable": "Full Table",
+    "allTeams": "All Teams",
+    "latestResults": "Latest Results",
+    "stats": {
+      "played": "Matches",
+      "goals": "Goals",
+      "topScorer": "Top Scorer",
+      "currentWeek": "Current Week"
+    }
+  },
+
+  "standings": {
+    "team": "Team",
+    "played": "Pld",
+    "won": "W",
+    "drawn": "D",
+    "lost": "L",
+    "gf": "GF",
+    "ga": "GA",
+    "gd": "GD",
+    "points": "Pts",
+    "form": "Form",
+    "group": "Group",
+    "advance": "Advance",
+    "danger": "Danger"
+  },
+
+  "fixtures": {
+    "all": "All",
+    "matches": "Matches",
+    "back": "Back"
+  },
+
+  "stats": {
+    "totalTeams": "Teams",
+    "totalGoals": "Total Goals",
+    "avgGoals": "Avg Goals",
+    "topScorer": "Top Scorer",
+    "topAssists": "Top Assists",
+    "motmLeader": "MOTM Leader",
+    "totalMatches": "Matches",
+    "cleanSheets": "Clean Sheets",
+    "matchStats": "Match Stats",
+    "mostGoals": "Most Goals",
+    "album": "Season Album"
+  },
+
+  "bracket": {
+    "groupStage": "Group Stage",
+    "knockout": "Knockout",
+    "placeholder": "Data coming soon",
+    "final": "Final",
+    "semifinal": "Semi-Final"
+  },
+
+  "player": {
+    "goals": "Goals",
+    "assists": "Assists",
+    "appearances": "Apps",
+    "motmWins": "MOTM",
+    "seasonProgress": "Season Progress",
+    "matchHistory": "Match History",
+    "noMatches": "No matches played",
+    "share": "Share"
+  },
+
+  "team": {
+    "players": "Players",
+    "results": "Results",
+    "upcoming": "Upcoming",
+    "founded": "Founded",
+    "noPlayers": "No players yet",
+    "stats": "Team Stats"
+  },
+
+  "footer": {
+    "tagline": "Annual Village Football League",
+    "joinWhatsApp": "Join WhatsApp Group",
+    "quickLinks": "Quick Links",
+    "season": "Season",
+    "teamsCount": "Teams",
+    "location": "Location",
+    "builtWith": "Built with"
+  },
+
+  "error": {
+    "noData": "Sorry, no data available at the moment"
+  },
+
+  "sidebar": {
+    "orders": "Orders",
+    "dashboard": "Dashboard"
+  }
+}
