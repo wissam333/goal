@@ -15,7 +15,6 @@ goalScorers:
   - { player: "hadi-mahmoud", team: "aytam", minute: 44 }
   - { player: "omar-abdullah", team: "alnasr", minute: 22 }
   - { player: "omar-abdullah", team: "alnasr", minute: 60 }
-  - { player: "abdullah-mohammed", team: "alqadsia", minute: 88, note: "own goal" }
 motmCandidates:
   - "omar-abdullah"
   - "faris-nour"

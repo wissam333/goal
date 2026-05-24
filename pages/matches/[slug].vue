@@ -498,14 +498,7 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: 0 0 calc(var(--bottom-nav-height) + 34px);
-  max-width: 800px;
-  margin: 0 auto;
-  padding-top: var(--header-height);
-
-  @media (max-width: 576px) {
-    padding-top: var(--header-height-mobile);
-  }
+  padding-bottom: calc(var(--bottom-nav-height) + 32px);
 }
 
 // ── Back ───────────────────────────────────────────────────────────────────────

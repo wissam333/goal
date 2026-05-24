@@ -6,6 +6,8 @@
       :is-rtl="locale === 'ar'"
     />
 
+    <div class="container">
+
     <!-- Loading -->
     <div v-if="pending" class="skeleton-wrap">
       <div class="skeleton-section" />
@@ -153,6 +155,7 @@
         />
       </div>
     </template>
+    </div>
   </div>
 </template>
 
@@ -269,18 +272,10 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: var(--page-padding);
-  padding-bottom: calc(var(--bottom-nav-height) + 34px);
-  padding-top: calc(var(--header-height) + 16px);
-  max-width: 860px;
-  margin: 0 auto;
-
-  @media (max-width: 576px) {
-    padding: var(--page-padding-mobile);
-    padding-bottom: calc(var(--bottom-nav-height) + 34px);
-    padding-top: calc(var(--header-height-mobile) + 14px);
-  }
+  padding-bottom: calc(var(--bottom-nav-height) + 32px);
 }
+
+.container { padding-top: 20px; max-width: 860px; }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
 .skeleton-wrap { display: flex; flex-direction: column; gap: 20px; }

@@ -10,12 +10,11 @@
         :data-caption="captions?.[i] || ''"
         class="album-item"
       >
-        <NuxtImg
+        <img
           :src="img"
-          format="webp"
           loading="lazy"
-          :placeholder="[50, 50, 80, 3]"
           class="album-thumb"
+          @error="onImgError"
         />
       </a>
     </div>
@@ -31,6 +30,11 @@ const props = defineProps({
 })
 
 const galleryId = computed(() => `album-${Math.random().toString(36).slice(2, 8)}`)
+
+const onImgError = (e) => {
+  e.target.src = '/default-avatar.jpg'
+  e.target.onerror = null
+}
 </script>
 
 <style scoped>

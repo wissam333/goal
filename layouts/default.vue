@@ -4,6 +4,7 @@
     :class="locale === 'ar' ? 'bodyAR' : 'bodyEN'"
   >
     <SharedNavbar />
+    <div class="navbar-spacer" />
     <slot />
     <ClientOnly>
       <SharedUiNavigationMobileBottomBar :items="bottomNavItems" />
@@ -42,5 +43,13 @@ useSeoMeta({
   overflow-x: hidden;
   min-height: 100dvh;
   background: var(--bg-page);
+}
+
+.navbar-spacer {
+  height: var(--header-height);
+
+  @media (max-width: 991.98px) {
+    height: var(--header-height-mobile);
+  }
 }
 </style>

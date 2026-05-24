@@ -6,6 +6,8 @@
       :is-rtl="locale === 'ar'"
     />
 
+    <div class="container">
+
     <!-- Loading -->
     <div v-if="pending" class="skeleton-grid">
       <div v-for="i in 8" :key="i" class="skeleton-card" />
@@ -104,6 +106,7 @@
         </div>
       </div>
     </template>
+    </div>
   </div>
 </template>
 
@@ -187,18 +190,12 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: var(--page-padding);
   padding-bottom: calc(var(--bottom-nav-height) + 34px);
-  padding-top: calc(var(--header-height) + 16px);
   max-width: 1000px;
   margin: 0 auto;
-
-  @media (max-width: 576px) {
-    padding: var(--page-padding-mobile);
-    padding-bottom: calc(var(--bottom-nav-height) + 34px);
-    padding-top: calc(var(--header-height-mobile) + 14px);
-  }
 }
+
+.container { padding-top: 20px; }
 
 .mb-4 { margin-bottom: 24px; }
 

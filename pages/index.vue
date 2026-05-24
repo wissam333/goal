@@ -1,8 +1,9 @@
 <template>
   <div class="page-wrap">
 
-    <!-- ── Next Match ─────────────────────────────────────── -->
-    <section class="section next-match-section">
+    <div class="container">
+
+      <!-- ── Next Match ─────────────────────────────────── -->
       <div v-if="nextMatch?.slug" class="hero-card">
         <div class="hero-badge">
           <Icon name="mdi:clock-outline" size="14" />
@@ -20,7 +21,7 @@
           <div class="hero-center">
             <span class="hero-time">{{ formatMatchTime(nextMatch.date) }}</span>
             <span class="hero-date">{{ formatMatchDate(nextMatch.date) }}</span>
-            <span class="hero-venue">
+            <span v-if="nextMatch.venue" class="hero-venue">
               <Icon name="mdi:map-marker-outline" size="12" />
               {{ nextMatch.venue }}
             </span>
@@ -44,106 +45,108 @@
         <Icon name="game-icons:soccer-ball" size="40" />
         <p>{{ $t("match.noUpcoming") }}</p>
       </div>
-    </section>
 
-    <!-- ── Last Match Result ──────────────────────────────── -->
-    <section v-if="lastMatch?.slug" class="section last-section">
-      <div class="section-label">
-        <Icon name="mdi:clock-check-outline" size="14" />
-        {{ $t("home.lastMatch") }}
-      </div>
-
-      <NuxtLink :to="`/matches/${lastMatch.slug}`" class="last-card">
-        <div class="last-teams">
-          <div class="last-team">
-            <NuxtImg :src="`/teams/${lastMatch.homeTeam}.svg`" :alt="lastMatch.homeTeam" width="28" height="28" class="last-logo" />
-            <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
-          </div>
-
-          <div class="last-score">
-            <span class="last-num" :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }">{{ lastMatch.homeScore }}</span>
-            <span class="last-sep">–</span>
-            <span class="last-num" :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }">{{ lastMatch.awayScore }}</span>
-          </div>
-
-          <div class="last-team right">
-            <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
-            <NuxtImg :src="`/teams/${lastMatch.awayTeam}.svg`" :alt="lastMatch.awayTeam" width="28" height="28" class="last-logo" />
-          </div>
+      <!-- ── Last Match ────────────────────────────────── -->
+      <div v-if="lastMatch?.slug" class="mt-4">
+        <div class="section-label">
+          <Icon name="mdi:clock-check-outline" size="14" />
+          {{ $t("home.lastMatch") }}
         </div>
 
-        <div class="last-meta">
-          <span><Icon name="mdi:calendar-outline" size="11" /> {{ formatShortDate(lastMatch.date) }}</span>
-          <span v-if="lastMatch.venue"><Icon name="mdi:map-marker-outline" size="11" /> {{ lastMatch.venue }}</span>
+        <NuxtLink :to="`/matches/${lastMatch.slug}`" class="last-card">
+          <div class="last-teams">
+            <div class="last-team">
+              <NuxtImg :src="`/teams/${lastMatch.homeTeam}.svg`" :alt="lastMatch.homeTeam" width="28" height="28" class="last-logo" />
+              <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
+            </div>
+
+            <div class="last-score">
+              <span class="last-num" :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }">{{ lastMatch.homeScore }}</span>
+              <span class="last-sep">–</span>
+              <span class="last-num" :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }">{{ lastMatch.awayScore }}</span>
+            </div>
+
+            <div class="last-team right">
+              <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
+              <NuxtImg :src="`/teams/${lastMatch.awayTeam}.svg`" :alt="lastMatch.awayTeam" width="28" height="28" class="last-logo" />
+            </div>
+          </div>
+
+          <div class="last-meta">
+            <span><Icon name="mdi:calendar-outline" size="11" /> {{ formatShortDate(lastMatch.date) }}</span>
+            <span v-if="lastMatch.venue"><Icon name="mdi:map-marker-outline" size="11" /> {{ lastMatch.venue }}</span>
+          </div>
+        </NuxtLink>
+      </div>
+
+      <!-- ── Quick Stats ───────────────────────────────── -->
+      <div class="mt-4">
+        <SharedUiCardsStats :stats="quickStats" :columns="4" />
+      </div>
+
+      <!-- ── Standings ─────────────────────────────────── -->
+      <div class="mt-4">
+        <div class="section-header">
+          <h2 class="section-title">
+            <Icon name="mdi:table" size="18" />
+            {{ $t("nav.standings") }}
+          </h2>
+          <NuxtLink to="/standings" class="section-link">
+            {{ $t("home.fullTable") }}
+            <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
+          </NuxtLink>
         </div>
-      </NuxtLink>
-    </section>
 
-    <!-- ── Quick Stats ───────────────────────────────────── -->
-    <section class="section">
-      <SharedUiCardsStats :stats="quickStats" :columns="4" />
-    </section>
-
-    <!-- ── Standings Preview ──────────────────────────────── -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Icon name="mdi:table" size="18" />
-          {{ $t("nav.standings") }}
-        </h2>
-        <NuxtLink to="/standings" class="section-link">
-          {{ $t("home.fullTable") }}
-          <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
-        </NuxtLink>
+        <div class="table-card">
+          <table class="mini-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="th-team">{{ $t("standings.team") }}</th>
+                <th>{{ $t("standings.played") }}</th>
+                <th>{{ $t("standings.points") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
+                <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
+                <td class="team-cell">
+                  <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="22" height="22" class="mini-logo" />
+                  <span>{{ team.title }}</span>
+                </td>
+                <td class="num-cell">{{ team.P }}</td>
+                <td class="pts-cell">{{ team.Pts }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="table-card">
-        <table class="mini-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th class="th-team">{{ $t("standings.team") }}</th>
-              <th>{{ $t("standings.played") }}</th>
-              <th>{{ $t("standings.points") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
-              <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
-              <td class="team-cell">
-                <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="22" height="22" class="mini-logo" />
-                <span>{{ team.title }}</span>
-              </td>
-              <td class="num-cell">{{ team.P }}</td>
-              <td class="pts-cell">{{ team.Pts }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <!-- ── Teams ─────────────────────────────────────── -->
+      <div class="mt-4">
+        <div class="section-header">
+          <h2 class="section-title">
+            <Icon name="mdi:shield-outline" size="18" />
+            {{ $t("nav.teams") }}
+          </h2>
+          <NuxtLink to="/teams" class="section-link">
+            {{ $t("home.allTeams") }}
+            <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
+          </NuxtLink>
+        </div>
 
-    <!-- ── Teams ──────────────────────────────────────────── -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <Icon name="mdi:shield-outline" size="18" />
-          {{ $t("nav.teams") }}
-        </h2>
-        <NuxtLink to="/teams" class="section-link">
-          {{ $t("home.allTeams") }}
-          <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
-        </NuxtLink>
+        <div class="row g-2">
+          <div v-for="team in teams" :key="team.slug" class="col-6 col-md-3">
+            <NuxtLink :to="`/teams/${team.slug}`" class="team-card">
+              <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="44" height="44" class="team-card-logo" />
+              <span class="team-card-name">{{ team.title }}</span>
+              <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
+            </NuxtLink>
+          </div>
+        </div>
       </div>
 
-      <div class="teams-grid">
-        <NuxtLink v-for="team in teams" :key="team.slug" :to="`/teams/${team.slug}`" class="team-card">
-          <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="44" height="44" class="team-card-logo" />
-          <span class="team-card-name">{{ team.title }}</span>
-          <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
-        </NuxtLink>
-      </div>
-    </section>
-
+    </div>
   </div>
 </template>
 
@@ -233,23 +236,20 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding-top: var(--header-height);
   padding-bottom: calc(var(--bottom-nav-height) + 24px);
-  @media (max-width: 991.98px) { padding-top: var(--header-height-mobile); }
 }
 
-.section {
-  padding: 24px 20px;
-  max-width: 640px;
-  margin: 0 auto;
-  @media (max-width: 576px) { padding: 16px 14px; }
+.container {
+  max-width: 680px;
+  padding-top: 28px;
+  @media (max-width: 576px) { padding-top: 16px; }
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .section-title {
@@ -278,7 +278,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -286,11 +286,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   margin-bottom: 10px;
 }
 
-// ── Next Match Hero ────────────────────────────────────────
-.next-match-section {
-  max-width: 640px;
-}
-
+// ── Next Match ─────────────────────────────────────────────
 .hero-card {
   background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%);
   border-radius: 20px;
@@ -311,10 +307,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     opacity: 0.04;
   }
 
-  @media (max-width: 480px) {
-    padding: 24px 16px;
-    border-radius: 16px;
-  }
+  @media (max-width: 480px) { padding: 24px 16px; border-radius: 16px; }
 }
 
 .hero-badge {
@@ -339,7 +332,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   width: 100%;
   position: relative;
   z-index: 1;
-
   @media (max-width: 480px) { gap: 12px; }
 }
 
@@ -356,7 +348,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   height: 64px;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-
   @media (max-width: 480px) { width: 48px; height: 48px; }
 }
 
@@ -374,7 +365,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 80px;
 }
 
@@ -390,7 +381,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-size: 0.7rem;
   color: rgba(255,255,255,0.55);
   text-align: center;
-  white-space: nowrap;
 }
 
 .hero-venue {
@@ -405,7 +395,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 20px;
+  padding: 10px 22px;
   background: var(--primary);
   color: #fff;
   border-radius: 999px;
@@ -415,11 +405,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   transition: all 0.15s;
   position: relative;
   z-index: 1;
-
-  &:hover {
-    background: color-mix(in srgb, var(--primary) 85%, #000);
-    transform: translateY(-1px);
-  }
+  &:hover { background: color-mix(in srgb, var(--primary) 85%, #000); }
 }
 
 .hero-empty {
@@ -435,10 +421,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 // ── Last Match ─────────────────────────────────────────────
-.last-section {
-  max-width: 640px;
-}
-
 .last-card {
   display: block;
   background: var(--bg-surface);
@@ -447,7 +429,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   padding: 16px 20px;
   text-decoration: none;
   transition: all 0.15s;
-
   &:hover { border-color: var(--primary); }
   &:active { transform: scale(0.99); }
 }
@@ -463,17 +444,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: flex;
   align-items: center;
   gap: 8px;
-
   &.right { justify-content: flex-end; }
 }
 
-.last-logo {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
+.last-logo { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
 
 .last-name {
   font-size: 0.88rem;
@@ -499,15 +473,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   color: var(--text-primary);
   min-width: 22px;
   text-align: center;
-
   &.winner { color: var(--primary); }
 }
 
-.last-sep {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: 400;
-}
+.last-sep { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
 
 .last-meta {
   display: flex;
@@ -517,11 +486,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   border-top: 1px solid var(--border-color);
   font-size: 0.72rem;
   color: var(--text-muted);
-
   span { display: flex; align-items: center; gap: 4px; }
 }
 
-// ── Standings Table ────────────────────────────────────────
+// ── Standings ──────────────────────────────────────────────
 .table-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
@@ -532,18 +500,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .mini-table {
   width: 100%;
   border-collapse: collapse;
-
   thead tr {
     background: var(--bg-elevated);
-    th {
-      padding: 10px 14px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      text-align: center;
-    }
+    th { padding: 10px 14px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-align: center; }
     th:first-child { width: 36px; }
     th.th-team { text-align: start; }
   }
@@ -562,14 +521,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-
+  width: 24px; height: 24px; border-radius: 6px;
+  font-size: 0.78rem; font-weight: 700;
+  background: var(--bg-elevated); color: var(--text-muted);
   &.pos-top { background: var(--primary-soft); color: var(--primary); }
 }
 
@@ -583,19 +537,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .mini-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
-
 .num-cell { font-size: 0.85rem; color: var(--text-muted); }
 .pts-cell { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
 
-// ── Teams Grid ─────────────────────────────────────────────
-.teams-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-
-  @media (max-width: 576px) { grid-template-columns: repeat(2, 1fr); }
-}
-
+// ── Teams ──────────────────────────────────────────────────
 .team-card {
   display: flex;
   flex-direction: column;
@@ -607,24 +552,13 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   border-radius: 14px;
   text-decoration: none;
   transition: all 0.15s;
-
+  height: 100%;
   &:hover { border-color: var(--primary); }
   &:active { transform: scale(0.97); background: var(--bg-elevated); }
 }
 
-.team-card-logo {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-}
-
-.team-card-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
-}
-
+.team-card-logo { width: 44px; height: 44px; object-fit: contain; }
+.team-card-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); text-align: center; }
 .team-card-pts {
   font-size: 1rem;
   font-weight: 800;

@@ -6,6 +6,8 @@
       :is-rtl="locale === 'ar'"
     />
 
+    <div class="container">
+
     <!-- Loading -->
     <div v-if="pending" class="skeleton-wrap">
       <div class="skeleton-tabs" />
@@ -171,6 +173,7 @@
         </SharedUiFeedbackEmptyState>
       </div>
     </template>
+    </div>
   </div>
 </template>
 
@@ -179,8 +182,8 @@ const { locale, t } = useI18n();
 const activeTab = ref('groups');
 
 const tabs = computed(() => [
-  { value: 'groups', label: t('bracket.groupStage'), icon: 'mdi:table' },
-  { value: 'knockout', label: t('bracket.knockout'), icon: 'mdi:trophy-outline' },
+  { value: 'groups', label: 'bracket.groupStage', icon: 'mdi:table' },
+  { value: 'knockout', label: 'bracket.knockout', icon: 'mdi:trophy-outline' },
 ]);
 
 const { data: teamsData, pending: teamsPending } = await useAsyncData(
@@ -247,14 +250,13 @@ const medalClass = (idx) => {
   return '';
 };
 
-// Knockout
 const semifinals = computed(() =>
-  matches.value.filter(m => m.status !== 'upcoming' && m.group === 'SF')
+  matches.value.filter(m => m.group === 'SF')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
 );
 
 const finals = computed(() =>
-  matches.value.filter(m => m.status !== 'upcoming' && m.group === 'F')
+  matches.value.filter(m => m.group === 'F')
     .sort((a, b) => new Date(a.date) - new Date(b.date))
 );
 
@@ -275,18 +277,10 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: var(--page-padding);
-  padding-bottom: calc(var(--bottom-nav-height) + 34px);
-  padding-top: calc(var(--header-height) + 16px);
-  max-width: 960px;
-  margin: 0 auto;
-
-  @media (max-width: 576px) {
-    padding: var(--page-padding-mobile);
-    padding-bottom: calc(var(--bottom-nav-height) + 34px);
-    padding-top: calc(var(--header-height-mobile) + 14px);
-  }
+  padding-bottom: calc(var(--bottom-nav-height) + 32px);
 }
+
+.container { padding-top: 20px; }
 
 .mb-4 { margin-bottom: 24px; }
 

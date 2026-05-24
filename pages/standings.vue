@@ -6,168 +6,121 @@
       :is-rtl="locale === 'ar'"
     />
 
-    <!-- Loading -->
-    <div v-if="pending" class="skeleton-wrap">
-      <div v-for="i in 8" :key="i" class="skeleton-row" />
-    </div>
-
-    <!-- Error -->
-    <SharedUiFeedbackEmptyState
-      v-else-if="error || !teams?.length"
-      :title="$t('error.noData')"
-      icon="mdi:alert-circle-outline"
-    />
-
-    <template v-else>
-      <!-- Group Tabs -->
-      <SharedUiNavigationTabs
-        v-if="groups.length > 1"
-        v-model="activeGroup"
-        :tabs="groupTabs"
-        class="mb-4"
-      />
-
-      <!-- Standings Table -->
-      <div class="standings-card">
-        <div class="table-responsive">
-          <table class="standings-table">
-            <thead>
-              <tr>
-                <th class="col-pos">#</th>
-                <th class="col-team">{{ $t("standings.team") }}</th>
-                <th class="col-num">{{ $t("standings.played") }}</th>
-                <th class="col-num">{{ $t("standings.won") }}</th>
-                <th class="col-num pc-only">{{ $t("standings.drawn") }}</th>
-                <th class="col-num pc-only">{{ $t("standings.lost") }}</th>
-                <th class="col-num pc-only">{{ $t("standings.gf") }}</th>
-                <th class="col-num pc-only">{{ $t("standings.ga") }}</th>
-                <th class="col-num pc-only">{{ $t("standings.gd") }}</th>
-                <th class="col-pts">{{ $t("standings.points") }}</th>
-                <th class="col-form">{{ $t("standings.form") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(entry, idx) in currentGroupStandings"
-                :key="entry.slug"
-                class="standings-row"
-                :class="{
-                  'zone-advance': idx < 2,
-                  'zone-danger': idx >= currentGroupStandings.length - 1,
-                }"
-                @click="navigateTo(`/teams/${entry.slug}`)"
-              >
-                <!-- Position -->
-                <td class="col-pos">
-                  <span class="pos-num" :class="posClass(idx)">{{
-                    idx + 1
-                  }}</span>
-                </td>
-
-                <!-- Team -->
-                <td class="col-team">
-                  <div class="team-cell">
-                    <div
-                      class="team-logo"
-                      :style="
-                        entry.color
-                          ? `background: ${entry.color}22; border-color: ${entry.color}44`
-                          : ''
-                      "
-                    >
-                      <NuxtImg
-                        v-if="entry.logo"
-                        :src="entry.logo"
-                        :alt="entry.title"
-                        width="28"
-                        height="28"
-                        format="webp"
-                        loading="lazy"
-                      />
-                      <span v-else class="team-initial">{{
-                        entry.title?.charAt(0)
-                      }}</span>
-                    </div>
-                    <span class="team-name">{{ entry.title }}</span>
-                  </div>
-                </td>
-
-                <!-- Stats -->
-                <td class="col-num">{{ entry.P }}</td>
-                <td class="col-num">{{ entry.W }}</td>
-                <td class="col-num pc-only">{{ entry.D }}</td>
-                <td class="col-num pc-only">{{ entry.L }}</td>
-                <td class="col-num pc-only">{{ entry.GF }}</td>
-                <td class="col-num pc-only">{{ entry.GA }}</td>
-                <td
-                  class="col-num pc-only"
-                  :class="
-                    entry.GD > 0 ? 'text-green' : entry.GD < 0 ? 'text-red' : ''
-                  "
-                >
-                  {{ entry.GD > 0 ? "+" : "" }}{{ entry.GD }}
-                </td>
-
-                <!-- Points -->
-                <td class="col-pts">
-                  <span class="pts-badge">{{ entry.Pts }}</span>
-                </td>
-
-                <!-- Form -->
-                <td class="col-form">
-                  <div class="form-pills">
-                    <span
-                      v-for="(result, fi) in entry.form"
-                      :key="fi"
-                      class="form-pill"
-                      :class="`form-${result.toLowerCase()}`"
-                      >{{ result }}</span
-                    >
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Legend -->
-        <div class="table-legend">
-          <span class="legend-item advance">
-            <span class="legend-dot" />
-            {{ $t("standings.advance") }}
-          </span>
-          <span class="legend-item danger">
-            <span class="legend-dot danger" />
-            {{ $t("standings.danger") }}
-          </span>
-        </div>
+    <div class="container">
+      <!-- Loading -->
+      <div v-if="pending" class="skeleton-wrap">
+        <div v-for="i in 8" :key="i" class="skeleton-row" />
       </div>
 
-      <!-- All Groups Summary (mini cards) -->
-      <div v-if="groups.length > 1" class="all-groups-row">
-        <div
-          v-for="group in groups"
-          :key="group"
-          class="group-mini-card"
-          @click="activeGroup = group"
-        >
-          <div class="group-mini-title">
-            {{ $t("standings.group") }} {{ group }}
+      <!-- Error -->
+      <SharedUiFeedbackEmptyState
+        v-else-if="error || !teams?.length"
+        :title="$t('error.noData')"
+        icon="mdi:alert-circle-outline"
+      />
+
+      <template v-else>
+        <!-- Group Tabs -->
+        <SharedUiNavigationTabs
+          v-if="groups.length > 1"
+          v-model="activeGroup"
+          :tabs="groupTabs"
+          class="mb-4"
+        />
+
+        <!-- Standings Table -->
+        <div class="standings-card">
+          <div class="table-responsive">
+            <table class="standings-table">
+              <thead>
+                <tr>
+                  <th class="col-pos">#</th>
+                  <th class="col-team">{{ $t("standings.team") }}</th>
+                  <th class="col-num">{{ $t("standings.played") }}</th>
+                  <th class="col-num">{{ $t("standings.won") }}</th>
+                  <th class="col-num pc-only">{{ $t("standings.drawn") }}</th>
+                  <th class="col-num pc-only">{{ $t("standings.lost") }}</th>
+                  <th class="col-num pc-only">{{ $t("standings.gf") }}</th>
+                  <th class="col-num pc-only">{{ $t("standings.ga") }}</th>
+                  <th class="col-num pc-only">{{ $t("standings.gd") }}</th>
+                  <th class="col-pts">{{ $t("standings.points") }}</th>
+                  <th class="col-form">{{ $t("standings.form") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(entry, idx) in currentGroupStandings"
+                  :key="entry.slug"
+                  class="standings-row"
+                  :class="{
+                    'zone-advance': idx < 2,
+                    'zone-danger': idx >= currentGroupStandings.length - 1,
+                  }"
+                  @click="navigateTo(`/teams/${entry.slug}`)"
+                >
+                  <td class="col-pos">
+                    <span class="pos-num" :class="posClass(idx)">{{ idx + 1 }}</span>
+                  </td>
+                  <td class="col-team">
+                    <div class="team-cell">
+                      <div
+                        class="team-logo"
+                        :style="entry.color ? `background: ${entry.color}22; border-color: ${entry.color}44` : ''"
+                      >
+                        <NuxtImg
+                          v-if="entry.logo"
+                          :src="entry.logo"
+                          :alt="entry.title"
+                          width="28" height="28" format="webp" loading="lazy"
+                        />
+                        <span v-else class="team-initial">{{ entry.title?.charAt(0) }}</span>
+                      </div>
+                      <span class="team-name">{{ entry.title }}</span>
+                    </div>
+                  </td>
+                  <td class="col-num">{{ entry.P }}</td>
+                  <td class="col-num">{{ entry.W }}</td>
+                  <td class="col-num pc-only">{{ entry.D }}</td>
+                  <td class="col-num pc-only">{{ entry.L }}</td>
+                  <td class="col-num pc-only">{{ entry.GF }}</td>
+                  <td class="col-num pc-only">{{ entry.GA }}</td>
+                  <td class="col-num pc-only" :class="entry.GD > 0 ? 'text-green' : entry.GD < 0 ? 'text-red' : ''">
+                    {{ entry.GD > 0 ? "+" : "" }}{{ entry.GD }}
+                  </td>
+                  <td class="col-pts">
+                    <span class="pts-badge">{{ entry.Pts }}</span>
+                  </td>
+                  <td class="col-form">
+                    <div class="form-pills">
+                      <span v-for="(result, fi) in entry.form" :key="fi" class="form-pill" :class="`form-${result.toLowerCase()}`">{{ result }}</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="group-mini-leaders">
-            <div
-              v-for="(entry, i) in getGroupStandings(group).slice(0, 2)"
-              :key="entry.slug"
-              class="group-leader"
-            >
-              <span class="leader-pos">{{ i + 1 }}</span>
-              <span class="leader-name">{{ entry.title }}</span>
-              <span class="leader-pts">{{ entry.Pts }}</span>
+          <div class="table-legend">
+            <span class="legend-item advance"><span class="legend-dot" /> {{ $t("standings.advance") }}</span>
+            <span class="legend-item danger"><span class="legend-dot danger" /> {{ $t("standings.danger") }}</span>
+          </div>
+        </div>
+
+        <div v-if="groups.length > 1" class="row g-3 mt-2">
+          <div v-for="group in groups" :key="group" class="col-md-6">
+            <div class="group-mini-card" @click="activeGroup = group">
+              <div class="group-mini-title">{{ $t("standings.group") }} {{ group }}</div>
+              <div class="group-mini-leaders">
+                <div v-for="(entry, i) in getGroupStandings(group).slice(0, 2)" :key="entry.slug" class="group-leader">
+                  <span class="leader-pos">{{ i + 1 }}</span>
+                  <span class="leader-name">{{ entry.title }}</span>
+                  <span class="leader-pts">{{ entry.Pts }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </template>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -292,18 +245,10 @@ useSeoMeta({
 
 <style lang="scss" scoped>
 .page-wrap {
-  padding: var(--page-padding);
-  padding-bottom: calc(var(--bottom-nav-height) + 34px);
-  padding-top: calc(var(--header-height) + 16px);
-  max-width: 960px;
-  margin: 0 auto;
-
-  @media (max-width: 576px) {
-    padding: var(--page-padding-mobile);
-    padding-bottom: calc(var(--bottom-nav-height) + 34px);
-    padding-top: calc(var(--header-height-mobile) + 14px);
-  }
+  padding-bottom: calc(var(--bottom-nav-height) + 32px);
 }
+
+.container { padding-top: 20px; }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
 .skeleton-wrap {
