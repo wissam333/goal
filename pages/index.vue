@@ -235,15 +235,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 </script>
 
 <style lang="scss" scoped>
-.page-wrap {
-  padding-bottom: calc(var(--bottom-nav-height) + 24px);
-}
+.page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 24px); }
 
-.container {
-  max-width: 680px;
-  padding-top: 28px;
-  @media (max-width: 576px) { padding-top: 16px; }
-}
+.container { padding-top: 28px; }
 
 .section-header {
   display: flex;

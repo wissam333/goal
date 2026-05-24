@@ -45,6 +45,8 @@
         </div>
       </div>
 
+      <div class="container">
+
       <!-- Stats row -->
       <div class="stats-wrap">
         <SharedUiCardsStats
@@ -174,6 +176,7 @@
             <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="16" class="row-arrow" />
           </div>
         </div>
+      </div>
       </div>
     </template>
   </div>

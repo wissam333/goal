@@ -244,10 +244,7 @@ useSeoMeta({
 </script>
 
 <style lang="scss" scoped>
-.page-wrap {
-  padding-bottom: calc(var(--bottom-nav-height) + 32px);
-}
-
+.page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 32px); }
 .container { padding-top: 20px; }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────

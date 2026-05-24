@@ -58,6 +58,8 @@
         </div>
       </div>
 
+      <div class="container">
+
       <!-- Stats row -->
       <div class="stats-section">
         <SharedUiCardsStats
@@ -150,6 +152,7 @@
         >
           {{ $t('player.share') }}
         </SharedUiButtonBase>
+      </div>
       </div>
     </template>
   </div>

@@ -278,11 +278,8 @@ useSeoMeta({
 </script>
 
 <style lang="scss" scoped>
-.page-wrap {
-  padding-bottom: calc(var(--bottom-nav-height) + 32px);
-}
-
-.container { padding-top: 20px; max-width: 860px; }
+.page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 32px); }
+.container { padding-top: 20px; }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
 .skeleton-wrap { display: flex; flex-direction: column; gap: 20px; }

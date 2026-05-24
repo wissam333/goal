@@ -115,6 +115,8 @@
         </div>
       </div>
 
+      <div class="container">
+
       <!-- ② Goal Scorers -->
       <div v-if="match.goalScorers?.length" class="section-card">
         <h3 class="section-title">
@@ -307,6 +309,7 @@
         >
           {{ $t('match.share') }}
         </SharedUiButtonBase>
+      </div>
       </div>
     </template>
   </div>

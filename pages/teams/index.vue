@@ -189,12 +189,7 @@ useSeoMeta({
 </script>
 
 <style lang="scss" scoped>
-.page-wrap {
-  padding-bottom: calc(var(--bottom-nav-height) + 34px);
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
+.page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 34px); }
 .container { padding-top: 20px; }
 
 .mb-4 { margin-bottom: 24px; }
