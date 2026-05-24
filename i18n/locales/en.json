@@ -35,6 +35,9 @@
     "latestResults": "Latest Results",
     "fullTable": "Full Table",
     "allTeams": "All Teams",
+    "lastMatch": "Last Match",
+    "nextMatch": "Next Match",
+    "viewMatch": "View Match",
     "stats": {
       "played": "Matches",
       "goals": "Goals",

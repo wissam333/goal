@@ -1,7 +1,7 @@
 ---
 title: "النور vs الأيتام"
 slug: "w1-alnour-vs-aytam"
-date: "2025-05-23T17:00:00"
+date: "2026-05-02T17:00:00"
 week: 1
 group: "A"
 venue: "الملعب الرئيسي"
@@ -20,7 +20,4 @@ motmCandidates:
   - "khaled-omar"
   - "yasser-ali"
 motmWinner: "ahmed-hassan"
-videoUrl: ""
-photos: []
-summary: ""
 ---

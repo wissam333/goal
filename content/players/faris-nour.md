@@ -4,7 +4,7 @@ slug: "faris-nour"
 team: "aytam"
 number: 9
 position: "مهاجم"
-goals: 1
-assists: 0
-appearances: 1
+goals: 3
+assists: 1
+appearances: 4
 ---

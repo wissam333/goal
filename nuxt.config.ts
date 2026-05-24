@@ -126,7 +126,7 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL || "",
       supabaseKey: process.env.SUPABASE_ANON_KEY || "",
       leagueName: "دوري القرية السنوي",
-      season: "2025",
+      season: "2026",
     },
   },
 

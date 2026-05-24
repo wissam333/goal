@@ -1,17 +1,10 @@
 <template>
   <header class="navbar" :class="{ scrolled: isScrolled }">
     <div class="navbar-inner">
-      <!-- Logo -->
       <NuxtLink to="/" class="navbar-brand">
-        <NuxtImg
-          src="/logo/logo-web.png"
-          alt="league logo"
-          width="36"
-          height="36"
-          format="webp"
-          loading="eager"
-          class="brand-logo"
-        />
+        <span class="brand-icon">
+          <Icon name="game-icons:soccer-ball" size="24" />
+        </span>
         <div class="brand-text">
           <span class="brand-name">{{ $t("leagueName") }}</span>
           <span class="brand-season">{{ config.public.season }}</span>
@@ -220,15 +213,20 @@ onMounted(() => {
   }
 }
 
-.brand-logo {
+.brand-icon {
   width: 36px;
   height: 36px;
-  object-fit: contain;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 10px;
+  flex-shrink: 0;
 
   @media (max-width: 991.98px) {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
 }
 

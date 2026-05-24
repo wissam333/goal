@@ -1,146 +1,103 @@
 <template>
   <div class="page-wrap">
-    <!-- ── Next Match Hero ──────────────────────────────────────────────────── -->
-    <section class="hero-section">
-      <div v-if="upcoming?.slug" class="next-match-card">
-        <div class="next-match-badge">
-          <Icon name="mdi:clock-outline" size="13" aria-hidden="true" />
-          {{ $t("match.upcoming") }} · {{ $t("match.week") }}
-          {{ upcoming.week }}
+
+    <!-- ── Next Match ─────────────────────────────────────── -->
+    <section class="section next-match-section">
+      <div v-if="nextMatch?.slug" class="hero-card">
+        <div class="hero-badge">
+          <Icon name="mdi:clock-outline" size="14" />
+          {{ $t("home.nextMatch") }} · {{ $t("match.week") }} {{ nextMatch.week }}
         </div>
 
-        <div class="teams-row">
-          <!-- Home team -->
-          <div class="team-side">
-            <NuxtLink
-              :to="`/teams/${upcoming.homeTeam}`"
-              class="team-logo-wrap"
-            >
-              <NuxtImg
-                :src="`/teams/${upcoming.homeTeam}.svg`"
-                :alt="upcoming.homeTeam"
-                width="72"
-                height="72"
-                class="team-logo"
-              />
+        <div class="hero-teams">
+          <div class="hero-team">
+            <NuxtLink :to="`/teams/${nextMatch.homeTeam}`" class="hero-logo-wrap">
+              <NuxtImg :src="`/teams/${nextMatch.homeTeam}.svg`" :alt="nextMatch.homeTeam" width="64" height="64" class="hero-logo" />
             </NuxtLink>
-            <span class="team-name">{{ getTeamName(upcoming.homeTeam) }}</span>
+            <span class="hero-team-name">{{ getTeamName(nextMatch.homeTeam) }}</span>
           </div>
 
-          <!-- Score / Time -->
-          <div class="match-center">
-            <div v-if="upcoming.status === 'played'" class="score-display">
-              <span class="score">{{ upcoming.homeScore }}</span>
-              <span class="score-sep">–</span>
-              <span class="score">{{ upcoming.awayScore }}</span>
-            </div>
-            <div
-              v-else-if="upcoming.status === 'live'"
-              class="score-display live"
-            >
-              <span class="live-dot" aria-hidden="true" />
-              <span class="score">{{ upcoming.homeScore }}</span>
-              <span class="score-sep">–</span>
-              <span class="score">{{ upcoming.awayScore }}</span>
-            </div>
-            <div v-else class="match-time-display">
-              <span class="match-time">{{
-                formatMatchTime(upcoming.date)
-              }}</span>
-              <span class="match-date">{{
-                formatMatchDate(upcoming.date)
-              }}</span>
-            </div>
-            <div class="match-venue">
-              <Icon
-                name="mdi:map-marker-outline"
-                size="13"
-                aria-hidden="true"
-              />
-              {{ upcoming.venue }}
-            </div>
+          <div class="hero-center">
+            <span class="hero-time">{{ formatMatchTime(nextMatch.date) }}</span>
+            <span class="hero-date">{{ formatMatchDate(nextMatch.date) }}</span>
+            <span class="hero-venue">
+              <Icon name="mdi:map-marker-outline" size="12" />
+              {{ nextMatch.venue }}
+            </span>
           </div>
 
-          <!-- Away team -->
-          <div class="team-side">
-            <NuxtLink
-              :to="`/teams/${upcoming.awayTeam}`"
-              class="team-logo-wrap"
-            >
-              <NuxtImg
-                :src="`/teams/${upcoming.awayTeam}.svg`"
-                :alt="upcoming.awayTeam"
-                width="72"
-                height="72"
-                class="team-logo"
-              />
+          <div class="hero-team">
+            <NuxtLink :to="`/teams/${nextMatch.awayTeam}`" class="hero-logo-wrap">
+              <NuxtImg :src="`/teams/${nextMatch.awayTeam}.svg`" :alt="nextMatch.awayTeam" width="64" height="64" class="hero-logo" />
             </NuxtLink>
-            <span class="team-name">{{ getTeamName(upcoming.awayTeam) }}</span>
+            <span class="hero-team-name">{{ getTeamName(nextMatch.awayTeam) }}</span>
           </div>
         </div>
 
-        <NuxtLink :to="`/matches/${upcoming.slug}`" class="hero-cta">
-          {{ $t("match.viewDetails") }}
-          <Icon name="mdi:arrow-left" size="16" aria-hidden="true" />
+        <NuxtLink :to="`/matches/${nextMatch.slug}`" class="hero-btn">
+          {{ $t("home.viewMatch") }}
+          <Icon :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'" size="15" />
         </NuxtLink>
       </div>
 
-      <!-- No upcoming match -->
-      <div v-else class="no-match-hero">
-        <Icon
-          name="game-icons:soccer-ball"
-          size="48"
-          class="no-match-icon"
-          aria-hidden="true"
-        />
+      <div v-else class="hero-empty">
+        <Icon name="game-icons:soccer-ball" size="40" />
         <p>{{ $t("match.noUpcoming") }}</p>
       </div>
     </section>
 
-    <!-- ── Results Ticker ────────────────────────────────────────────────────── -->
-    <section v-if="recentMatches?.length" class="ticker-section">
-      <div class="ticker-label">
-        <Icon name="mdi:lightning-bolt" size="14" aria-hidden="true" />
-        {{ $t("home.latestResults") }}
+    <!-- ── Last Match Result ──────────────────────────────── -->
+    <section v-if="lastMatch?.slug" class="section last-section">
+      <div class="section-label">
+        <Icon name="mdi:clock-check-outline" size="14" />
+        {{ $t("home.lastMatch") }}
       </div>
-      <ElementsMarquee
-        :duration="recentMatches.length * 8 + 's'"
-        :pause-on-hover="true"
-      >
-        <NuxtLink
-          v-for="m in recentMatches"
-          :key="m.slug"
-          :to="`/matches/${m.slug}`"
-          class="ticker-pill"
-        >
-          <span class="ticker-team">{{ getTeamName(m.homeTeam) }}</span>
-          <span class="ticker-score"
-            >{{ m.homeScore }} – {{ m.awayScore }}</span
-          >
-          <span class="ticker-team">{{ getTeamName(m.awayTeam) }}</span>
-        </NuxtLink>
-      </ElementsMarquee>
+
+      <NuxtLink :to="`/matches/${lastMatch.slug}`" class="last-card">
+        <div class="last-teams">
+          <div class="last-team">
+            <NuxtImg :src="`/teams/${lastMatch.homeTeam}.svg`" :alt="lastMatch.homeTeam" width="28" height="28" class="last-logo" />
+            <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
+          </div>
+
+          <div class="last-score">
+            <span class="last-num" :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }">{{ lastMatch.homeScore }}</span>
+            <span class="last-sep">–</span>
+            <span class="last-num" :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }">{{ lastMatch.awayScore }}</span>
+          </div>
+
+          <div class="last-team right">
+            <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
+            <NuxtImg :src="`/teams/${lastMatch.awayTeam}.svg`" :alt="lastMatch.awayTeam" width="28" height="28" class="last-logo" />
+          </div>
+        </div>
+
+        <div class="last-meta">
+          <span><Icon name="mdi:calendar-outline" size="11" /> {{ formatShortDate(lastMatch.date) }}</span>
+          <span v-if="lastMatch.venue"><Icon name="mdi:map-marker-outline" size="11" /> {{ lastMatch.venue }}</span>
+        </div>
+      </NuxtLink>
     </section>
 
-    <!-- ── Quick Stats ────────────────────────────────────────────────────────── -->
+    <!-- ── Quick Stats ───────────────────────────────────── -->
     <section class="section">
       <SharedUiCardsStats :stats="quickStats" :columns="4" />
     </section>
 
-    <!-- ── Standings Preview ──────────────────────────────────────────────────── -->
+    <!-- ── Standings Preview ──────────────────────────────── -->
     <section class="section">
       <div class="section-header">
         <h2 class="section-title">
-          <Icon name="mdi:table" size="20" aria-hidden="true" />
+          <Icon name="mdi:table" size="18" />
           {{ $t("nav.standings") }}
         </h2>
         <NuxtLink to="/standings" class="section-link">
           {{ $t("home.fullTable") }}
-          <Icon name="mdi:arrow-left" size="15" aria-hidden="true" />
+          <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
         </NuxtLink>
       </div>
 
-      <div class="standings-preview">
+      <div class="table-card">
         <table class="mini-table">
           <thead>
             <tr>
@@ -151,25 +108,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(team, i) in topStandings"
-              :key="team.slug"
-              class="mini-table-row"
-              @click="navigateTo(`/teams/${team.slug}`)"
-            >
-              <td class="pos-cell">
-                <span class="pos-num" :class="{ 'pos-top': i < 2 }">{{
-                  i + 1
-                }}</span>
-              </td>
+            <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
+              <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
               <td class="team-cell">
-                <NuxtImg
-                  :src="`/teams/${team.slug}.svg`"
-                  :alt="team.title"
-                  width="24"
-                  height="24"
-                  class="mini-logo"
-                />
+                <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="22" height="22" class="mini-logo" />
                 <span>{{ team.title }}</span>
               </td>
               <td class="num-cell">{{ team.P }}</td>
@@ -180,74 +122,44 @@
       </div>
     </section>
 
-    <!-- ── Team Cards ─────────────────────────────────────────────────────────── -->
+    <!-- ── Teams ──────────────────────────────────────────── -->
     <section class="section">
       <div class="section-header">
         <h2 class="section-title">
-          <Icon name="mdi:shield-outline" size="20" aria-hidden="true" />
+          <Icon name="mdi:shield-outline" size="18" />
           {{ $t("nav.teams") }}
         </h2>
         <NuxtLink to="/teams" class="section-link">
           {{ $t("home.allTeams") }}
-          <Icon name="mdi:arrow-left" size="15" aria-hidden="true" />
+          <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
         </NuxtLink>
       </div>
 
-      <ElementsStaggeredReveal>
-        <div class="teams-grid">
-          <NuxtLink
-            v-for="team in teams"
-            :key="team.slug"
-            :to="`/teams/${team.slug}`"
-            class="team-card"
-          >
-            <NuxtImg
-              :src="`/teams/${team.slug}.svg`"
-              :alt="team.title"
-              width="56"
-              height="56"
-              class="team-card-logo"
-            />
-            <span class="team-card-name">{{ team.title }}</span>
-            <span class="team-card-pts">
-              {{ getTeamPoints(team.slug) }}
-              <small>{{ $t("standings.points") }}</small>
-            </span>
-          </NuxtLink>
-        </div>
-      </ElementsStaggeredReveal>
+      <div class="teams-grid">
+        <NuxtLink v-for="team in teams" :key="team.slug" :to="`/teams/${team.slug}`" class="team-card">
+          <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="44" height="44" class="team-card-logo" />
+          <span class="team-card-name">{{ team.title }}</span>
+          <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
+        </NuxtLink>
+      </div>
     </section>
+
   </div>
 </template>
 
 <script setup>
-import { formatDistanceToNow, format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 const { locale } = useI18n();
 const dateLocale = computed(() => (locale.value === "ar" ? ar : enUS));
 
-// ── Data fetching ─────────────────────────────────────────────────────────────
-const [
-  { data: upcoming },
-  { data: recentMatches },
-  { data: allMatches },
-  { data: teams },
-  { data: allPlayers },
-] = await Promise.all([
-  useAsyncData("home-upcoming", () =>
-    queryCollection("matches")
-      .where("status", "IN", ["upcoming", "live"])
-      .order("date", "ASC")
-      .limit(1)
-      .first().catch(() => null),
+const [{ data: nextMatch }, { data: lastMatch }, { data: allMatches }, { data: teams }, { data: allPlayers }] = await Promise.all([
+  useAsyncData("home-next", () =>
+    queryCollection("matches").where("status", "IN", ["upcoming", "live"]).order("date", "ASC").limit(1).first().catch(() => null),
   ),
-  useAsyncData("home-recent", () =>
-    queryCollection("matches")
-      .where("status", "=", "played")
-      .order("date", "DESC")
-      .limit(6)
-      .all().then(r => r || []).catch(() => []),
+  useAsyncData("home-last", () =>
+    queryCollection("matches").where("status", "=", "played").order("date", "DESC").limit(1).first().catch(() => null),
   ),
   useAsyncData("home-all-matches", () =>
     queryCollection("matches").where("status", "=", "played").all().then(r => r || []).catch(() => []),
@@ -256,13 +168,11 @@ const [
   useAsyncData("home-players", () => queryCollection("players").all().then(r => r || []).catch(() => [])),
 ]);
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const getTeamName = (slug) =>
-  teams.value?.find((t) => t.slug === slug)?.title ?? slug;
+const getTeamName = (slug) => teams.value?.find((t) => t.slug === slug)?.title ?? slug;
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
-  return format(new Date(dateStr), "HH:mm", { locale: dateLocale.value });
+  return format(new Date(dateStr), "HH:mm");
 };
 
 const formatMatchDate = (dateStr) => {
@@ -270,39 +180,27 @@ const formatMatchDate = (dateStr) => {
   return format(new Date(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
 };
 
-// ── Standings calculation ─────────────────────────────────────────────────────
+const formatShortDate = (dateStr) => {
+  if (!dateStr) return "";
+  return format(new Date(dateStr), "d MMM", { locale: dateLocale.value });
+};
+
 const standingsMap = computed(() => {
   const map = {};
   if (!teams.value || !allMatches.value) return map;
-
   teams.value.forEach((team) => {
-    let W = 0,
-      D = 0,
-      L = 0,
-      GF = 0,
-      GA = 0;
-    allMatches.value
-      .filter((m) => m.homeTeam === team.slug || m.awayTeam === team.slug)
-      .forEach((m) => {
-        const isHome = m.homeTeam === team.slug;
-        const scored = isHome ? m.homeScore : m.awayScore;
-        const conceded = isHome ? m.awayScore : m.homeScore;
-        GF += scored;
-        GA += conceded;
-        if (scored > conceded) W++;
-        else if (scored === conceded) D++;
-        else L++;
-      });
-    map[team.slug] = {
-      P: W + D + L,
-      W,
-      D,
-      L,
-      GF,
-      GA,
-      GD: GF - GA,
-      Pts: W * 3 + D,
-    };
+    let W = 0, D = 0, L = 0, GF = 0, GA = 0;
+    allMatches.value.filter((m) => m.homeTeam === team.slug || m.awayTeam === team.slug).forEach((m) => {
+      const isHome = m.homeTeam === team.slug;
+      const scored = isHome ? m.homeScore : m.awayScore;
+      const conceded = isHome ? m.awayScore : m.homeScore;
+      if (scored > conceded) W++;
+      else if (scored === conceded) D++;
+      else L++;
+      GF += scored;
+      GA += conceded;
+    });
+    map[team.slug] = { P: W + D + L, W, D, L, GF, GA, GD: GF - GA, Pts: W * 3 + D };
   });
   return map;
 });
@@ -310,69 +208,26 @@ const standingsMap = computed(() => {
 const getTeamPoints = (slug) => standingsMap.value[slug]?.Pts ?? 0;
 
 const topStandings = computed(() =>
-  [...(teams.value ?? [])]
-    .map((t) => ({ ...t, ...(standingsMap.value[t.slug] ?? { P: 0, Pts: 0 }) }))
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD)
-    .slice(0, 4),
+  [...(teams.value ?? [])].map((t) => ({ ...t, ...(standingsMap.value[t.slug] ?? { P: 0, Pts: 0 }) })).sort((a, b) => b.Pts - a.Pts || b.GD - a.GD).slice(0, 4),
 );
 
-// ── Quick stats ───────────────────────────────────────────────────────────────
 const quickStats = computed(() => {
   const played = allMatches.value?.length ?? 0;
-  const totalGoals =
-    allMatches.value?.reduce(
-      (acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0),
-      0,
-    ) ?? 0;
-
+  const totalGoals = allMatches.value?.reduce((acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0), 0) ?? 0;
   const playerMap = {};
-  (allPlayers.value || []).forEach((p) => {
-    playerMap[p.slug] = p.title;
-  });
-
+  (allPlayers.value || []).forEach((p) => { playerMap[p.slug] = p.title; });
   const scorerMap = {};
-  allMatches.value?.forEach((m) => {
-    m.goalScorers?.forEach((g) => {
-      scorerMap[g.player] = (scorerMap[g.player] ?? 0) + 1;
-    });
-  });
+  allMatches.value?.forEach((m) => { m.goalScorers?.forEach((g) => { scorerMap[g.player] = (scorerMap[g.player] ?? 0) + 1; }); });
   const topScorer = Object.entries(scorerMap).sort((a, b) => b[1] - a[1])[0];
   const topScorerName = topScorer ? (playerMap[topScorer[0]] || topScorer[0]) : "-";
-
   return [
-    {
-      key: "played",
-      label: "home.stats.played",
-      value: played,
-      icon: "game-icons:soccer-ball",
-      color: "success",
-    },
-    {
-      key: "goals",
-      label: "home.stats.goals",
-      value: totalGoals,
-      icon: "mdi:bullseye-arrow",
-      color: "warning",
-    },
-    {
-      key: "topScorer",
-      label: "home.stats.topScorer",
-      value: topScorer ? topScorer[1] : 0,
-      icon: "mdi:star-outline",
-      color: "primary",
-      description: topScorerName,
-    },
-    {
-      key: "week",
-      label: "home.stats.currentWeek",
-      value: Math.max(...(allMatches.value?.map((m) => m.week) ?? [0])),
-      icon: "mdi:calendar-week",
-      color: "info",
-    },
+    { key: "played", label: "home.stats.played", value: played, icon: "game-icons:soccer-ball", color: "success" },
+    { key: "goals", label: "home.stats.goals", value: totalGoals, icon: "mdi:bullseye-arrow", color: "warning" },
+    { key: "topScorer", label: "home.stats.topScorer", value: topScorer ? topScorer[1] : 0, icon: "mdi:star-outline", color: "primary", description: topScorerName },
+    { key: "week", label: "home.stats.currentWeek", value: Math.max(...(allMatches.value?.map((m) => m.week) ?? [0])), icon: "mdi:calendar-week", color: "info" },
   ];
 });
 
-// ── SEO ───────────────────────────────────────────────────────────────────────
 useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") });
 </script>
 
@@ -380,16 +235,70 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .page-wrap {
   padding-top: var(--header-height);
   padding-bottom: calc(var(--bottom-nav-height) + 24px);
-
-  @media (max-width: 991.98px) {
-    padding-top: var(--header-height-mobile);
-  }
+  @media (max-width: 991.98px) { padding-top: var(--header-height-mobile); }
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
-.hero-section {
+.section {
+  padding: 24px 20px;
+  max-width: 640px;
+  margin: 0 auto;
+  @media (max-width: 576px) { padding: 16px 14px; }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  .iconify { color: var(--primary); }
+}
+
+.section-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+// ── Next Match Hero ────────────────────────────────────────
+.next-match-section {
+  max-width: 640px;
+}
+
+.hero-card {
   background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%);
-  padding: 40px 20px 48px;
+  border-radius: 20px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   position: relative;
   overflow: hidden;
 
@@ -397,35 +306,18 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     content: "";
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(var(--primary) 1px, transparent 1px),
-      linear-gradient(90deg, var(--primary) 1px, transparent 1px);
+    background-image: linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px);
     background-size: 40px 40px;
     opacity: 0.04;
   }
 
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    inset-inline: 0;
-    height: 60px;
-    background: linear-gradient(to bottom, transparent, var(--bg-page));
+  @media (max-width: 480px) {
+    padding: 24px 16px;
+    border-radius: 16px;
   }
 }
 
-.next-match-card {
-  position: relative;
-  z-index: 1;
-  max-width: 600px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-
-.next-match-badge {
+.hero-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -434,286 +326,206 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   color: var(--primary);
   border: 1px solid var(--primary-mid);
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
 }
 
-.teams-row {
+.hero-teams {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
+  position: relative;
+  z-index: 1;
 
-  @media (max-width: 480px) {
-    gap: 10px;
-  }
+  @media (max-width: 480px) { gap: 12px; }
 }
 
-.team-side {
+.hero-team {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.team-logo-wrap {
-  display: block;
-}
-
-.team-logo {
-  width: 72px;
-  height: 72px;
+.hero-logo {
+  width: 64px;
+  height: 64px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
 
-  @media (max-width: 480px) {
-    width: 52px;
-    height: 52px;
-  }
+  @media (max-width: 480px) { width: 48px; height: 48px; }
 }
 
-.team-name {
-  font-size: 0.9rem;
+.hero-team-name {
+  font-size: 0.88rem;
   font-weight: 700;
   color: #fff;
   text-align: center;
   line-height: 1.2;
-
-  @media (max-width: 480px) {
-    font-size: 0.78rem;
-  }
+  @media (max-width: 480px) { font-size: 0.78rem; }
 }
 
-.match-center {
+.hero-center {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-width: 120px;
-
-  @media (max-width: 480px) {
-    min-width: 80px;
-  }
+  gap: 6px;
+  min-width: 80px;
 }
 
-.score-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &.live .score {
-    color: var(--primary);
-  }
-}
-
-.score {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-
-  @media (max-width: 480px) {
-    font-size: 2.2rem;
-  }
-}
-
-.score-sep {
-  font-size: 2rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 300;
-}
-
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--primary);
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(0.8);
-  }
-}
-
-.match-time-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.match-time {
-  font-size: 2.2rem;
+.hero-time {
+  font-size: 1.8rem;
   font-weight: 800;
   color: #fff;
   line-height: 1;
-
-  @media (max-width: 480px) {
-    font-size: 1.6rem;
-  }
+  @media (max-width: 480px) { font-size: 1.4rem; }
 }
 
-.match-date {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.55);
+.hero-date {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.55);
   text-align: center;
+  white-space: nowrap;
 }
 
-.match-venue {
+.hero-venue {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  gap: 3px;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.4);
 }
 
-.hero-cta {
+.hero-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 22px;
+  padding: 10px 20px;
   background: var(--primary);
   color: #fff;
-  border-radius: 12px;
-  font-size: 0.875rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
+  position: relative;
+  z-index: 1;
 
   &:hover {
     background: color-mix(in srgb, var(--primary) 85%, #000);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 }
 
-.no-match-hero {
-  text-align: center;
-  padding: 40px;
-  color: rgba(255, 255, 255, 0.4);
-
-  .no-match-icon {
-    display: block;
-    margin: 0 auto 12px;
-    opacity: 0.3;
-  }
-  p {
-    font-size: 0.9rem;
-    margin: 0;
-  }
-}
-
-// ── Ticker ────────────────────────────────────────────────────────────────────
-.ticker-section {
+.hero-empty {
+  background: linear-gradient(160deg, #0a1a0f, #0d1f14);
+  border-radius: 20px;
+  padding: 48px 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 10px 20px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
-  overflow: hidden;
+  color: rgba(255,255,255,0.3);
+  p { margin: 0; font-size: 0.9rem; }
 }
 
-.ticker-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding-inline-end: 12px;
-  border-inline-end: 1px solid var(--border-color);
+// ── Last Match ─────────────────────────────────────────────
+.last-section {
+  max-width: 640px;
 }
 
-.ticker-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 14px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-sub);
-  text-decoration: none;
-  white-space: nowrap;
-  margin-inline-end: 10px;
-  transition: all 0.15s;
-
-  &:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-}
-
-.ticker-score {
-  font-weight: 700;
-  color: var(--primary);
-}
-
-// ── Sections ──────────────────────────────────────────────────────────────────
-.section {
-  padding: 32px 20px;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-
-  .iconify {
-    color: var(--primary);
-  }
-}
-
-.section-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.83rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-// ── Mini Standings Table ──────────────────────────────────────────────────────
-.standings-preview {
+.last-card {
+  display: block;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 16px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: all 0.15s;
+
+  &:hover { border-color: var(--primary); }
+  &:active { transform: scale(0.99); }
+}
+
+.last-teams {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.last-team {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &.right { justify-content: flex-end; }
+}
+
+.last-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.last-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+  @media (max-width: 480px) { font-size: 0.8rem; max-width: 70px; }
+}
+
+.last-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.last-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  min-width: 22px;
+  text-align: center;
+
+  &.winner { color: var(--primary); }
+}
+
+.last-sep {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.last-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+
+  span { display: flex; align-items: center; gap: 4px; }
+}
+
+// ── Standings Table ────────────────────────────────────────
+.table-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
   overflow: hidden;
 }
 
@@ -724,139 +536,102 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   thead tr {
     background: var(--bg-elevated);
     th {
-      padding: 10px 16px;
-      font-size: 0.72rem;
+      padding: 10px 14px;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--text-muted);
-      text-align: start;
+      text-align: center;
     }
+    th:first-child { width: 36px; }
+    th.th-team { text-align: start; }
   }
 }
 
-.mini-table-row {
+.table-row {
   cursor: pointer;
   border-top: 1px solid var(--border-color);
-  transition: background 0.12s;
-
-  td {
-    padding: 12px 16px;
-  }
-
-  &:hover {
-    background: var(--bg-elevated);
-  }
+  transition: background 0.1s;
+  &:hover { background: var(--bg-elevated); }
+  td { padding: 10px 14px; text-align: center; }
+  td:nth-child(2) { text-align: start; }
 }
 
-.pos-cell {
-  width: 40px;
-}
-.pos-num {
+.pos-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-muted);
   background: var(--bg-elevated);
+  color: var(--text-muted);
 
-  &.pos-top {
-    background: var(--primary-soft);
-    color: var(--primary);
-  }
+  &.pos-top { background: var(--primary-soft); color: var(--primary); }
 }
 
 .team-cell {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.mini-logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  border-radius: 4px;
-}
+.mini-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
 
-.num-cell {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-align: center;
-}
+.num-cell { font-size: 0.85rem; color: var(--text-muted); }
+.pts-cell { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
 
-.pts-cell {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--primary);
-  text-align: center;
-}
-
-// ── Teams Grid ────────────────────────────────────────────────────────────────
+// ── Teams Grid ─────────────────────────────────────────────
 .teams-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 10px;
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  @media (max-width: 576px) { grid-template-columns: repeat(2, 1fr); }
 }
 
 .team-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 20px 12px;
+  gap: 6px;
+  padding: 16px 10px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 14px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
 
-  &:hover {
-    border-color: var(--primary);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.12);
-  }
+  &:hover { border-color: var(--primary); }
+  &:active { transform: scale(0.97); background: var(--bg-elevated); }
 }
 
 .team-card-logo {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
 .team-card-name {
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
 }
 
 .team-card-pts {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--primary);
   display: flex;
   align-items: baseline;
-  gap: 3px;
-
-  small {
-    font-size: 0.68rem;
-    font-weight: 500;
-    color: var(--text-muted);
-  }
+  gap: 2px;
+  small { font-size: 0.62rem; font-weight: 500; color: var(--text-muted); }
 }
 </style>

@@ -35,6 +35,9 @@
     "latestResults": "آخر النتائج",
     "fullTable": "عرض الجدول كاملاً",
     "allTeams": "جميع الفرق",
+    "lastMatch": "آخر مباراة",
+    "nextMatch": "المباراة القادمة",
+    "viewMatch": "عرض المباراة",
     "stats": {
       "played": "المباريات",
       "goals": "الأهداف",
