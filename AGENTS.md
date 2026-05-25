@@ -37,21 +37,29 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 - Fancybox album gallery (Album.vue, fancybox.client.ts)
 - Locale files (ar.json, en.json) with all ~120 translation keys
 - **Replaced `@nuxt/content` + Nuxt Studio with Supabase data layer**
-- **Created `useLeagueData` composable** with embedded mock data (4 teams, 16 players, 11 matches)
+- **Created `useLeagueData` composable** with embedded mock data (12 teams, 48 players, 37 matches)
 - **Rewrote all 9 pages** from `queryCollection()` to `useLeagueData()`
 - **Manual dark/light mode** (works on Vercel — no flash, no broken CSS)
 - **Theme color switcher** (6 preset colors via `useTheme.js`)
-- **Admin dashboard** (`/admin/login`, `/admin`, `/admin/teams`, `/admin/players`, `/admin/matches`, `/admin/settings`)
+- **Admin dashboard** (`/admin/login`, `/admin`, `/admin/teams`, `/admin/matches`, `/admin/settings`)
 - **Image upload** with client-side compression (`browser-image-compression`)
 - **Publish button** — triggers Vercel Deploy Hook via one click
 - **Fixed `:root.dark` CSS** — removed `nuxt-beastcss`/`nuxt-vitalizer` that were pruning dark mode styles on production
-- Build succeeds (92 prerendered routes)
+- **Fixed console errors**: removed `/admin/players` link (404), disabled `appManifest` (500 payload)
+- **Removed WhatsApp group link** from footer
+- **Added multi-platform share** (Messenger, WhatsApp, Facebook, Telegram, Copy) to match page
+- **Fixed hero card colors** for light/dark mode on index page
+- **Seed data in `supabase-migration.sql`** (INSERT statements with full 12 teams, 48 players, 37 matches)
+- **Fallback logic**: `useLeagueData` fallback functions used when Supabase returns empty/null (not just when client is missing)
+- Build succeeds with 10 prerendered routes
 
 ## Known Issues
 - Dev mode: non-fatal `#app-manifest` pre-transform warnings (Nuxt 3.21 artifact, harmless)
 - Team logos: `alnasr.svg` and `alqadsia.svg` missing in `public/teams/` (will show fallback initials)
 - Admin uploads store images as base64 in localStorage (for mock mode) — when Supabase storage is configured, switch to uploading files
 - Admin password is hardcoded in `useAdminAuth.js` — change for production
+- `useSupabase.js` static `_client` cache: first call returning `null` permanently prevents Supabase from reconnecting (affects dev SSR timing)
+- `useAdminData.js` has separate mock data (4 teams) from public fallback (12 teams) — admin CRUD won't match public pages in mock mode
 
 ## Next Steps
 1. Run `supabase-migration.sql` in Supabase SQL Editor to create tables

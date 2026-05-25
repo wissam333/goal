@@ -101,7 +101,8 @@
     "knockout": "Knockout",
     "placeholder": "Coming soon",
     "final": "Final",
-    "semifinal": "Semi Final"
+    "semifinal": "Semi Final",
+    "quarterfinal": "Quarterfinal"
   },
   "footer": {
     "tagline": "Follow results, standings and match details of the annual football league",

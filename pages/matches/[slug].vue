@@ -272,7 +272,7 @@
             allowfullscreen
             loading="lazy"
             frameborder="0"
-          />
+          ></iframe>
         </div>
       </div>
 
@@ -298,16 +298,26 @@
         </div>
       </div>
 
-      <!-- ⑦ WhatsApp Share -->
-      <div class="share-row">
-        <SharedUiButtonBase
-          variant="success"
-          icon-left="mdi:whatsapp"
-          size="lg"
-          @click="shareWhatsApp"
-        >
-          {{ $t('match.share') }}
-        </SharedUiButtonBase>
+      <!-- ⑦ Share -->
+      <div class="share-section">
+        <div class="share-label">{{ $t('match.share') }}</div>
+        <div class="share-row">
+          <button class="share-btn messenger" title="Messenger" @click="sharePlatform('messenger')">
+            <Icon name="mdi:facebook-messenger" size="20" />
+          </button>
+          <button class="share-btn whatsapp" title="WhatsApp" @click="sharePlatform('whatsapp')">
+            <Icon name="mdi:whatsapp" size="20" />
+          </button>
+          <button class="share-btn facebook" title="Facebook" @click="sharePlatform('facebook')">
+            <Icon name="mdi:facebook" size="20" />
+          </button>
+          <button class="share-btn telegram" title="Telegram" @click="sharePlatform('telegram')">
+            <Icon name="mdi:telegram" size="20" />
+          </button>
+          <button class="share-btn copy" title="Copy link" @click="copyLink">
+            <Icon name="mdi:link-variant" size="20" />
+          </button>
+        </div>
       </div>
       </div>
     </template>
@@ -479,17 +489,41 @@ const embedUrl = (url) => {
   return url;
 };
 
-// ── WhatsApp share ─────────────────────────────────────────────────────────────
-const shareWhatsApp = () => {
-  if (!match.value) return;
+// ── Share ──────────────────────────────────────────────────────────────────────
+const shareText = () => {
+  if (!match.value) return '';
   const hs = match.value.homeScore ?? 0;
   const as = match.value.awayScore ?? 0;
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
-  const text = locale.value === 'ar'
-    ? `${ht} ${hs}–${as} ${at} 🏆 | شاهد التفاصيل: ${window.location.href}`
-    : `${ht} ${hs}–${as} ${at} 🏆 | Details: ${window.location.href}`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  return locale.value === 'ar'
+    ? `${ht} ${hs}–${as} ${at} 🏆 | دوري القرية`
+    : `${ht} ${hs}–${as} ${at} 🏆 | Village League`;
+};
+
+const sharePlatform = (platform) => {
+  const text = shareText();
+  const url = window.location.href;
+  const urls = {
+    messenger: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=291494419107518`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+  };
+  window.open(urls[platform], '_blank', 'width=600,height=500');
+};
+
+const copyLink = async () => {
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = window.location.href;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
 };
 
 const onImgError = (e) => {
@@ -538,8 +572,9 @@ useSeoMeta({
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
-  @keyframes sh { to { background-position: -200% 0; } }
 }
+
+@keyframes sh { to { background-position: -200% 0; } }
 
 // ── Scoreboard hero ────────────────────────────────────────────────────────────
 .scoreboard-hero {
@@ -548,11 +583,15 @@ useSeoMeta({
   padding: 28px 20px 24px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(145deg, #0a1628 0%, #111827 60%, #0d1f0d 100%);
-  border: 1px solid rgba(34,197,94,0.15);
+  background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 60%, #e8f5e9 100%);
+  border: 1px solid var(--primary-mid);
+
+  :root.dark & {
+    background: linear-gradient(145deg, #0a1628 0%, #111827 60%, #0d1f0d 100%);
+    border: 1px solid rgba(34,197,94,0.15);
+  }
 
   &.status-live {
-    border-color: rgba(34,197,94,0.4);
     box-shadow: 0 0 30px rgba(34,197,94,0.12);
   }
 }
@@ -570,13 +609,17 @@ useSeoMeta({
   transform: translate(-50%, -50%);
   width: 200px; height: 200px;
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--border-color);
+
+  :root.dark & { border-color: rgba(255,255,255,0.15); }
 }
 .pitch-line {
   position: absolute;
   top: 0; bottom: 0;
   left: 50%; width: 2px;
-  background: white;
+  background: var(--border-color);
+
+  :root.dark & { background: rgba(255,255,255,0.15); }
 }
 
 // Status
@@ -586,14 +629,14 @@ useSeoMeta({
 }
 .badge-live {
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(34,197,94,0.15); color: #4ade80;
-  border: 1px solid rgba(34,197,94,0.3);
+  background: var(--primary-soft); color: var(--primary);
+  border: 1px solid var(--primary-mid);
   border-radius: 8px; padding: 5px 12px;
   font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;
 }
 .live-dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: #4ade80;
+  background: var(--primary);
   animation: pulse-g 1.5s infinite;
 }
 @keyframes pulse-g {
@@ -602,12 +645,16 @@ useSeoMeta({
 }
 .badge-ft {
   display: inline-flex; align-items: center;
-  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
+  background: var(--primary-soft); color: var(--primary);
   border-radius: 8px; padding: 5px 12px;
   font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+
+  :root.dark & { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
 }
 .badge-upcoming {
-  color: rgba(255,255,255,0.6); font-size: 0.8rem;
+  color: var(--text-muted); font-size: 0.8rem;
+
+  :root.dark & { color: rgba(255,255,255,0.6); }
 }
 
 // Teams + score
@@ -630,22 +677,26 @@ useSeoMeta({
 .hero-logo {
   width: 64px; height: 64px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   transition: transform 0.2s;
   img { width: 100%; height: 100%; object-fit: contain; }
 }
-.hero-initial { font-size: 1.4rem; font-weight: 800; color: #4ade80; }
+.hero-initial { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
 
 .hero-team-name {
-  font-size: 0.95rem; font-weight: 700; color: #fff;
+  font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
   text-align: center;
+
+  :root.dark & { color: #fff; }
 }
 .hero-team-label {
-  font-size: 0.65rem; color: rgba(255,255,255,0.4);
+  font-size: 0.65rem; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.5px;
+
+  :root.dark & { color: rgba(255,255,255,0.4); }
 }
 
 .hero-score {
@@ -657,15 +708,20 @@ useSeoMeta({
 }
 
 .score-num {
-  font-size: 3rem; font-weight: 900; color: rgba(255,255,255,0.7);
+  font-size: 3rem; font-weight: 900; color: var(--text-primary);
   line-height: 1;
-  &.winner { color: #4ade80; }
+
+  :root.dark & { color: rgba(255,255,255,0.7); }
+
+  &.winner { color: var(--primary); }
 }
-.score-dash { font-size: 2rem; color: rgba(255,255,255,0.3); line-height: 1; }
+.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; }
 
 .score-meta {
-  font-size: 0.7rem; color: rgba(255,255,255,0.35);
+  font-size: 0.7rem; color: var(--text-muted);
   text-align: center;
+
+  :root.dark & { color: rgba(255,255,255,0.35); }
 }
 
 // Countdown
@@ -676,12 +732,16 @@ useSeoMeta({
   display: flex; flex-direction: column; align-items: center;
 }
 .countdown-num {
-  font-size: 1.8rem; font-weight: 800; color: #4ade80; line-height: 1;
+  font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1;
 }
 .countdown-label {
-  font-size: 0.6rem; color: rgba(255,255,255,0.35); text-transform: uppercase;
+  font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;
+
+  :root.dark & { color: rgba(255,255,255,0.35); }
 }
-.countdown-sep { font-size: 1.5rem; color: rgba(255,255,255,0.3); margin-bottom: 12px; }
+.countdown-sep { font-size: 1.5rem; color: var(--border-color); margin-bottom: 12px; }
+
+  :root.dark .countdown-sep { color: rgba(255,255,255,0.3); }
 
 // ── Section cards ──────────────────────────────────────────────────────────────
 .section-card {
@@ -828,16 +888,56 @@ useSeoMeta({
 .h2h-label { font-size: 0.75rem; color: var(--text-muted); }
 
 // ── Share ──────────────────────────────────────────────────────────────────────
-.share-row {
+.share-section {
   margin: 20px 20px 0;
-  display: flex; justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.share-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.share-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.share-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+
+  &:hover { transform: translateY(-2px); }
+  &:active { transform: scale(0.95); }
+
+  &.messenger { background: #006AFF; &:hover { background: #0052cc; } }
+  &.whatsapp  { background: #25D366; &:hover { background: #1da851; } }
+  &.facebook  { background: #1877F2; &:hover { background: #166fe5; } }
+  &.telegram  { background: #0088cc; &:hover { background: #0077b5; } }
+  &.copy      { background: var(--text-muted); &:hover { background: var(--text-sub); } }
 }
 
 // ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 600px) {
   .scoreboard-hero { margin: 12px 14px 0; padding: 20px 14px 18px; }
   .section-card { margin: 12px 14px 0; padding: 16px; }
-  .share-row { margin: 12px 14px 0; }
+  .share-section { margin: 12px 14px 0; }
   .back-row { padding: 12px 14px 0; }
 
   .hero-logo { width: 52px; height: 52px; border-radius: 10px; }

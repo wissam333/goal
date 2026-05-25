@@ -164,7 +164,8 @@
     "knockout": "Knockout",
     "placeholder": "Data coming soon",
     "final": "Final",
-    "semifinal": "Semi-Final"
+    "semifinal": "Semi-Final",
+    "quarterfinal": "Quarter-Final"
   },
 
   "player": {
@@ -189,7 +190,6 @@
 
   "footer": {
     "tagline": "Annual Village Football League",
-    "joinWhatsApp": "Join WhatsApp Group",
     "quickLinks": "Quick Links",
     "season": "Season",
     "teamsCount": "Teams",

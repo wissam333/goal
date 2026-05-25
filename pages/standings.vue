@@ -155,7 +155,7 @@ const activeGroup = ref(groups.value[0] || "A");
 
 const groupTabs = computed(() =>
   groups.value.map((g) => ({
-    key: g,
+    value: g,
     label: `${t("standings.group")} ${g}`,
   })),
 );

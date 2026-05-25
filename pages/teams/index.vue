@@ -204,8 +204,9 @@ useSeoMeta({
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
-  @keyframes sh { to { background-position: -200% 0; } }
 }
+
+@keyframes sh { to { background-position: -200% 0; } }
 
 // ── Teams grid ─────────────────────────────────────────────────────────────────
 .teams-grid {

@@ -14,7 +14,7 @@
           <div class="hero-team">
             <NuxtLink :to="`/teams/${nextMatch.homeTeam}`" class="hero-logo-wrap">
               <template v-if="getTeamLogo(nextMatch.homeTeam)">
-                <NuxtImg :src="getTeamLogo(nextMatch.homeTeam)" :alt="getTeamName(nextMatch.homeTeam)" width="64" height="64" class="hero-logo" @error="onLogoError(nextMatch.homeTeam)" />
+                <NuxtImg :src="getTeamLogo(nextMatch.homeTeam)" :alt="getTeamName(nextMatch.homeTeam)" width="64" height="64" class="hero-logo" />
               </template>
               <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.homeTeam) }">
                 {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
@@ -35,7 +35,7 @@
           <div class="hero-team">
             <NuxtLink :to="`/teams/${nextMatch.awayTeam}`" class="hero-logo-wrap">
               <template v-if="getTeamLogo(nextMatch.awayTeam)">
-                <NuxtImg :src="getTeamLogo(nextMatch.awayTeam)" :alt="getTeamName(nextMatch.awayTeam)" width="64" height="64" class="hero-logo" @error="onLogoError(nextMatch.awayTeam)" />
+                <NuxtImg :src="getTeamLogo(nextMatch.awayTeam)" :alt="getTeamName(nextMatch.awayTeam)" width="64" height="64" class="hero-logo" />
               </template>
               <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.awayTeam) }">
                 {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
@@ -67,7 +67,7 @@
           <div class="last-teams">
             <div class="last-team">
               <template v-if="getTeamLogo(lastMatch.homeTeam)">
-                <NuxtImg :src="getTeamLogo(lastMatch.homeTeam)" :alt="getTeamName(lastMatch.homeTeam)" width="28" height="28" class="last-logo" @error="onLogoError(lastMatch.homeTeam)" />
+                <NuxtImg :src="getTeamLogo(lastMatch.homeTeam)" :alt="getTeamName(lastMatch.homeTeam)" width="28" height="28" class="last-logo" />
               </template>
               <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.homeTeam) }">{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span>
               <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
@@ -82,7 +82,7 @@
             <div class="last-team right">
               <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
               <template v-if="getTeamLogo(lastMatch.awayTeam)">
-                <NuxtImg :src="getTeamLogo(lastMatch.awayTeam)" :alt="getTeamName(lastMatch.awayTeam)" width="28" height="28" class="last-logo" @error="onLogoError(lastMatch.awayTeam)" />
+                <NuxtImg :src="getTeamLogo(lastMatch.awayTeam)" :alt="getTeamName(lastMatch.awayTeam)" width="28" height="28" class="last-logo" />
               </template>
               <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.awayTeam) }">{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span>
             </div>
@@ -127,9 +127,7 @@
               <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
                 <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
                 <td class="team-cell">
-                  <template v-if="getTeamLogo(team.slug)">
-                    <NuxtImg :src="getTeamLogo(team.slug)" :alt="team.title" width="22" height="22" class="mini-logo" @error="onLogoError(team.slug)" />
-                  </template>
+                  <NuxtImg v-if="team.logo" :src="team.logo" :alt="team.title" width="22" height="22" class="mini-logo" />
                   <span v-else class="mini-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</span>
                   <span>{{ team.title }}</span>
                 </td>
@@ -157,9 +155,7 @@
         <div class="row g-2">
           <div v-for="team in teams" :key="team.slug" class="col-6 col-md-3">
             <NuxtLink :to="`/teams/${team.slug}`" class="team-card">
-              <template v-if="getTeamLogo(team.slug)">
-                <NuxtImg :src="getTeamLogo(team.slug)" :alt="team.title" width="44" height="44" class="team-card-logo" @error="onLogoError(team.slug)" />
-              </template>
+              <NuxtImg v-if="team.logo" :src="team.logo" :alt="team.title" width="44" height="44" class="team-card-logo" />
               <div v-else class="team-card-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</div>
               <span class="team-card-name">{{ team.title }}</span>
               <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
@@ -194,21 +190,14 @@ const [{ data: nextMatch }, { data: lastMatch }, { data: allMatches }, { data: t
   useAsyncData("home-players", () => fetchPlayers()),
 ]);
 
-const logoErrors = ref(new Set())
 const teamMap = computed(() => {
   const m = {};
   (teams.value || []).forEach(t => { m[t.slug] = t; });
   return m;
 });
 const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
-const getTeamLogo = (slug) => {
-  if (!slug || logoErrors.value.has(slug)) return null;
-  return teamMap.value[slug]?.logo || null;
-};
+const getTeamLogo = (slug) => slug ? (teamMap.value[slug]?.logo || null) : null;
 const getTeamColor = (slug) => teamMap.value[slug]?.color || '#22c55e';
-const onLogoError = (slug) => {
-  logoErrors.value = new Set([...logoErrors.value, slug]);
-};
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
@@ -318,8 +307,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 
 // ── Next Match ─────────────────────────────────────────────
 .hero-card {
-  background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%);
+  background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 60%, #e8f5e9 100%);
   border-radius: 20px;
+  :root.dark & { background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%); }
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
@@ -398,9 +388,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .hero-team-name {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   text-align: center;
   line-height: 1.2;
+  :root.dark & { color: #fff; }
   @media (max-width: 480px) { font-size: 0.78rem; }
 }
 
@@ -416,15 +407,17 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .hero-time {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1;
+  :root.dark & { color: #fff; }
   @media (max-width: 480px) { font-size: 1.4rem; }
 }
 
 .hero-date {
   font-size: 0.7rem;
-  color: rgba(255,255,255,0.55);
+  color: var(--text-muted);
   text-align: center;
+  :root.dark & { color: rgba(255,255,255,0.55); }
 }
 
 .hero-venue {
@@ -432,7 +425,8 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   align-items: center;
   gap: 3px;
   font-size: 0.7rem;
-  color: rgba(255,255,255,0.4);
+  color: var(--text-muted);
+  :root.dark & { color: rgba(255,255,255,0.4); }
 }
 
 .hero-btn {
@@ -453,14 +447,15 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .hero-empty {
-  background: linear-gradient(160deg, #0a1a0f, #0d1f14);
+  background: linear-gradient(160deg, #e8f5e9, #c8e6c9);
   border-radius: 20px;
   padding: 48px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: rgba(255,255,255,0.3);
+  color: var(--text-muted);
+  :root.dark & { background: linear-gradient(160deg, #0a1a0f, #0d1f14); color: rgba(255,255,255,0.3); }
   p { margin: 0; font-size: 0.9rem; }
 }
 

@@ -164,7 +164,8 @@
     "knockout": "الأدوار الإقصائية",
     "placeholder": "سيتم إضافة البيانات قريباً",
     "final": "النهائي",
-    "semifinal": "نصف النهائي"
+    "semifinal": "نصف النهائي",
+    "quarterfinal": "ربع النهائي"
   },
 
   "player": {
@@ -189,7 +190,6 @@
 
   "footer": {
     "tagline": "دوري كرة القدم السنوي للقرية",
-    "joinWhatsApp": "انضم لمجموعة الواتساب",
     "quickLinks": "روابط سريعة",
     "season": "الموسم",
     "teamsCount": "عدد الفرق",

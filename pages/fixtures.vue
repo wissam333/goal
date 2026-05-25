@@ -38,129 +38,68 @@
     />
 
     <template v-else>
-      <div v-for="round in roundGroups" :key="round.group" class="round-section">
-        <!-- Round header -->
-        <div class="round-header">
-          <span class="round-badge">
-            <Icon name="mdi:flag-checkered" size="14" />
-            {{ round.label }}
-          </span>
-          <span class="round-count"
-            >{{ round.matches.length }} {{ $t("fixtures.matches") }}</span
-          >
+      <div class="bracket-flow">
+        <!-- Group Stage -->
+        <div class="bracket-row group-row">
+          <div v-for="group in groupStage" :key="group.group" class="bracket-stage">
+            <div class="stage-header">
+              <Icon name="mdi:table" size="14" />
+              {{ $t("standings.group") }} {{ group.group }}
+            </div>
+            <div
+              v-for="match in group.matches"
+              :key="match.slug"
+              class="bracket-match"
+              :class="`bracket-${match.status}`"
+              @click="navigateTo(`/matches/${match.slug}`)"
+            >
+              <div class="bm-team">
+                <span class="bm-name" :class="{ win: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
+                <span class="bm-score" :class="{ win: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : '' }}</span>
+              </div>
+              <div class="bm-team">
+                <span class="bm-name" :class="{ win: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
+                <span class="bm-score" :class="{ win: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : '' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Match rows -->
-        <div class="matches-list">
-          <div
-            v-for="match in round.matches"
-            :key="match.slug"
-            class="match-row"
-            :class="{
-              'match-upcoming': match.status === 'upcoming',
-              'match-live': match.status === 'live',
-              'match-played': match.status === 'played',
-            }"
-            @click="navigateTo(`/matches/${match.slug}`)"
-          >
-            <!-- Status badge -->
-            <div class="match-status">
-              <span v-if="match.status === 'live'" class="status-live">
-                <span class="live-dot" />
-                LIVE
-              </span>
-              <span v-else-if="match.status === 'played'" class="status-ft"
-                >FT</span
-              >
-              <span v-else class="status-time">{{
-                formatMatchTime(match.date)
-              }}</span>
+        <!-- Connector down -->
+        <div class="connector-down">
+          <div class="connector-line" />
+        </div>
+
+        <!-- Knockout Stage -->
+        <div v-if="knockoutStage.length" class="bracket-row knockout-row">
+          <div v-for="round in knockoutStage" :key="round.label" class="bracket-stage">
+            <div class="stage-header" :class="{ 'stage-final': round.isFinal }">
+              <Icon :name="round.isFinal ? 'mdi:trophy' : 'mdi:tournament'" size="14" />
+              {{ round.label }}
             </div>
-
-            <!-- Teams + Score -->
-            <div class="match-teams">
-              <!-- Home team -->
-              <div class="match-team home">
-                <span class="match-team-name">{{
-                  getTeamName(match.homeTeam)
-                }}</span>
-                <div class="match-team-logo">
-                  <NuxtImg
-                    v-if="getTeamLogo(match.homeTeam)"
-                    :src="getTeamLogo(match.homeTeam)"
-                    :alt="getTeamName(match.homeTeam)"
-                    width="28"
-                    height="28"
-                    format="webp"
-                    loading="lazy"
-                  />
-                  <span v-else class="logo-initial">{{
-                    getTeamName(match.homeTeam)?.charAt(0)
-                  }}</span>
-                </div>
+            <div
+              v-for="match in round.matches"
+              :key="match.slug"
+              class="bracket-match"
+              :class="[`bracket-${match.status}`, { 'match-final': round.isFinal }]"
+              @click="navigateTo(`/matches/${match.slug}`)"
+            >
+              <div class="bm-team">
+                <span class="bm-name" :class="{ win: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
+                <span class="bm-score" :class="{ win: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : match.status === 'upcoming' ? '' : '–' }}</span>
               </div>
-
-              <!-- Score / VS -->
-              <div class="match-score">
-                <template v-if="match.status !== 'upcoming'">
-                  <span
-                    class="score-home"
-                    :class="{
-                      'score-winner': match.homeScore > match.awayScore,
-                    }"
-                  >
-                    {{ match.homeScore ?? 0 }}
-                  </span>
-                  <span class="score-sep">–</span>
-                  <span
-                    class="score-away"
-                    :class="{
-                      'score-winner': match.awayScore > match.homeScore,
-                    }"
-                  >
-                    {{ match.awayScore ?? 0 }}
-                  </span>
-                </template>
-                <span v-else class="score-vs">VS</span>
+              <div class="bm-team">
+                <span class="bm-name" :class="{ win: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
+                <span class="bm-score" :class="{ win: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : match.status === 'upcoming' ? '' : '–' }}</span>
               </div>
-
-              <!-- Away team -->
-              <div class="match-team away">
-                <div class="match-team-logo">
-                  <NuxtImg
-                    v-if="getTeamLogo(match.awayTeam)"
-                    :src="getTeamLogo(match.awayTeam)"
-                    :alt="getTeamName(match.awayTeam)"
-                    width="28"
-                    height="28"
-                    format="webp"
-                    loading="lazy"
-                  />
-                  <span v-else class="logo-initial">{{
-                    getTeamName(match.awayTeam)?.charAt(0)
-                  }}</span>
-                </div>
-                <span class="match-team-name">{{
-                  getTeamName(match.awayTeam)
-                }}</span>
+              <div class="bm-meta">
+                <span v-if="match.status === 'upcoming'" class="bm-time">{{ formatMatchTime(match.date) }}</span>
+                <span v-else-if="match.status === 'live'" class="bm-live">
+                  <span class="live-dot" /> LIVE
+                </span>
+                <span v-else class="bm-date">{{ formatMatchDate(match.date) }}</span>
               </div>
             </div>
-
-            <!-- Match meta -->
-            <div class="match-meta">
-              <span v-if="match.venue" class="meta-venue">
-                <Icon name="mdi:map-marker-outline" size="13" />
-                {{ match.venue }}
-              </span>
-              <span class="meta-date">{{ formatMatchDate(match.date) }}</span>
-            </div>
-
-            <!-- Chevron -->
-            <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="18"
-              class="row-chevron"
-            />
           </div>
         </div>
       </div>
@@ -230,25 +169,33 @@ const filteredMatches = computed(() => {
   return matches.value.filter((m) => m.status === activeFilter.value);
 });
 
-// Group by round (group A, group B, semi-finals, final)
-const roundLabels = {
-  A: 'المجموعة A',
-  B: 'المجموعة B',
-  SF: 'نصف النهائي',
-  F: 'النهائي',
-}
-const roundOrder = { A: 0, B: 1, SF: 2, F: 3 }
+const isWinner = (match, teamSlug) => {
+  if (match.status !== "played") return false;
+  const isHome = match.homeTeam === teamSlug;
+  const scored = isHome ? match.homeScore : match.awayScore;
+  const conceded = isHome ? match.awayScore : match.homeScore;
+  return (scored ?? 0) > (conceded ?? 0);
+};
 
-const roundGroups = computed(() => {
-  const map = {};
-  filteredMatches.value.forEach((m) => {
+const groupStage = computed(() => {
+  const groups = {};
+  filteredMatches.value.filter(m => ['A', 'B'].includes(m.group || 'A')).forEach((m) => {
     const g = m.group || 'A';
-    if (!map[g]) map[g] = [];
-    map[g].push(m);
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(m);
   });
-  return Object.entries(map)
-    .sort(([a], [b]) => (roundOrder[a] ?? 99) - (roundOrder[b] ?? 99))
-    .map(([group, matches]) => ({ group, label: roundLabels[group] || group, matches }));
+  return Object.entries(groups)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([group, matches]) => ({ group, matches }));
+});
+
+const knockoutStage = computed(() => {
+  const rounds = [];
+  const sf = filteredMatches.value.filter(m => m.group === 'SF').sort((a, b) => new Date(a.date) - new Date(b.date));
+  const f = filteredMatches.value.filter(m => m.group === 'F').sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (sf.length) rounds.push({ label: t('bracket.semifinal'), matches: sf, isFinal: false });
+  if (f.length) rounds.push({ label: t('bracket.final'), matches: f, isFinal: true });
+  return rounds;
 });
 
 // Date formatting
@@ -345,30 +292,10 @@ useSeoMeta({
   flex-direction: column;
   gap: 24px;
 }
-.skeleton-week {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+@keyframes sh {
+  to { background-position: -200% 0; }
 }
-.skeleton-week-title {
-  height: 28px;
-  width: 120px;
-  border-radius: 8px;
-  background: var(--bg-elevated);
-  @keyframes sh {
-    to {
-      background-position: -200% 0;
-    }
-  }
-  background: linear-gradient(
-    90deg,
-    var(--bg-elevated) 25%,
-    var(--bg-surface) 50%,
-    var(--bg-elevated) 75%
-  );
-  background-size: 200% 100%;
-  animation: sh 1.4s linear infinite;
-}
+
 .skeleton-match {
   height: 72px;
   border-radius: 12px;
@@ -382,9 +309,216 @@ useSeoMeta({
   animation: sh 1.4s linear infinite;
 }
 
-// ── Round section ──────────────────────────────────────────────────────────────
-.round-section {
-  margin-bottom: 28px;
+// ── Bracket Flowchart ──────────────────────────────────────────────────────────
+.bracket-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 8px 0 24px;
+}
+
+.bracket-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.bracket-stage {
+  flex: 1;
+  max-width: 340px;
+  min-width: 0;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  background: var(--primary-soft);
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+}
+
+.stage-final {
+  color: #ca8a04;
+  background: rgba(234, 179, 8, 0.12);
+}
+
+// ── Match card ─────────────────────────────────────────────────────────────────
+.bracket-match {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  }
+
+  &.bracket-live {
+    border-color: var(--primary);
+    background: rgba(34,197,94,0.03);
+  }
+
+  &.match-final {
+    border-color: rgba(234,179,8,0.3);
+    background: linear-gradient(135deg, rgba(234,179,8,0.04), transparent);
+  }
+}
+
+.bm-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.bm-name {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+
+  &.win {
+    color: var(--primary);
+  }
+}
+
+.bm-score {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 22px;
+  text-align: center;
+  direction: ltr;
+
+  &.win {
+    color: var(--primary);
+  }
+}
+
+.bm-meta {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 4px;
+}
+
+.bm-time {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bm-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+}
+
+.bm-date {
+  color: var(--text-muted);
+}
+
+// ── Connector ──────────────────────────────────────────────────────────────────
+.connector-down {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  width: 100%;
+  position: relative;
+}
+
+.connector-line {
+  width: 2px;
+  height: 100%;
+  background: var(--border-color);
+  position: relative;
+
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 40%;
+    height: 2px;
+    background: var(--border-color);
+  }
+
+  &::before {
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  &::after {
+    bottom: 0;
+    transform: translateX(-50%);
+  }
+}
+
+// ── Group row ──────────────────────────────────────────────────────────────────
+@media (min-width: 640px) {
+  .group-row .bracket-stage {
+    flex: 0 1 340px;
+  }
+
+  .knockout-row .bracket-stage {
+    flex: 0 1 300px;
+  }
+}
+
+@media (max-width: 639px) {
+  .bracket-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bracket-stage {
+    max-width: 100%;
+    flex: none !important;
+  }
+
+  .connector-down {
+    height: 24px;
+  }
+}
+
+// ── Skeleton overrides ─────────────────────────────────────────────────────────
+.skeleton-week-title {
+  height: 28px;
+  width: 120px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+}
+
+.skeleton-match {
+  height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
 }
 
 .round-header {

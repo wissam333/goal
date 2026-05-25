@@ -94,6 +94,22 @@ export default defineNuxtConfig({
         },
       },
     },
+    server: {
+      warmup: {
+        clientFiles: [
+          './pages/**/*.vue',
+          './components/**/*.vue',
+          './layouts/**/*.vue',
+        ],
+      },
+    },
+    optimizeDeps: {
+      include: [
+        'date-fns',
+        'date-fns/locale',
+        '@fancyapps/ui',
+      ],
+    },
   },
 
   nitro: {

@@ -6,14 +6,7 @@
           <div id="preloaders" class="loader-content">
             <!-- Logo with pulse animation -->
             <div class="logo-container">
-              <img
-                id="logoLoader"
-                src="/uae-handbal-logo.png"
-                class="logo-pulse"
-                alt="Logo"
-                width="350"
-                height="350"
-              />
+              <Icon name="game-icons:soccer-ball" class="logo-pulse" />
             </div>
 
             <!-- Progress indicator -->
@@ -50,17 +43,6 @@ const props = defineProps({
     default: 3,
   },
 });
-
-// Building data for the animated skyline
-const buildings = [
-  { windows: 8, height: 120 },
-  { windows: 12, height: 160 },
-  { windows: 6, height: 100 },
-  { windows: 10, height: 140 },
-  { windows: 14, height: 180 },
-  { windows: 9, height: 130 },
-  { windows: 7, height: 110 },
-];
 
 // Options & Data
 const data = reactive({
@@ -147,9 +129,6 @@ onBeforeUnmount(() => clear);
 
 <style lang="scss" scoped>
 .triathlon-loader {
-  $light: #f5f1ee;
-  $dark: #2c1810;
-
   .hide {
     transform: translateY(-100%);
   }
@@ -161,7 +140,7 @@ onBeforeUnmount(() => clear);
     width: 100%;
     height: 100vh;
     z-index: 99999;
-    background: linear-gradient(45deg, #e1d4bf, #ffffff, #e1d4bf);
+    background: var(--bg-page);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -197,33 +176,13 @@ onBeforeUnmount(() => clear);
   }
 
   .logo-pulse {
-    width: 350px;
-    height: 350px;
-    object-fit: contain;
+    width: 72px;
+    height: 72px;
+    color: var(--primary);
 
     @media (max-width: 991px) {
-      width: 180px;
-      height: auto;
-    }
-  }
-
-  .loading-text {
-    display: flex;
-    color: $light;
-    font-size: 1.5rem;
-    font-weight: 300;
-    letter-spacing: 2px;
-
-    .loading-dot {
-      animation: dotPulse 1.5s infinite;
-
-      &:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-
-      &:nth-child(3) {
-        animation-delay: 0.4s;
-      }
+      width: 48px;
+      height: 48px;
     }
   }
 
@@ -236,10 +195,7 @@ onBeforeUnmount(() => clear);
     .progress-container {
       width: 300px;
     }
-    .coffee-bean {
-      width: 30px;
-      height: 18px;
-    }
+
   }
 }
 .progress-container {
@@ -250,25 +206,24 @@ onBeforeUnmount(() => clear);
   margin-bottom: 2rem;
   .progress-bar {
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-color);
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: 0.75rem;
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, $main 0%, $second 100%);
+      background: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #000) 100%);
       border-radius: 4px;
       transition: width 0.3s ease;
-      box-shadow: 0 0 10px rgba(109, 76, 5, 0.5);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 0.3, transparent);
     }
   }
 
   .progress-text {
-    color: $second;
+    color: var(--text-muted);
     font-size: 0.875rem;
     font-weight: 500;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
   }
 }
 </style>

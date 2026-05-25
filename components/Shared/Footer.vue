@@ -5,29 +5,11 @@
         <!-- Brand col -->
         <div class="footer-brand">
           <NuxtLink to="/" class="footer-logo-wrap">
-            <NuxtImg
-              src="/logo/logo-web.png"
-              alt="league logo"
-              width="40"
-              height="40"
-              format="webp"
-              loading="lazy"
-              class="footer-logo"
-            />
+            <Icon name="game-icons:soccer-ball" size="24" class="footer-icon" />
             <span class="footer-league-name">{{ $t("leagueName") }}</span>
           </NuxtLink>
           <p class="footer-tagline">{{ $t("footer.tagline") }}</p>
 
-          <!-- WhatsApp group -->
-          <a
-            href="https://wa.me/group/placeholder"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="footer-whatsapp"
-          >
-            <Icon name="mdi:whatsapp" size="18" aria-hidden="true" />
-            {{ $t("footer.joinWhatsApp") }}
-          </a>
         </div>
 
         <!-- Quick links -->
@@ -79,14 +61,12 @@
           © {{ currentYear }} {{ $t("leagueName") }}
         </span>
         <span class="footer-built">
-          {{ $t("footer.builtWith") }}
-          <Icon
+          <!-- <Icon
             name="mdi:heart"
             size="13"
             class="footer-heart"
             aria-hidden="true"
-          />
-          Nuxt
+          /> -->
         </span>
       </div>
     </div>
@@ -156,11 +136,9 @@ const navItems = [
   text-decoration: none;
 }
 
-.footer-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  border-radius: 8px;
+.footer-icon {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .footer-league-name {
@@ -175,27 +153,6 @@ const navItems = [
   line-height: 1.55;
   margin: 0;
   max-width: 260px;
-}
-
-.footer-whatsapp {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
-  background: rgba(37, 211, 102, 0.1);
-  color: #25d366;
-  border: 1px solid rgba(37, 211, 102, 0.25);
-  border-radius: 10px;
-  font-size: 0.83rem;
-  font-weight: 600;
-  text-decoration: none;
-  width: fit-content;
-  transition: all 0.15s;
-
-  &:hover {
-    background: rgba(37, 211, 102, 0.18);
-    border-color: rgba(37, 211, 102, 0.4);
-  }
 }
 
 // ── Columns ───────────────────────────────────────────────────────────────────
