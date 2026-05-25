@@ -60,20 +60,7 @@ const closeDialog = () => {
   }
 };
 
-const { pushHandler, popHandler } = useBackButton();
-
-// Stable reference — defined once, not recreated
-const backHandler = () => closeDialog();
-
-watch(
-  () => props.modelValue,
-  (isOpen) => {
-    if (isOpen) pushHandler(backHandler);
-    else popHandler(backHandler); // still needed for when user closes via X button
-  },
-);
-
-onUnmounted(() => popHandler(backHandler));
+// useBackButton removed — no longer needed
 </script>
 
 <style lang="scss" scoped>

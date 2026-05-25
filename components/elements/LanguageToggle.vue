@@ -26,10 +26,10 @@ const toggleLang = () => {
   color: #fff;
   cursor: pointer;
   &.en {
-    font-family: "Tajawal", "sans-serif";
+    font-family: "Tajawal", sans-serif;
   }
   &.ar {
-    font-family: Tajawal, sans-serif;
+    font-family: "Tajawal", sans-serif;
   }
 }
 

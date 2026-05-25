@@ -228,12 +228,10 @@ onUnmounted(() => {
     
     &.english-text {
       letter-spacing: 2px;
-      font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
     }
     
     &.arabic-text {
       letter-spacing: 0;
-      font-family: 'Cairo', 'Amiri', 'Arial', sans-serif;
       text-transform: none;
       font-weight: 600;
     }
@@ -246,12 +244,10 @@ onUnmounted(() => {
     
     &.english-subtitle {
       letter-spacing: 0.5px;
-      font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
     }
     
     &.arabic-subtitle {
       letter-spacing: 0;
-      font-family: 'Cairo', 'Amiri', 'Arial', sans-serif;
       font-weight: 400;
     }
   }

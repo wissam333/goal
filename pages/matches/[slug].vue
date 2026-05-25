@@ -90,10 +90,9 @@
               </div>
             </template>
 
-            <!-- Week + Venue -->
+            <!-- Venue -->
             <div class="score-meta">
-              <span>{{ $t('match.week') }} {{ match.week }}</span>
-              <span v-if="match.venue">· {{ match.venue }}</span>
+              <span v-if="match.venue">{{ match.venue }}</span>
             </div>
           </div>
 
@@ -321,27 +320,28 @@ import { ar, enUS } from 'date-fns/locale';
 
 const route = useRoute();
 const { locale, t } = useI18n();
+const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 const { data: match, pending, error } = await useAsyncData(
   `match-${slug.value}`,
-  () => queryCollection('matches').where('slug', '=', slug.value).first().catch(() => null)
+  () => fetchMatch(slug.value)
 );
 
 const { data: teamsData } = await useAsyncData(
   `match-teams-${slug.value}`,
-  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
+  () => fetchTeams()
 );
 
 const { data: playersData } = await useAsyncData(
   `match-players-${slug.value}`,
-  () => queryCollection('players').all().then(r => r || []).catch(() => [])
+  () => fetchPlayers()
 );
 
 const { data: allMatchesData } = await useAsyncData(
   `match-allmatches-${slug.value}`,
-  () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
+  () => fetchMatches({ status: "played" })
 );
 
 const teams = computed(() => teamsData.value || []);
@@ -487,8 +487,8 @@ const shareWhatsApp = () => {
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
   const text = locale.value === 'ar'
-    ? `${ht} ${hs}–${as} ${at} 🏆 | الجولة ${match.value.week} | شاهد التفاصيل: ${window.location.href}`
-    : `${ht} ${hs}–${as} ${at} 🏆 | Week ${match.value.week} | Details: ${window.location.href}`;
+    ? `${ht} ${hs}–${as} ${at} 🏆 | شاهد التفاصيل: ${window.location.href}`
+    : `${ht} ${hs}–${as} ${at} 🏆 | Details: ${window.location.href}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
 };
 

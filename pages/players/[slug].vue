@@ -164,31 +164,32 @@ import { ar, enUS } from 'date-fns/locale';
 
 const route = useRoute();
 const { locale, t } = useI18n();
+const { fetchPlayer, fetchMatches, fetchTeams, fetchPlayers } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 const { data: player, pending: playerPending, error: playerError } = await useAsyncData(
   `player-${slug.value}`,
-  () => queryCollection('players').where('slug', '=', slug.value).first().catch(() => null)
+  () => fetchPlayer(slug.value)
 );
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
   `player-matches-${slug.value}`,
-  () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
+  () => fetchMatches({ status: "played" })
 );
 
 const { data: allMatchesData } = await useAsyncData(
   `player-all-matches-${slug.value}`,
-  () => queryCollection('matches').all().then(r => r || []).catch(() => [])
+  () => fetchMatches()
 );
 
 const { data: teamsData } = await useAsyncData(
   `player-teams-${slug.value}`,
-  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
+  () => fetchTeams()
 );
 
 const { data: playersData } = await useAsyncData(
   `player-all-players-${slug.value}`,
-  () => queryCollection('players').all().then(r => r || []).catch(() => [])
+  () => fetchPlayers()
 );
 
 const pending = computed(() => playerPending.value || matchesPending.value);

@@ -162,15 +162,16 @@
 
 <script setup>
 const { locale } = useI18n();
+const { fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 
 const { data: playersData, pending: playersPending, error: playersError } = await useAsyncData(
-  'stats-players', () => queryCollection('players').all().then(r => r || []).catch(() => [])
+  'stats-players', () => fetchPlayers()
 );
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  'stats-matches', () => queryCollection('matches').where('status', '=', 'played').all().then(r => r || []).catch(() => [])
+  'stats-matches', () => fetchMatches({ status: "played" })
 );
 const { data: teamsData } = await useAsyncData(
-  'stats-teams', () => queryCollection('teams').all().then(r => r || []).catch(() => [])
+  'stats-teams', () => fetchTeams()
 );
 
 const pending = computed(() => playersPending.value || matchesPending.value);

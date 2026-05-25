@@ -2,51 +2,11 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   modules: [
-    "@nuxt/content",
     "@nuxt/icon",
     "@nuxt/image",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
-    "@nuxtjs/color-mode",
-    "nuxt-beastcss",
-    "nuxt-vitalizer",
-    "nuxt-studio",
   ],
-
-  content: {
-    highlight: { theme: "github-dark" },
-  },
-
-  studio: {
-    route: "/_studio",
-    repository: {
-      provider: "github",
-      owner: "wissam333",
-      repo: "goal",
-      branch: "main",
-    },
-  },
-
-  colorMode: {
-    classSuffix: "",
-    preference: "dark",
-    fallback: "dark",
-    storageKey: "league-color-mode",
-  },
-
-  vitalizer: {
-    disableStylesheets: "entry",
-    disablePrefetchLinks: true,
-    disablePreloadLinks: true,
-  },
-
-  beastcss: {
-    config: {
-      pruneSource: true,
-      additionalStylesheets: [],
-      asyncLoad: true,
-    },
-  },
 
   fonts: {
     defaults: { preload: true, display: "swap" },
@@ -64,7 +24,7 @@ export default defineNuxtConfig({
     strategy: "no_prefix",
     langDir: "locales/",
     defaultLocale: "ar",
-    lazy: true,
+    lazy: false,
     locales: [
       { code: "ar", iso: "ar-SA", name: "العربية", file: "ar.json", dir: "rtl" },
       { code: "en", iso: "en-US", name: "English", file: "en.json", dir: "ltr" },
@@ -88,7 +48,6 @@ export default defineNuxtConfig({
   },
 
   app: {
-    pageTransition: { name: "page" },
     head: {
       title: "دوري كرة القدم السنوي",
       htmlAttrs: { lang: "ar" },
@@ -96,7 +55,8 @@ export default defineNuxtConfig({
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية" },
-        { name: "theme-color", content: "#22c55e" },
+        { name: "theme-color", media: "(prefers-color-scheme: light)", content: "#22c55e" },
+        { name: "theme-color", media: "(prefers-color-scheme: dark)", content: "#0f1117" },
       ],
       link: [
         { rel: "icon", href: "/logo/logo-web.png", type: "image/png" },
@@ -105,6 +65,13 @@ export default defineNuxtConfig({
           href: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
           media: "print",
           onload: "this.media='all'",
+        },
+      ],
+      script: [
+        {
+          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)')}})()`,
+          tagPosition: "head",
+          type: "text/javascript",
         },
       ],
     },
@@ -140,6 +107,6 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-12-29",
 
   experimental: {
-    appManifest: false,
+    // appManifest: false — removed to fix _payload.json 500 in dev
   },
-});
+})

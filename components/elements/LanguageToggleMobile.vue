@@ -35,10 +35,10 @@ const toggleLang = () => {
     color: var(--accent-color);
   }
   &.en {
-    font-family: "Tajawal", "sans-serif";
+    font-family: "Tajawal", sans-serif;
   }
   &.ar {
-    font-family: Tajawal, sans-serif;
+    font-family: "Tajawal", sans-serif;
   }
 }
 </style>

@@ -34,17 +34,11 @@
         <!-- Dark/light toggle -->
         <button
           class="ctrl-btn"
-          :aria-label="
-            colorMode.value === 'dark' ? $t('lightMode') : $t('darkMode')
-          "
-          @click="toggleColorMode"
+          :aria-label="theme.isDark.value ? $t('lightMode') : $t('darkMode')"
+          @click="theme.toggleMode()"
         >
           <Icon
-            :name="
-              colorMode.value === 'dark'
-                ? 'mdi:white-balance-sunny'
-                : 'mdi:moon-waning-crescent'
-            "
+            :name="theme.isDark.value ? 'mdi:white-balance-sunny' : 'mdi:moon-waning-crescent'"
             size="18"
           />
         </button>
@@ -100,7 +94,7 @@
 </template>
 
 <script setup>
-const colorMode = useColorMode();
+const theme = useTheme();
 const { locale, setLocale } = useI18n();
 const route = useRoute();
 const config = useRuntimeConfig();
@@ -138,7 +132,7 @@ const navItems = [
 ];
 
 const toggleColorMode = () => {
-  colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
+  theme.toggleMode();
 };
 
 const toggleLang = () => {

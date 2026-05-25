@@ -385,7 +385,7 @@ onUnmounted(() => {
   outline: none;
   padding: 10px 6px;
   font-size: 0.9rem;
-  font-family: "Courier New", Courier, monospace;
+  font-family: "Tajawal", sans-serif;
   letter-spacing: 0.06em;
   color: var(--text-primary);
   min-width: 0; /* flex shrink fix */

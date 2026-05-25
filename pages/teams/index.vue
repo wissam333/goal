@@ -111,13 +111,14 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { fetchTeams, fetchMatches } = useLeagueData();
 
 const { data: teamsData, pending: teamsPending, error: teamsError } = await useAsyncData(
-  "teams-list", () => queryCollection("teams").all().then(r => r || []).catch(() => [])
+  "teams-list", () => fetchTeams()
 );
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  "teams-matches", () => queryCollection("matches").all().then(r => r || []).catch(() => [])
+  "teams-matches", () => fetchMatches()
 );
 
 const pending = computed(() => teamsPending.value || matchesPending.value);

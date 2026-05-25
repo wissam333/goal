@@ -6,6 +6,7 @@ export const useVotes = () => {
     if (process.client && localStorage.getItem(voteKey)) {
       return { error: "already_voted" };
     }
+    if (!supabase) return { data: null, error: null };
     const { data, error } = await supabase
       .from("votes")
       .insert({ match_slug: matchSlug, player_slug: playerSlug });
@@ -16,6 +17,7 @@ export const useVotes = () => {
   };
 
   const getVotes = async (matchSlug) => {
+    if (!supabase) return {};
     const { data, error } = await supabase
       .from("votes")
       .select("player_slug")

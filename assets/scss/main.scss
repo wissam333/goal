@@ -50,22 +50,6 @@
     --secondary-mid: rgba(74, 222, 128, 0.25);
 }
 
-@font-face {
-    font-family: 'Tajawal';
-    src: url('/fonts/tajawal-v12-latin-regular.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Tajawal';
-    src: url('/fonts/tajawal-v12-latin-700.woff2') format('woff2');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
-
 html {
     scroll-behavior: smooth;
 }
@@ -76,7 +60,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
-    font-family: "Tajawal", "sans-serif";
+    font-family: "Tajawal", sans-serif;
     overscroll-behavior: contain;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -86,7 +70,6 @@ body {
 
 /* Body Direction Helpers */
 .bodyAR {
-    font-family: "Tajawal", "sans-serif";
     direction: rtl;
 
     select {
@@ -113,7 +96,6 @@ body {
 }
 
 .bodyEN {
-    font-family: "Tajawal", sans-serif;
     direction: ltr;
 
     .me-2 {
@@ -534,47 +516,49 @@ label {
 // Opacity-only = GPU composited, no layout thrash.
 
 .page-enter-active {
-  transition: opacity 0.15s ease-out;
+    transition: opacity 0.15s ease-out;
 }
 .page-leave-active {
-  transition: opacity 0.1s ease-in;
+    transition: opacity 0.1s ease-in;
 }
 .page-enter-from,
 .page-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 
 @media (max-width: 768px) {
-  .page-enter-active,
-  .page-leave-active {
-    transition: opacity 0.08s ease;
-  }
+    .page-enter-active,
+    .page-leave-active {
+        transition: opacity 0.08s ease;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-enter-active,
-  .page-leave-active {
-    transition: none;
-  }
+    .page-enter-active,
+    .page-leave-active {
+        transition: none;
+    }
 }
 
 .layout-enter-active,
 .layout-leave-active {
-  transition: opacity 0.15s ease;
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
+    transition: opacity 0.15s ease;
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
 }
 .layout-enter-from,
 .layout-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 
 .nuxt-icon {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 .page-wrap {
-  padding-top: var(--header-height);
-  @media (max-width: 991.98px) { padding-top: var(--header-height-mobile); }
+    padding-top: var(--header-height);
+    @media (max-width: 991.98px) {
+        padding-top: var(--header-height-mobile);
+    }
 }

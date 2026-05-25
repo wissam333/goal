@@ -178,6 +178,7 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { fetchTeams, fetchMatches } = useLeagueData();
 const activeTab = ref('groups');
 
 const tabs = computed(() => [
@@ -186,10 +187,10 @@ const tabs = computed(() => [
 ]);
 
 const { data: teamsData, pending: teamsPending } = await useAsyncData(
-  'bracket-teams', () => queryCollection('teams').all().then(r => r || []).catch(() => [])
+  'bracket-teams', () => fetchTeams()
 );
 const { data: matchesData, pending: matchesPending, error } = await useAsyncData(
-  'bracket-matches', () => queryCollection('matches').all().then(r => r || []).catch(() => [])
+  'bracket-matches', () => fetchMatches()
 );
 
 

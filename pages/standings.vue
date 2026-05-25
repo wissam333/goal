@@ -125,21 +125,20 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { fetchTeams, fetchMatches } = useLeagueData();
 
 // Fetch data
 const {
   data: teamsData,
   pending: teamsPending,
   error: teamsError,
-} = await useAsyncData("standings-teams", () => queryCollection("teams").all().then(r => r || []).catch(() => []));
+} = await useAsyncData("standings-teams", () => fetchTeams());
 
 const {
   data: matchesData,
   pending: matchesPending,
   error: matchesError,
-} = await useAsyncData("standings-matches", () =>
-  queryCollection("matches").all().then(r => r || []).catch(() => []),
-);
+} = await useAsyncData("standings-matches", () => fetchMatches());
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const error = computed(() => teamsError.value || matchesError.value);

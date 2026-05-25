@@ -188,26 +188,27 @@ import { ar, enUS } from 'date-fns/locale';
 
 const route = useRoute();
 const { locale, t } = useI18n();
+const { fetchTeam, fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 const { data: team, pending: teamPending, error: teamError } = await useAsyncData(
   `team-${slug.value}`,
-  () => queryCollection('teams').where('slug', '=', slug.value).first().catch(() => null)
+  () => fetchTeam(slug.value)
 );
 
 const { data: playersData, pending: playersPending } = await useAsyncData(
   `team-players-${slug.value}`,
-  () => queryCollection('players').where('team', '=', slug.value).all().then(r => r || []).catch(() => [])
+  () => fetchPlayers({ team: slug.value })
 );
 
 const { data: matchesData, pending: matchesPending } = await useAsyncData(
   `team-matches-${slug.value}`,
-  () => queryCollection('matches').all().then(r => r || []).catch(() => [])
+  () => fetchMatches()
 );
 
 const { data: teamsData } = await useAsyncData(
   `all-teams-${slug.value}`,
-  () => queryCollection('teams').all().then(r => r || []).catch(() => [])
+  () => fetchTeams()
 );
 
 const pending = computed(() => teamPending.value || playersPending.value || matchesPending.value);

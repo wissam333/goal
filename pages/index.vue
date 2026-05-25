@@ -7,13 +7,18 @@
       <div v-if="nextMatch?.slug" class="hero-card">
         <div class="hero-badge">
           <Icon name="mdi:clock-outline" size="14" />
-          {{ $t("home.nextMatch") }} · {{ $t("match.week") }} {{ nextMatch.week }}
+          {{ $t("home.nextMatch") }}
         </div>
 
         <div class="hero-teams">
           <div class="hero-team">
             <NuxtLink :to="`/teams/${nextMatch.homeTeam}`" class="hero-logo-wrap">
-              <NuxtImg :src="`/teams/${nextMatch.homeTeam}.svg`" :alt="nextMatch.homeTeam" width="64" height="64" class="hero-logo" />
+              <template v-if="getTeamLogo(nextMatch.homeTeam)">
+                <NuxtImg :src="getTeamLogo(nextMatch.homeTeam)" :alt="getTeamName(nextMatch.homeTeam)" width="64" height="64" class="hero-logo" @error="onLogoError(nextMatch.homeTeam)" />
+              </template>
+              <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.homeTeam) }">
+                {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
+              </div>
             </NuxtLink>
             <span class="hero-team-name">{{ getTeamName(nextMatch.homeTeam) }}</span>
           </div>
@@ -29,7 +34,12 @@
 
           <div class="hero-team">
             <NuxtLink :to="`/teams/${nextMatch.awayTeam}`" class="hero-logo-wrap">
-              <NuxtImg :src="`/teams/${nextMatch.awayTeam}.svg`" :alt="nextMatch.awayTeam" width="64" height="64" class="hero-logo" />
+              <template v-if="getTeamLogo(nextMatch.awayTeam)">
+                <NuxtImg :src="getTeamLogo(nextMatch.awayTeam)" :alt="getTeamName(nextMatch.awayTeam)" width="64" height="64" class="hero-logo" @error="onLogoError(nextMatch.awayTeam)" />
+              </template>
+              <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.awayTeam) }">
+                {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
+              </div>
             </NuxtLink>
             <span class="hero-team-name">{{ getTeamName(nextMatch.awayTeam) }}</span>
           </div>
@@ -56,7 +66,10 @@
         <NuxtLink :to="`/matches/${lastMatch.slug}`" class="last-card">
           <div class="last-teams">
             <div class="last-team">
-              <NuxtImg :src="`/teams/${lastMatch.homeTeam}.svg`" :alt="lastMatch.homeTeam" width="28" height="28" class="last-logo" />
+              <template v-if="getTeamLogo(lastMatch.homeTeam)">
+                <NuxtImg :src="getTeamLogo(lastMatch.homeTeam)" :alt="getTeamName(lastMatch.homeTeam)" width="28" height="28" class="last-logo" @error="onLogoError(lastMatch.homeTeam)" />
+              </template>
+              <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.homeTeam) }">{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span>
               <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
             </div>
 
@@ -68,7 +81,10 @@
 
             <div class="last-team right">
               <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
-              <NuxtImg :src="`/teams/${lastMatch.awayTeam}.svg`" :alt="lastMatch.awayTeam" width="28" height="28" class="last-logo" />
+              <template v-if="getTeamLogo(lastMatch.awayTeam)">
+                <NuxtImg :src="getTeamLogo(lastMatch.awayTeam)" :alt="getTeamName(lastMatch.awayTeam)" width="28" height="28" class="last-logo" @error="onLogoError(lastMatch.awayTeam)" />
+              </template>
+              <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.awayTeam) }">{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span>
             </div>
           </div>
 
@@ -111,7 +127,10 @@
               <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
                 <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
                 <td class="team-cell">
-                  <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="22" height="22" class="mini-logo" />
+                  <template v-if="getTeamLogo(team.slug)">
+                    <NuxtImg :src="getTeamLogo(team.slug)" :alt="team.title" width="22" height="22" class="mini-logo" @error="onLogoError(team.slug)" />
+                  </template>
+                  <span v-else class="mini-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</span>
                   <span>{{ team.title }}</span>
                 </td>
                 <td class="num-cell">{{ team.P }}</td>
@@ -138,7 +157,10 @@
         <div class="row g-2">
           <div v-for="team in teams" :key="team.slug" class="col-6 col-md-3">
             <NuxtLink :to="`/teams/${team.slug}`" class="team-card">
-              <NuxtImg :src="`/teams/${team.slug}.svg`" :alt="team.title" width="44" height="44" class="team-card-logo" />
+              <template v-if="getTeamLogo(team.slug)">
+                <NuxtImg :src="getTeamLogo(team.slug)" :alt="team.title" width="44" height="44" class="team-card-logo" @error="onLogoError(team.slug)" />
+              </template>
+              <div v-else class="team-card-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</div>
               <span class="team-card-name">{{ team.title }}</span>
               <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
             </NuxtLink>
@@ -155,23 +177,38 @@ import { format, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 const { locale } = useI18n();
+const { fetchMatches, fetchTeams, fetchPlayers } = useLeagueData();
 const dateLocale = computed(() => (locale.value === "ar" ? ar : enUS));
 
 const [{ data: nextMatch }, { data: lastMatch }, { data: allMatches }, { data: teams }, { data: allPlayers }] = await Promise.all([
   useAsyncData("home-next", () =>
-    queryCollection("matches").where("status", "IN", ["upcoming", "live"]).order("date", "ASC").limit(1).first().catch(() => null),
+    fetchMatches({ statusIn: ["upcoming", "live"], orderBy: { field: "date", dir: "asc" }, limit: 1 }).then(r => r?.[0] || null),
   ),
   useAsyncData("home-last", () =>
-    queryCollection("matches").where("status", "=", "played").order("date", "DESC").limit(1).first().catch(() => null),
+    fetchMatches({ status: "played", orderBy: { field: "date", dir: "desc" }, limit: 1 }).then(r => r?.[0] || null),
   ),
   useAsyncData("home-all-matches", () =>
-    queryCollection("matches").where("status", "=", "played").all().then(r => r || []).catch(() => []),
+    fetchMatches({ status: "played" }),
   ),
-  useAsyncData("home-teams", () => queryCollection("teams").all().then(r => r || []).catch(() => [])),
-  useAsyncData("home-players", () => queryCollection("players").all().then(r => r || []).catch(() => [])),
+  useAsyncData("home-teams", () => fetchTeams()),
+  useAsyncData("home-players", () => fetchPlayers()),
 ]);
 
-const getTeamName = (slug) => teams.value?.find((t) => t.slug === slug)?.title ?? slug;
+const logoErrors = ref(new Set())
+const teamMap = computed(() => {
+  const m = {};
+  (teams.value || []).forEach(t => { m[t.slug] = t; });
+  return m;
+});
+const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
+const getTeamLogo = (slug) => {
+  if (!slug || logoErrors.value.has(slug)) return null;
+  return teamMap.value[slug]?.logo || null;
+};
+const getTeamColor = (slug) => teamMap.value[slug]?.color || '#22c55e';
+const onLogoError = (slug) => {
+  logoErrors.value = new Set([...logoErrors.value, slug]);
+};
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
@@ -227,7 +264,6 @@ const quickStats = computed(() => {
     { key: "played", label: "home.stats.played", value: played, icon: "game-icons:soccer-ball", color: "success" },
     { key: "goals", label: "home.stats.goals", value: totalGoals, icon: "mdi:bullseye-arrow", color: "warning" },
     { key: "topScorer", label: "home.stats.topScorer", value: topScorer ? topScorer[1] : 0, icon: "mdi:star-outline", color: "primary", description: topScorerName },
-    { key: "week", label: "home.stats.currentWeek", value: Math.max(...(allMatches.value?.map((m) => m.week) ?? [0])), icon: "mdi:calendar-week", color: "info" },
   ];
 });
 
@@ -345,6 +381,20 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   @media (max-width: 480px) { width: 48px; height: 48px; }
 }
 
+.hero-logo-initial {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  @media (max-width: 480px) { width: 48px; height: 48px; font-size: 1.2rem; }
+}
+
 .hero-team-name {
   font-size: 0.88rem;
   font-weight: 700;
@@ -442,6 +492,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .last-logo { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
+.last-logo-initial { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
 
 .last-name {
   font-size: 0.88rem;
@@ -531,6 +582,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .mini-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
+.mini-logo-initial { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.6rem; font-weight: 700; color: #fff; flex-shrink: 0; }
 .num-cell { font-size: 0.85rem; color: var(--text-muted); }
 .pts-cell { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
 
@@ -552,6 +604,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .team-card-logo { width: 44px; height: 44px; object-fit: contain; }
+.team-card-logo-initial { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1rem; font-weight: 800; color: #fff; }
 .team-card-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); text-align: center; }
 .team-card-pts {
   font-size: 1rem;

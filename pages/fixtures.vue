@@ -38,22 +38,22 @@
     />
 
     <template v-else>
-      <div v-for="week in weekGroups" :key="week.number" class="week-section">
-        <!-- Week header -->
-        <div class="week-header">
-          <span class="week-badge">
+      <div v-for="round in roundGroups" :key="round.group" class="round-section">
+        <!-- Round header -->
+        <div class="round-header">
+          <span class="round-badge">
             <Icon name="mdi:flag-checkered" size="14" />
-            {{ $t("match.week") }} {{ week.number }}
+            {{ round.label }}
           </span>
-          <span class="week-count"
-            >{{ week.matches.length }} {{ $t("fixtures.matches") }}</span
+          <span class="round-count"
+            >{{ round.matches.length }} {{ $t("fixtures.matches") }}</span
           >
         </div>
 
         <!-- Match rows -->
         <div class="matches-list">
           <div
-            v-for="match in week.matches"
+            v-for="match in round.matches"
             :key="match.slug"
             class="match-row"
             :class="{
@@ -174,17 +174,18 @@ import { format, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 const { locale, t } = useI18n();
+const { fetchMatches, fetchTeams } = useLeagueData();
 
 const {
   data: matchesData,
   pending,
   error,
 } = await useAsyncData("fixtures-matches", () =>
-  queryCollection("matches").order("date", "ASC").all().then(r => r || []).catch(() => []),
+  fetchMatches({ orderBy: { field: "date", dir: "asc" } }),
 );
 
 const { data: teamsData } = await useAsyncData("fixtures-teams", () =>
-  queryCollection("teams").all().then(r => r || []).catch(() => []),
+  fetchTeams(),
 );
 
 const matches = computed(() => matchesData.value || []);
@@ -229,17 +230,25 @@ const filteredMatches = computed(() => {
   return matches.value.filter((m) => m.status === activeFilter.value);
 });
 
-// Group by week
-const weekGroups = computed(() => {
+// Group by round (group A, group B, semi-finals, final)
+const roundLabels = {
+  A: 'المجموعة A',
+  B: 'المجموعة B',
+  SF: 'نصف النهائي',
+  F: 'النهائي',
+}
+const roundOrder = { A: 0, B: 1, SF: 2, F: 3 }
+
+const roundGroups = computed(() => {
   const map = {};
   filteredMatches.value.forEach((m) => {
-    const w = m.week || 1;
-    if (!map[w]) map[w] = [];
-    map[w].push(m);
+    const g = m.group || 'A';
+    if (!map[g]) map[g] = [];
+    map[g].push(m);
   });
   return Object.entries(map)
-    .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([number, matches]) => ({ number: Number(number), matches }));
+    .sort(([a], [b]) => (roundOrder[a] ?? 99) - (roundOrder[b] ?? 99))
+    .map(([group, matches]) => ({ group, label: roundLabels[group] || group, matches }));
 });
 
 // Date formatting
@@ -373,12 +382,12 @@ useSeoMeta({
   animation: sh 1.4s linear infinite;
 }
 
-// ── Week section ───────────────────────────────────────────────────────────────
-.week-section {
+// ── Round section ──────────────────────────────────────────────────────────────
+.round-section {
   margin-bottom: 28px;
 }
 
-.week-header {
+.round-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -386,7 +395,7 @@ useSeoMeta({
   padding: 0 4px;
 }
 
-.week-badge {
+.round-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -398,7 +407,7 @@ useSeoMeta({
   font-weight: 700;
 }
 
-.week-count {
+.round-count {
   font-size: 0.75rem;
   color: var(--text-muted);
 }

@@ -131,7 +131,7 @@ const resumeTimer = (id) => {
   z-index: 9999;
   padding: 1.25rem;
   pointer-events: none;
-  font-family: "Tajawal", "sans-serif";
+  font-family: "Tajawal", sans-serif;
 
   &.top-right {
     top: 0;
