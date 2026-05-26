@@ -112,14 +112,14 @@ export default defineNuxtConfig({
     },
   },
 
-  nitro: {
-    preset: "cloudflare_pages",
-    compressPublicAssets: true,
-    minify: true,
-    prerender: {
-      failOnError: false,
-    },
-  },
+  // nitro: {
+  //   preset: "cloudflare_pages",
+  //   compressPublicAssets: true,
+  //   minify: true,
+  //   prerender: {
+  //     failOnError: false,
+  //   },
+  // },
 
   compatibilityDate: "2025-12-29",
 
