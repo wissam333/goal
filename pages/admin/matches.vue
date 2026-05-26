@@ -119,6 +119,32 @@
             </div>
           </template>
         </div>
+
+        <div v-if="form.date && isPastMatch(form.date) && goalScorers.length" class="goal-scorers-section">
+          <div class="goal-scorers-header">
+            <span class="goal-title">مسجلو الأهداف</span>
+            <span class="goal-hint">اختياري</span>
+          </div>
+          <div v-for="(gs, i) in goalScorers" :key="i" class="goal-scorer-row">
+            <SharedUiFormBaseSelect
+              v-model="gs.player"
+              :options="goalScorerPlayerOptions"
+              placeholder="اللاعب"
+              searchable
+              size="sm"
+              @change="(val) => onPlayerSelect(i, val)"
+            />
+            <SharedUiFormBaseInput
+              v-model="gs.minute"
+              type="number"
+              placeholder="دقيقة"
+              size="sm"
+            />
+            <button class="goal-remove" type="button" @click="removeGoalScorer(i)" title="إزالة">
+              <Icon name="mdi:close" size="14" />
+            </button>
+          </div>
+        </div>
       </form>
 
       <template #actions>
@@ -248,12 +274,81 @@ const loadData = async () => {
   loading.value = false
 }
 
+const goalScorers = ref([])
+
 const loadVotes = async (matchSlug) => {
   if (!matchSlug) return
   const supabase = useSupabase()
   const { data } = await supabase.from("votes").select("player_slug").eq("match_slug", matchSlug)
   votesData.value = data || []
 }
+
+const adjustGoalScorers = () => {
+  const total = (parseInt(form.homeScore) || 0) + (parseInt(form.awayScore) || 0)
+  while (goalScorers.value.length < total) {
+    goalScorers.value.push({ player: '', team: '', minute: '' })
+  }
+  if (goalScorers.value.length > total) {
+    goalScorers.value.splice(total)
+  }
+}
+
+const removeGoalScorer = (index) => {
+  goalScorers.value.splice(index, 1)
+}
+
+const onPlayerSelect = (index, playerSlug) => {
+  if (playerSlug) {
+    const player = players.value.find(p => p.slug === playerSlug)
+    goalScorers.value[index].team = player?.team || ''
+  }
+}
+
+const syncPlayerGoals = async () => {
+  const allMatches = await admin.getMatches()
+  const goalCount = {}
+  for (const m of allMatches) {
+    if (m.goalScorers?.length) {
+      for (const g of m.goalScorers) {
+        if (g.player) {
+          goalCount[g.player] = (goalCount[g.player] || 0) + 1
+        }
+      }
+    }
+  }
+  for (const p of players.value) {
+    const newGoals = goalCount[p.slug] || 0
+    if (p.goals !== newGoals) {
+      await admin.savePlayer({ ...p, goals: newGoals })
+    }
+  }
+}
+
+watch([() => form.homeScore, () => form.awayScore], adjustGoalScorers)
+
+const goalScorerPlayerOptions = computed(() => {
+  if (!form.homeTeam && !form.awayTeam) return []
+  const home = teams.value.find(t => t.slug === form.homeTeam)
+  const away = teams.value.find(t => t.slug === form.awayTeam)
+  const homePlayers = players.value.filter(p => p.team === form.homeTeam)
+  const awayPlayers = players.value.filter(p => p.team === form.awayTeam)
+  return [
+    {
+      label: home?.title || form.homeTeam,
+      options: homePlayers.map(p => ({
+        label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`,
+        value: p.slug,
+      })),
+    },
+    {
+      label: away?.title || form.awayTeam,
+      options: awayPlayers.map(p => ({
+        label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`,
+        value: p.slug,
+      })),
+    },
+  ]
+})
 
 onMounted(loadData)
 
@@ -417,6 +512,7 @@ const resetForm = () => {
   Object.assign(form, defaultForm())
   editingMatch.value = null
   votesData.value = []
+  goalScorers.value = []
 }
 
 const openAddModal = () => {
@@ -434,6 +530,11 @@ const openEditModal = (match) => {
   form.homeScore = match.homeScore
   form.awayScore = match.awayScore
   form.motmWinner = match.motmWinner || ''
+  if (match.goalScorers?.length) {
+    goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers))
+  } else {
+    goalScorers.value = []
+  }
   loadVotes(match.slug)
   modalOpen.value = true
 }
@@ -474,8 +575,19 @@ const handleSave = async () => {
     photos: editingMatch.value?.photos || [],
   }
 
+  // Override with edited goal scorers
+  if (goalScorers.value.length) {
+    matchObj.goalScorers = goalScorers.value.map(g => ({
+      player: g.player,
+      team: g.team,
+      minute: g.minute ? Number(g.minute) : null,
+    }))
+  }
+
   try {
     await admin.saveMatch(matchObj)
+    // Auto-update player goal stats from all matches
+    await syncPlayerGoals()
     modalOpen.value = false
     await loadData()
     showAlert('success', 'تم الحفظ', editingMatch.value ? 'تم تحديث المباراة بنجاح' : 'تمت إضافة المباراة بنجاح')
@@ -662,5 +774,65 @@ const handleDelete = async (match) => {
 .album-actions-row {
   display: flex;
   gap: 10px;
+}
+
+.goal-scorers-section {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-scorers-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goal-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.goal-scorer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-scorer-row > :first-child {
+  flex: 1;
+}
+
+.goal-scorer-row > :nth-child(2) {
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.goal-remove {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.goal-remove:hover {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: #ef4444;
 }
 </style>

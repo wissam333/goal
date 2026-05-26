@@ -165,7 +165,11 @@
           {{ $t('match.predicted') }}
         </p>
 
-        <div class="predict-candidates">
+        <div
+          class="predict-candidates"
+          :class="{ 'predict-candidates--with-draw': drawAllowed }"
+        >
+          <!-- Home -->
           <div
             class="predict-card"
             :class="{ voted: alreadyPredicted && predictedTeam === match.homeTeam }"
@@ -194,8 +198,41 @@
             </SharedUiButtonBase>
           </div>
 
-          <div class="predict-vs">{{ $t('match.predictVs') }}</div>
+          <!-- Draw (only for group matches) -->
+          <template v-if="drawAllowed">
+            <div
+              class="predict-card predict-card--draw"
+              :class="{ voted: alreadyPredicted && predictedTeam === DRAW_SLUG }"
+              @click="castPrediction(DRAW_SLUG)"
+            >
+              <div class="predict-logo predict-logo--draw">
+                <Icon name="mdi:swap-horizontal-bold" size="24" class="draw-icon" />
+              </div>
+              <span class="predict-team-name">{{ $t('match.predictDraw') }}</span>
+              <template v-if="alreadyPredicted">
+                <SharedUiIndicatorsProgress
+                  :value="getPredictionPercent(DRAW_SLUG)"
+                  color="primary"
+                  class="mt-2"
+                />
+                <span class="predict-pct">{{ getPredictionPercent(DRAW_SLUG) }}%</span>
+              </template>
+              <SharedUiButtonBase
+                v-else
+                variant="outline"
+                size="sm"
+                icon-left="mdi:thumb-up-outline"
+                :loading="predictingTeam === DRAW_SLUG"
+              >
+                {{ $t('match.predict') }}
+              </SharedUiButtonBase>
+            </div>
+          </template>
 
+          <!-- VS separator (no-draw mode) -->
+          <div v-else class="predict-vs">{{ $t('match.predictVs') }}</div>
+
+          <!-- Away -->
           <div
             class="predict-card"
             :class="{ voted: alreadyPredicted && predictedTeam === match.awayTeam }"
@@ -471,6 +508,12 @@ const teamMap = computed(() => {
 });
 const homeTeam = computed(() => teamMap.value[match.value?.homeTeam]);
 const awayTeam = computed(() => teamMap.value[match.value?.awayTeam]);
+
+const DRAW_SLUG = '__draw__';
+const drawAllowed = computed(() => {
+  const g = match.value?.group;
+  return g === 'A' || g === 'B';
+});
 
 // ── Player helpers ─────────────────────────────────────────────────────────────
 const playerMap = computed(() => {
@@ -1056,6 +1099,10 @@ useSeoMeta({
   grid-template-columns: 1fr auto 1fr;
   gap: 12px;
   align-items: center;
+
+  &--with-draw {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 .predict-card {
   border: 1px solid var(--border-color);
@@ -1086,6 +1133,15 @@ useSeoMeta({
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+.predict-card--draw {
+  border-style: dashed;
+}
+.predict-logo--draw {
+  background: var(--primary-soft);
+  border-color: var(--primary-mid);
+}
+.draw-icon { color: var(--primary); }
 
 // ── Empty album ────────────────────────────────────────────────────────────────
 .empty-album {
@@ -1184,5 +1240,7 @@ useSeoMeta({
   .predict-logo { width: 44px; height: 44px; }
   .predict-team-name { font-size: 0.72rem; }
   .predict-candidates { gap: 8px; }
+  .predict-candidates--with-draw { gap: 6px; }
+  .draw-icon { font-size: 20px !important; }
 }
 </style>

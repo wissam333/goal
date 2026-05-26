@@ -41,7 +41,7 @@
                 size="15"
                 aria-hidden="true"
               />
-              <span>{{ $t("footer.teamsCount") }}</span>
+              <span>{{ $t("footer.teamsCount") }} {{ teamCount }}</span>
             </li>
             <li>
               <Icon
@@ -76,6 +76,15 @@
 <script setup>
 const config = useRuntimeConfig();
 const currentYear = new Date().getFullYear();
+
+const { fetchTeams } = useLeagueData();
+const { data: teamCount } = await useAsyncData(
+  'footer-team-count',
+  async () => {
+    const teams = await fetchTeams();
+    return teams?.length || 0;
+  }
+);
 
 const navItems = [
   { key: "standings", label: "nav.standings", to: "/standings" },

@@ -1,123 +1,224 @@
 {
+  "leagueName": "دوري القرية السنوي",
+  "lightMode": "وضع النهار",
+  "darkMode": "وضع الليل",
+  "menu": "القائمة",
+  "Theme": "المظهر",
+  "Mode": "النمط",
+  "Light": "نهاري",
+  "Dark": "ليلي",
+  "Color": "اللون",
+  "logout": "تسجيل الخروج",
+  "confirmLogout": "تأكيد تسجيل الخروج",
+  "logoutConfirmMessage": "هل أنت متأكد من تسجيل الخروج؟",
+  "cancel": "إلغاء",
+  "collapse": "طي",
+  "close_dialog": "إغلاق",
+  "no-data": "لا توجد بيانات",
+  "barcode": "الباركود",
+  "closeCamera": "إغلاق الكاميرا",
+  "scanBarcode": "مسح الباركود",
+  "scannerReady": "الماسح جاهز",
+  "scannerOff": "الماسح متوقف",
+  "nativeScannerActive": "الماسح الضوئي نشط",
+  "centerBarcode": "ضع الباركود في المنتصف",
+  "startingCamera": "جاري تشغيل الكاميرا",
+  "videoName": "اسم الفيديو",
+  "enterVideoName": "أدخل اسم الفيديو",
+  "imageName": "اسم الصورة",
+  "enterImageName": "أدخل اسم الصورة",
+  "viewFile": "عرض الملف",
+  "deleteEntry": "حذف",
+  "fileName": "اسم الملف",
+  "enterFileName": "أدخل اسم الملف",
+  "searchPlaceholder": "بحث...",
+  "firstPage": "الصفحة الأولى",
+  "previousPage": "الصفحة السابقة",
+  "nextPage": "الصفحة التالية",
+  "lastPage": "الصفحة الأخيرة",
+  "close": "إغلاق",
+  "dragOrClickVideo": "اسحب وأفلت الفيديو هنا أو انقر للرفع",
+  "videoFormatsHint": "الصيغ المدعومة: MP4, WebM, Ogg",
+  "processing": "جاري المعالجة",
+  "addVideo": "إضافة فيديو",
+  "dragOrClickFile": "اسحب وأفلت الملف هنا أو انقر للرفع",
+  "fileFormatsHint": "جميع الصيغ مدعومة",
+  "file": "ملف",
+  "addFile": "إضافة ملف",
+  "dragOrClickImage": "اسحب وأفلت الصورة هنا أو انقر للرفع",
+  "imageFormatsHint": "الصيغ المدعومة: JPG, PNG, WebP",
+  "addImage": "إضافة صورة",
+  "filters": "تصفية",
+  "clearAll": "مسح الكل",
+  "apply": "تطبيق",
+  "loading": "جاري التحميل",
+  "actions": "إجراءات",
+  "previous": "السابق",
+  "next": "التالي",
+  "showing": "عرض",
+  "of": "من",
+  "page": "صفحة",
+  "allDates": "كل التواريخ",
+  "today": "اليوم",
+  "thisWeek": "هذا الأسبوع",
+  "thisMonth": "هذا الشهر",
+  "thisYear": "هذه السنة",
+  "reset": "إعادة تعيين",
+  "No options found": "لا توجد خيارات",
+  "noResults": "لا توجد نتائج",
+  "exit_title": "خروج",
+  "exit_subtitle": "هل أنت متأكد من الخروج؟",
+  "exit": "خروج",
+  "videosOnly": "فيديوهات فقط",
+  "fileReadError": "خطأ في قراءة الملف",
+  "imagesOnly": "صور فقط",
+  "bottomNav": "شريط التنقل السفلي",
+
   "nav": {
     "home": "الرئيسية",
     "standings": "الترتيب",
     "fixtures": "المباريات",
     "teams": "الفرق",
     "stats": "الإحصائيات",
-    "bracket": "الكأس"
+    "bracket": "مخطط الدوري"
   },
+
   "match": {
     "upcoming": "قادمة",
     "played": "منتهية",
     "live": "مباشر",
     "week": "الجولة",
-    "venue": "الملعب",
     "goals": "الأهداف",
     "motm": "أفضل لاعب",
-    "vote": "صوّت",
+    "vote": "تصويت",
     "voted": "تم التصويت",
     "album": "الصور",
     "video": "الفيديو",
-    "share": "شارك النتيجة",
-    "home": "المضيف",
-    "away": "ضيف",
+    "share": "مشاركة",
+    "home": "الفريق المضيف",
+    "away": "الفريق الضيف",
     "hours": "ساعة",
     "minutes": "دقيقة",
     "seconds": "ثانية",
-    "viewDetails": "عرض التفاصيل",
     "noUpcoming": "لا توجد مباريات قادمة",
-    "votePrompt": "اختر أفضل لاعب في المباراة",
-    "noPhotos": "لا توجد صور بعد",
-    "h2h": "المواجهات السابقة"
+    "votePrompt": "من كان أفضل لاعب في المباراة؟",
+    "predictTitle": "توقع الفائز",
+    "predict": "توقع",
+    "predicted": "تم التوقع",
+    "predictPrompt": "من تتوقع أن يفوز بالمباراة؟",
+    "predictVs": "ضد",
+    "predictDraw": "تعادل",
+    "noPhotos": "لا توجد صور متاحة",
+    "h2h": "المواجهات المباشرة",
+    "venue": "الملعب",
+    "viewDetails": "عرض التفاصيل"
   },
+
   "home": {
-    "latestResults": "آخر النتائج",
-    "fullTable": "عرض الجدول كاملاً",
-    "allTeams": "جميع الفرق",
-    "lastMatch": "آخر مباراة",
     "nextMatch": "المباراة القادمة",
     "viewMatch": "عرض المباراة",
+    "lastMatch": "آخر مباراة",
+    "fullTable": "الجدول الكامل",
+    "allTeams": "جميع الفرق",
+    "latestResults": "آخر النتائج",
     "stats": {
       "played": "المباريات",
       "goals": "الأهداف",
       "topScorer": "الهداف",
-      "currentWeek": "الأسبوع الحالي"
+      "currentWeek": "الجولة الحالية"
     }
   },
-  "team": {
-    "players": "اللاعبون",
-    "results": "النتائج",
-    "upcoming": "القادمة",
-    "stats": "الإحصائيات",
-    "founded": "تأسس",
-    "noPlayers": "لا يوجد لاعبون"
-  },
-  "player": {
-    "goals": "أهداف",
-    "assists": "تمريرات",
-    "appearances": "مباريات",
-    "motmWins": "أفضل لاعب",
-    "seasonProgress": "التقدم الموسمي",
-    "matchHistory": "سجل المباريات",
-    "noMatches": "لا توجد مباريات",
-    "share": "مشاركة اللاعب"
-  },
+
   "standings": {
     "team": "الفريق",
     "played": "لعب",
-    "won": "فاز",
+    "won": "فوز",
     "drawn": "تعادل",
-    "lost": "خسر",
+    "lost": "خسارة",
     "gf": "له",
     "ga": "عليه",
-    "gd": "الفارق",
+    "gd": "الفرق",
     "points": "نقاط",
-    "form": "الشكل",
-    "group": "مجموعة",
+    "form": "الآخر",
+    "group": "المجموعة",
     "advance": "تأهل",
     "danger": "خطر"
   },
+
   "fixtures": {
     "all": "الكل",
-    "matches": "مباراة",
-    "back": "عودة"
+    "matches": "المباريات",
+    "back": "رجوع"
   },
+
   "stats": {
-    "totalTeams": "عدد الفرق",
-    "totalGoals": "إجمالي الأهداف",
-    "avgGoals": "متوسط الأهداف",
+    "totalTeams": "الفرق",
+    "totalGoals": "الأهداف",
+    "avgGoals": "معدل الأهداف",
     "topScorer": "الهداف",
-    "topAssists": "أكثر تمريرات",
-    "motmLeader": "الأكثر تتويجاً",
-    "matchStats": "إحصائيات المباريات",
-    "totalMatches": "إجمالي المباريات",
-    "mostGoals": "الأهداف في مباراة",
+    "topAssists": "صانع الألعاب",
+    "motmLeader": "أفضل لاعب",
+    "totalMatches": "المباريات",
     "cleanSheets": "شباك نظيفة",
+    "matchStats": "إحصائيات المباريات",
+    "mostGoals": "أكثر مباراة تهديفية",
     "album": "ألبوم الموسم"
   },
+
   "bracket": {
     "groupStage": "دور المجموعات",
     "knockout": "الأدوار الإقصائية",
-    "placeholder": "سيتم الإعلان قريباً",
+    "placeholder": "سيتم إضافة البيانات قريباً",
     "final": "النهائي",
     "semifinal": "نصف النهائي",
     "quarterfinal": "ربع النهائي"
   },
+
+  "player": {
+    "goals": "أهداف",
+    "assists": "تمريرات حاسمة",
+    "appearances": "مباريات",
+    "motmWins": "أفضل لاعب",
+    "seasonProgress": "تقدم الموسم",
+    "matchHistory": "تاريخ المباريات",
+    "noMatches": "لا توجد مباريات",
+    "share": "مشاركة"
+  },
+
+  "team": {
+    "players": "اللاعبين",
+    "results": "النتائج",
+    "upcoming": "القادم",
+    "founded": "تأسس",
+    "noPlayers": "لا يوجد لاعبين",
+    "stats": "إحصائيات الفريق"
+  },
+
   "footer": {
-    "tagline": "تابع نتائج وجدول دوري كرة القدم السنوي",
-    "joinWhatsApp": "انضم لمجموعة واتساب",
+    "tagline": "دوري كرة القدم السنوي للقرية",
     "quickLinks": "روابط سريعة",
     "season": "الموسم",
-    "teamsCount": "8 فرق",
-    "location": "الملعب الرئيسي",
-    "builtWith": "بُني بـ"
+    "teamsCount": "عدد الفرق",
+    "location": "الموقع",
+    "builtWith": "طُور بواسطة"
   },
+
   "error": {
-    "noData": "لا توجد بيانات"
+    "noData": "عذراً، لا توجد بيانات متاحة حالياً"
   },
-  "lightMode": "وضع النهار",
-  "darkMode": "وضع الليل",
-  "menu": "القائمة",
-  "leagueName": "دوري القرية السنوي"
+
+  "sidebar": {
+    "orders": "الطلبات",
+    "dashboard": "لوحة التحكم"
+  },
+
+  "ad": {
+    "banner": "إعلان",
+    "title": "عنوان الإعلان",
+    "description": "وصف الإعلان",
+    "link": "رابط الإعلان",
+    "image": "صورة الإعلان",
+    "imageHint": "اترك الصورة فارغة لإخفاء الإعلان",
+    "saveSuccess": "✅ تم حفظ الإعلان"
+  }
 }
