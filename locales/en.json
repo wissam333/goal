@@ -102,6 +102,11 @@
     "seconds": "sec",
     "noUpcoming": "No upcoming matches",
     "votePrompt": "Who was the man of the match?",
+    "predictTitle": "Prediction",
+    "predict": "Predict",
+    "predicted": "Predicted",
+    "predictPrompt": "Who do you think will win?",
+    "predictVs": "vs",
     "noPhotos": "No photos available",
     "h2h": "Head to Head",
     "venue": "Venue",
@@ -204,5 +209,15 @@
   "sidebar": {
     "orders": "Orders",
     "dashboard": "Dashboard"
+  },
+
+  "ad": {
+    "banner": "Advertisement",
+    "title": "Ad Title",
+    "description": "Ad Description",
+    "link": "Ad Link",
+    "image": "Ad Image",
+    "imageHint": "Leave image empty to hide the ad",
+    "saveSuccess": "✅ Ad saved successfully"
   }
 }

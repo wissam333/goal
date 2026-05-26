@@ -106,6 +106,18 @@
               placeholder="0"
             />
           </template>
+          <template v-if="form.homeTeam && form.awayTeam">
+            <div class="motm-field-wrap">
+              <SharedUiFormBaseSelect
+                v-model="form.motmWinner"
+                label="أفضل لاعب (MOTM)"
+                :options="motmPlayerOptions"
+                placeholder="اختر أفضل لاعب"
+                searchable
+                clearable
+              />
+            </div>
+          </template>
         </div>
       </form>
 
@@ -125,6 +137,52 @@
         </SharedUiButtonBase>
       </template>
     </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
+      v-model="albumModal.open"
+      :title="'ألبوم الصور: ' + (albumModal.match ? (albumModal.match.title || getMatchTitle(albumModal.match)) : '')"
+      maxWidth="640px"
+    >
+      <div v-if="!albumModal.photos.length" class="album-empty">
+        <Icon name="mdi:camera-off-outline" size="40" class="album-empty-icon" />
+        <span>لا توجد صور في الألبوم</span>
+      </div>
+
+      <div v-else class="album-grid-admin">
+        <div v-for="(photo, i) in albumModal.photos" :key="i" class="album-item-admin">
+          <img :src="photo" alt="" class="album-img-admin" />
+          <button class="album-remove-btn" @click="removeAlbumPhoto(i)" title="إزالة">
+            <Icon name="mdi:close" size="16" />
+          </button>
+        </div>
+      </div>
+
+      <div class="album-actions-row">
+        <SharedUiButtonBase
+          variant="outline"
+          icon-left="mdi:camera-plus-outline"
+          @click="addAlbumPhoto"
+        >
+          إضافة صورة
+        </SharedUiButtonBase>
+      </div>
+
+      <template #actions>
+        <SharedUiButtonBase
+          variant="outline"
+          @click="albumModal.open = false"
+        >
+          إلغاء
+        </SharedUiButtonBase>
+        <SharedUiButtonBase
+          variant="primary"
+          icon-left="mdi:content-save-outline"
+          @click="saveAlbum"
+        >
+          حفظ الألبوم
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
   </div>
 </template>
 
@@ -134,7 +192,9 @@ definePageMeta({ layout: 'admin' })
 const admin = useAdminData()
 
 const teams = ref([])
+const players = ref([])
 const matches = ref([])
+const votesData = ref([])
 const loading = ref(true)
 
 const modalOpen = ref(false)
@@ -166,6 +226,7 @@ const form = reactive({
   awayTeam: '',
   homeScore: null,
   awayScore: null,
+  motmWinner: '',
 })
 
 const defaultForm = () => ({
@@ -176,13 +237,22 @@ const defaultForm = () => ({
   awayTeam: '',
   homeScore: null,
   awayScore: null,
+  motmWinner: '',
 })
 
 const loadData = async () => {
   loading.value = true
   teams.value = await admin.getTeams()
+  players.value = await admin.getPlayers()
   matches.value = await admin.getMatches()
   loading.value = false
+}
+
+const loadVotes = async (matchSlug) => {
+  if (!matchSlug) return
+  const supabase = useSupabase()
+  const { data } = await supabase.from("votes").select("player_slug").eq("match_slug", matchSlug)
+  votesData.value = data || []
 }
 
 onMounted(loadData)
@@ -213,6 +283,36 @@ const teamOptions = computed(() =>
   teams.value.map(t => ({ label: t.title, value: t.slug }))
 )
 
+const motmPlayerOptions = computed(() => {
+  if (!form.homeTeam && !form.awayTeam) return []
+  const voteCount = {}
+  votesData.value.forEach(v => {
+    voteCount[v.player_slug] = (voteCount[v.player_slug] || 0) + 1
+  })
+  const home = teams.value.find(t => t.slug === form.homeTeam)
+  const away = teams.value.find(t => t.slug === form.awayTeam)
+  const homePlayers = players.value.filter(p => p.team === form.homeTeam)
+  const awayPlayers = players.value.filter(p => p.team === form.awayTeam)
+  return [
+    {
+      label: home?.title || form.homeTeam,
+      options: homePlayers.map(p => ({
+        label: `${p.title} (${p.number})`,
+        value: p.slug,
+        badge: voteCount[p.slug] ? `${voteCount[p.slug]} صوت` : '0',
+      })),
+    },
+    {
+      label: away?.title || form.awayTeam,
+      options: awayPlayers.map(p => ({
+        label: `${p.title} (${p.number})`,
+        value: p.slug,
+        badge: voteCount[p.slug] ? `${voteCount[p.slug]} صوت` : '0',
+      })),
+    },
+  ]
+})
+
 const groupOptions = [
   { label: 'المجموعة A', value: 'A' },
   { label: 'المجموعة B', value: 'B' },
@@ -229,13 +329,64 @@ const matchColumns = [
 ]
 
 const matchActions = [
+  { key: 'album', icon: 'mdi:image-multiple-outline', label: 'الألبوم', class: 'btn-info' },
   { key: 'edit', icon: 'mdi:pencil-outline', label: 'تعديل', class: 'btn-warning' },
   { key: 'delete', icon: 'mdi:delete-outline', label: 'حذف', class: 'btn-danger' },
 ]
 
+const albumModal = reactive({
+  open: false,
+  match: null,
+  photos: [],
+})
+
 const handleMatchAction = ({ action, row }) => {
-  if (action.key === 'edit') openEditModal(row)
+  if (action.key === 'album') openAlbumModal(row)
+  else if (action.key === 'edit') openEditModal(row)
   else if (action.key === 'delete') confirmDelete(row)
+}
+
+const openAlbumModal = (row) => {
+  const match = matches.value.find(m => m.slug === row.slug)
+  if (!match) return
+  albumModal.match = match
+  albumModal.photos = [...(match.photos || [])]
+  albumModal.open = true
+}
+
+const addAlbumPhoto = async () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    try {
+      const { compressAndEncode } = useImageCompression()
+      const base64 = await compressAndEncode(file, { maxSizeMB: 1, maxWidthOrHeight: 1600 })
+      albumModal.photos.push(base64)
+    } catch {
+      showAlert('error', 'خطأ', 'فشل ضغط الصورة')
+    }
+  }
+  input.click()
+}
+
+const removeAlbumPhoto = (index) => {
+  albumModal.photos.splice(index, 1)
+}
+
+const saveAlbum = async () => {
+  if (!albumModal.match) return
+  try {
+    const match = { ...albumModal.match, photos: albumModal.photos }
+    await admin.saveMatch(match)
+    albumModal.open = false
+    await loadData()
+    showAlert('success', 'تم الحفظ', 'تم تحديث ألبوم الصور بنجاح')
+  } catch {
+    showAlert('error', 'خطأ', 'فشل حفظ الألبوم')
+  }
 }
 
 const getTeamTitle = (slug) => {
@@ -265,6 +416,7 @@ const generateSlug = () => {
 const resetForm = () => {
   Object.assign(form, defaultForm())
   editingMatch.value = null
+  votesData.value = []
 }
 
 const openAddModal = () => {
@@ -281,6 +433,8 @@ const openEditModal = (match) => {
   form.awayTeam = match.awayTeam
   form.homeScore = match.homeScore
   form.awayScore = match.awayScore
+  form.motmWinner = match.motmWinner || ''
+  loadVotes(match.slug)
   modalOpen.value = true
 }
 
@@ -316,8 +470,8 @@ const handleSave = async () => {
     homeScore: matchStatus === 'played' ? Number(form.homeScore) : null,
     awayScore: matchStatus === 'played' ? Number(form.awayScore) : null,
     goalScorers: editingMatch.value?.goalScorers || [],
-    motmCandidates: editingMatch.value?.motmCandidates || [],
-    motmWinner: editingMatch.value?.motmWinner || null,
+    motmWinner: form.motmWinner || null,
+    photos: editingMatch.value?.photos || [],
   }
 
   try {
@@ -440,7 +594,73 @@ const handleDelete = async (match) => {
   }
 }
 
+.motm-field-wrap {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
 .text-muted {
   color: var(--text-muted);
+}
+
+.album-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 16px;
+  color: var(--text-muted);
+}
+
+.album-empty-icon {
+  opacity: 0.4;
+}
+
+.album-grid-admin {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.album-item-admin {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border-color);
+}
+
+.album-img-admin {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.album-remove-btn {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.album-remove-btn:hover {
+  background: rgba(239,68,68,0.85);
+}
+
+.album-actions-row {
+  display: flex;
+  gap: 10px;
 }
 </style>

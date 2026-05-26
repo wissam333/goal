@@ -39,6 +39,35 @@
     </div>
 
     <div class="settings-card">
+      <h3 class="form-section-title">الإعلان / البانر</h3>
+      <p class="form-desc">سيظهر الإعلان في أعلى جميع صفحات الموقع. اترك الصورة فارغة لإخفاء الإعلان</p>
+
+      <AdminImageUpload v-model="adForm.image" label="صورة الإعلان" />
+      <SharedUiFormBaseInput
+        v-model="adForm.title"
+        label="عنوان الإعلان"
+        placeholder="راعي البطولة"
+      />
+      <SharedUiFormBaseInput
+        v-model="adForm.description"
+        label="وصف الإعلان"
+        placeholder="شركة ABC"
+      />
+      <SharedUiFormBaseInput
+        v-model="adForm.link"
+        label="رابط الإعلان (اختياري)"
+        placeholder="https://example.com"
+        hint="عند الضغط على الإعلان يذهب المستخدم لهذا الرابط"
+      />
+
+      <div class="form-actions">
+        <SharedUiButtonBase variant="primary" @click="handleSaveAd">
+          حفظ الإعلان
+        </SharedUiButtonBase>
+      </div>
+    </div>
+
+    <div class="settings-card">
       <h3 class="form-section-title">النشر التلقائي</h3>
       <p class="form-desc">عند ضبط رابط النشر، يمكنك النشر من الصفحة الرئيسية للوحة التحكم</p>
       <SharedUiFormBaseInput
@@ -70,11 +99,24 @@ const form = reactive({
   season: "",
 })
 
+const adForm = reactive({
+  image: null,
+  title: "",
+  description: "",
+  link: "",
+})
+
 onMounted(async () => {
   const s = await admin.getSettings()
   if (s) {
     form.name = s.name || ""
     form.season = s.season || ""
+    if (s.ad) {
+      adForm.image = s.ad.image || null
+      adForm.title = s.ad.title || ""
+      adForm.description = s.ad.description || ""
+      adForm.link = s.ad.link || ""
+    }
   }
 })
 
@@ -83,6 +125,24 @@ const handleSave = async () => {
   alert.show = true
   alert.type = "success"
   alert.text = "✅ تم حفظ الإعدادات"
+}
+
+const handleSaveAd = async () => {
+  const s = await admin.getSettings()
+  const ad = {
+    image: adForm.image || null,
+    title: adForm.title || "",
+    description: adForm.description || "",
+    link: adForm.link || "",
+  }
+  await admin.saveSettings({
+    name: s?.name || form.name,
+    season: s?.season || form.season,
+    ad,
+  })
+  alert.show = true
+  alert.type = "success"
+  alert.text = "✅ تم حفظ الإعلان"
 }
 
 const saveHookUrl = () => {

@@ -5,6 +5,7 @@
   >
     <SharedNavbar />
     <div class="navbar-spacer" />
+    <SharedAdsBanner />
     <slot />
     <ClientOnly>
       <SharedUiNavigationMobileBottomBar :items="bottomNavItems" />

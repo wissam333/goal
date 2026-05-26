@@ -152,102 +152,207 @@
         </div>
       </div>
 
-      <!-- ③ Man of the Match — Vote -->
-      <div v-if="match.status === 'played' && match.motmCandidates?.length" class="section-card">
+      <!-- ③ Prediction Vote (upcoming matches only) -->
+      <div v-if="match.status === 'upcoming'" class="section-card">
+        <h3 class="section-title">
+          <Icon name="mdi:chart-line" size="18" />
+          {{ $t('match.predictTitle') }}
+        </h3>
+
+        <p v-if="!alreadyPredicted" class="vote-prompt">{{ $t('match.predictPrompt') }}</p>
+        <p v-else class="vote-done-msg">
+          <Icon name="mdi:check-circle" size="16" />
+          {{ $t('match.predicted') }}
+        </p>
+
+        <div class="predict-candidates">
+          <div
+            class="predict-card"
+            :class="{ voted: alreadyPredicted && predictedTeam === match.homeTeam }"
+            @click="castPrediction(match.homeTeam)"
+          >
+            <div class="predict-logo">
+              <span class="predict-initial">{{ homeTeam?.title?.charAt(0) }}</span>
+            </div>
+            <span class="predict-team-name">{{ homeTeam?.title }}</span>
+            <template v-if="alreadyPredicted">
+              <SharedUiIndicatorsProgress
+                :value="getPredictionPercent(match.homeTeam)"
+                color="primary"
+                class="mt-2"
+              />
+              <span class="predict-pct">{{ getPredictionPercent(match.homeTeam) }}%</span>
+            </template>
+            <SharedUiButtonBase
+              v-else
+              variant="outline"
+              size="sm"
+              icon-left="mdi:thumb-up-outline"
+              :loading="predictingTeam === match.homeTeam"
+            >
+              {{ $t('match.predict') }}
+            </SharedUiButtonBase>
+          </div>
+
+          <div class="predict-vs">{{ $t('match.predictVs') }}</div>
+
+          <div
+            class="predict-card"
+            :class="{ voted: alreadyPredicted && predictedTeam === match.awayTeam }"
+            @click="castPrediction(match.awayTeam)"
+          >
+            <div class="predict-logo">
+              <span class="predict-initial">{{ awayTeam?.title?.charAt(0) }}</span>
+            </div>
+            <span class="predict-team-name">{{ awayTeam?.title }}</span>
+            <template v-if="alreadyPredicted">
+              <SharedUiIndicatorsProgress
+                :value="getPredictionPercent(match.awayTeam)"
+                color="primary"
+                class="mt-2"
+              />
+              <span class="predict-pct">{{ getPredictionPercent(match.awayTeam) }}%</span>
+            </template>
+            <SharedUiButtonBase
+              v-else
+              variant="outline"
+              size="sm"
+              icon-left="mdi:thumb-up-outline"
+              :loading="predictingTeam === match.awayTeam"
+            >
+              {{ $t('match.predict') }}
+            </SharedUiButtonBase>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ Man of the Match — Vote (during or after match only) -->
+      <div v-if="match.status === 'played' || match.status === 'live'" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:star-outline" size="18" />
           {{ $t('match.motm') }}
         </h3>
 
-        <!-- Winner already decided -->
-        <div v-if="match.motmWinner" class="motm-winner">
+        <!-- Winner banner (admin-set only) -->
+        <div v-if="motmWinnerResolved" class="motm-winner">
           <div class="winner-glow" />
           <div class="winner-avatar">
             <img
-              v-if="getPlayerPhoto(match.motmWinner)"
-              :src="getPlayerPhoto(match.motmWinner)"
-              :alt="getPlayerName(match.motmWinner)"
+              v-if="getPlayerPhoto(motmWinnerResolved)"
+              :src="getPlayerPhoto(motmWinnerResolved)"
+              :alt="getPlayerName(motmWinnerResolved)"
               width="80" height="80"
               loading="lazy"
               @error="onImgError"
             />
-            <span v-else class="winner-initial">{{ getPlayerName(match.motmWinner)?.charAt(0) }}</span>
+            <span v-else class="winner-initial">{{ getPlayerName(motmWinnerResolved)?.charAt(0) }}</span>
           </div>
           <Icon name="mdi:star" size="24" class="winner-star" />
-          <span class="winner-name">{{ getPlayerName(match.motmWinner) }}</span>
+          <span class="winner-name">{{ getPlayerName(motmWinnerResolved) }}</span>
           <span class="winner-label">{{ $t('match.motm') }}</span>
-
-          <!-- Show final vote results -->
-          <div v-if="voteResults && Object.keys(voteResults).length" class="vote-results">
-            <div
-              v-for="candidate in match.motmCandidates"
-              :key="candidate"
-              class="vote-result-row"
-            >
-              <span class="vr-name">{{ getPlayerName(candidate) }}</span>
-              <SharedUiIndicatorsProgress
-                :value="getVotePercent(candidate)"
-                color="primary"
-                class="vr-bar"
-              />
-              <span class="vr-pct">{{ getVotePercent(candidate) }}%</span>
-            </div>
-          </div>
         </div>
 
-        <!-- Active voting -->
-        <div v-else>
+        <!-- Active voting (always open for played/live) -->
+        <div>
           <p v-if="!alreadyVoted" class="vote-prompt">{{ $t('match.votePrompt') }}</p>
           <p v-else class="vote-done-msg">
             <Icon name="mdi:check-circle" size="16" />
             {{ $t('match.voted') }}
           </p>
 
-          <div class="vote-candidates">
-            <div
-              v-for="candidate in match.motmCandidates"
-              :key="candidate"
-              class="candidate-card"
-              :class="{ voted: alreadyVoted && votedFor === candidate }"
-            >
-              <div class="candidate-avatar">
-                <NuxtImg
-                  v-if="getPlayerPhoto(candidate)"
-                  :src="getPlayerPhoto(candidate)"
-                  :alt="getPlayerName(candidate)"
-                  width="56" height="56"
-                  format="webp" loading="lazy"
-                />
-                <span v-else class="cand-initial">{{ getPlayerName(candidate)?.charAt(0) }}</span>
+          <div class="motm-teams">
+            <!-- Home team -->
+            <div class="motm-team-col">
+              <div class="motm-team-header">
+                <span class="motm-team-initial">{{ homeTeam?.title?.charAt(0) }}</span>
+                <span class="motm-team-label">{{ homeTeam?.title }}</span>
               </div>
-              <span class="candidate-name">{{ getPlayerName(candidate) }}</span>
-              <span class="candidate-team">{{ getPlayerTeamName(candidate) }}</span>
-
-              <!-- Vote button or result -->
-              <template v-if="alreadyVoted">
-                <SharedUiIndicatorsProgress
-                  :value="getVotePercent(candidate)"
-                  color="primary"
-                  class="mt-2"
-                />
-                <span class="cand-pct">{{ getVotePercent(candidate) }}%</span>
-              </template>
-              <SharedUiButtonBase
-                v-else
-                variant="outline"
-                size="sm"
-                icon-left="mdi:thumb-up-outline"
-                :loading="votingFor === candidate"
-                @click="castVote(candidate)"
+              <div
+                v-for="player in homePlayers"
+                :key="player.slug"
+                class="motm-player-row"
+                :class="{ voted: alreadyVoted && votedFor === player.slug }"
+                @click="castVote(player.slug)"
               >
-                {{ $t('match.vote') }}
-              </SharedUiButtonBase>
+                <span class="motm-player-num">{{ player.number }}</span>
+                <span class="motm-player-name">{{ player.title }}</span>
+                <Icon
+                  v-if="alreadyVoted && votedFor === player.slug"
+                  name="mdi:check-circle"
+                  size="16"
+                  class="motm-check"
+                />
+                <SharedUiButtonBase
+                  v-else-if="!alreadyVoted"
+                  variant="outline"
+                  size="xs"
+                  :loading="votingFor === player.slug"
+                  icon-left="mdi:thumb-up-outline"
+                  class="motm-vote-btn"
+                  @click.stop="castVote(player.slug)"
+                >
+                  {{ $t('match.vote') }}
+                </SharedUiButtonBase>
+              </div>
+            </div>
+
+            <!-- Away team -->
+            <div class="motm-team-col">
+              <div class="motm-team-header">
+                <span class="motm-team-initial">{{ awayTeam?.title?.charAt(0) }}</span>
+                <span class="motm-team-label">{{ awayTeam?.title }}</span>
+              </div>
+              <div
+                v-for="player in awayPlayers"
+                :key="player.slug"
+                class="motm-player-row"
+                :class="{ voted: alreadyVoted && votedFor === player.slug }"
+                @click="castVote(player.slug)"
+              >
+                <span class="motm-player-num">{{ player.number }}</span>
+                <span class="motm-player-name">{{ player.title }}</span>
+                <Icon
+                  v-if="alreadyVoted && votedFor === player.slug"
+                  name="mdi:check-circle"
+                  size="16"
+                  class="motm-check"
+                />
+                <SharedUiButtonBase
+                  v-else-if="!alreadyVoted"
+                  variant="outline"
+                  size="xs"
+                  :loading="votingFor === player.slug"
+                  icon-left="mdi:thumb-up-outline"
+                  class="motm-vote-btn"
+                  @click.stop="castVote(player.slug)"
+                >
+                  {{ $t('match.vote') }}
+                </SharedUiButtonBase>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results (always visible when votes exist) -->
+          <div v-if="Object.keys(voteResults).length" class="motm-results-after">
+            <div
+              v-for="candidate in sortedCandidates"
+              :key="candidate.slug"
+              class="vote-result-row"
+            >
+              <span class="vr-name">{{ getPlayerName(candidate.slug) }}</span>
+              <span class="vr-team">{{ candidate.teamTitle }}</span>
+              <SharedUiIndicatorsProgress
+                :value="candidate.pct"
+                color="primary"
+                class="vr-bar"
+              />
+              <span class="vr-pct">{{ candidate.pct }}%</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ④ Photo Album -->
+      <!-- ⑤ Photo Album -->
       <div v-if="match.photos?.length" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:image-multiple-outline" size="18" />
@@ -260,7 +365,7 @@
         <span>{{ $t('match.noPhotos') }}</span>
       </div>
 
-      <!-- ⑤ Video -->
+      <!-- ⑥ Video -->
       <div v-if="match.videoUrl" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:play-circle-outline" size="18" />
@@ -276,7 +381,7 @@
         </div>
       </div>
 
-      <!-- ⑥ Head to Head -->
+      <!-- ⑦ Head to Head -->
       <div v-if="h2h.total > 0" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:history" size="18" />
@@ -298,7 +403,7 @@
         </div>
       </div>
 
-      <!-- ⑦ Share -->
+      <!-- ⑧ Share -->
       <div class="share-section">
         <div class="share-label">{{ $t('match.share') }}</div>
         <div class="share-row">
@@ -380,6 +485,28 @@ const getPlayerTeamName = (slug) => {
   return teamMap.value[teamSlug]?.title || '';
 };
 
+const homePlayers = computed(() =>
+  players.value.filter(p => p.team === match.value?.homeTeam)
+);
+const awayPlayers = computed(() =>
+  players.value.filter(p => p.team === match.value?.awayTeam)
+);
+
+const motmWinnerResolved = computed(() => {
+  return match.value?.motmWinner || null;
+});
+
+const sortedCandidates = computed(() => {
+  const allPlayers = [...homePlayers.value, ...awayPlayers.value];
+  const withVotes = allPlayers.map(p => ({
+    slug: p.slug,
+    teamTitle: getPlayerTeamName(p.slug),
+    votes: voteResults.value[p.slug] || 0,
+    pct: getVotePercent(p.slug),
+  }));
+  return withVotes.sort((a, b) => b.votes - a.votes || a.slug.localeCompare(b.slug));
+});
+
 // ── Goals ──────────────────────────────────────────────────────────────────────
 const homeGoals = computed(() =>
   (match.value?.goalScorers || []).filter(g => g.team === match.value?.homeTeam)
@@ -417,7 +544,7 @@ onMounted(() => {
 });
 onUnmounted(() => clearInterval(countdownInterval));
 
-// ── Voting ─────────────────────────────────────────────────────────────────────
+// ── MOTM Voting ────────────────────────────────────────────────────────────────
 const { submitVote, getVotes, hasVoted } = useVotes();
 const voteResults = ref({});
 const alreadyVoted = ref(false);
@@ -426,7 +553,7 @@ const votingFor = ref(null);
 
 onMounted(async () => {
   if (match.value?.slug) {
-    alreadyVoted.value = hasVoted(match.value.slug);
+    alreadyVoted.value = await hasVoted(match.value.slug);
     votedFor.value = process.client ? localStorage.getItem(`vote_${match.value.slug}`) : null;
     voteResults.value = await getVotes(match.value.slug);
   }
@@ -452,6 +579,42 @@ const castVote = async (playerSlug) => {
     voteResults.value = await getVotes(match.value.slug);
   }
 };
+
+// ── Prediction Voting ──────────────────────────────────────────────────────────
+const { submitPrediction, getPredictions, hasPredicted, getPredictedTeam } = useMatchPredictions();
+const predictionResults = ref({});
+const alreadyPredicted = ref(false);
+const predictedTeam = ref(null);
+const predictingTeam = ref(null);
+
+const totalPredictions = computed(() =>
+  Object.values(predictionResults.value).reduce((sum, v) => sum + v, 0)
+);
+
+const getPredictionPercent = (teamSlug) => {
+  if (!totalPredictions.value) return 0;
+  return Math.round(((predictionResults.value[teamSlug] || 0) / totalPredictions.value) * 100);
+};
+
+const castPrediction = async (teamSlug) => {
+  if (alreadyPredicted.value || !match.value?.slug) return;
+  predictingTeam.value = teamSlug;
+  const { error } = await submitPrediction(match.value.slug, teamSlug);
+  predictingTeam.value = null;
+  if (!error) {
+    alreadyPredicted.value = true;
+    predictedTeam.value = teamSlug;
+    predictionResults.value = await getPredictions(match.value.slug);
+  }
+};
+
+onMounted(async () => {
+  if (match.value?.slug && match.value?.status === 'upcoming') {
+    alreadyPredicted.value = await hasPredicted(match.value.slug);
+    predictedTeam.value = getPredictedTeam(match.value.slug);
+    predictionResults.value = await getPredictions(match.value.slug);
+  }
+});
 
 // ── Head to Head ───────────────────────────────────────────────────────────────
 const h2h = computed(() => {
@@ -601,7 +764,6 @@ useSeoMeta({
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
 }
 .pitch-circle {
   position: absolute;
@@ -609,17 +771,17 @@ useSeoMeta({
   transform: translate(-50%, -50%);
   width: 200px; height: 200px;
   border-radius: 50%;
-  border: 2px solid var(--border-color);
+  border: 2px solid rgba(0,80,0,0.12);
 
-  :root.dark & { border-color: rgba(255,255,255,0.15); }
+  :root.dark & { border-color: rgba(255,255,255,0.1); }
 }
 .pitch-line {
   position: absolute;
   top: 0; bottom: 0;
   left: 50%; width: 2px;
-  background: var(--border-color);
+  background: rgba(0,80,0,0.12);
 
-  :root.dark & { background: rgba(255,255,255,0.15); }
+  :root.dark & { background: rgba(255,255,255,0.1); }
 }
 
 // Status
@@ -815,45 +977,115 @@ useSeoMeta({
 .vr-bar { flex: 1; }
 .vr-pct { font-size: 0.78rem; font-weight: 700; color: var(--primary); min-width: 35px; text-align: end; }
 
-// ── Voting candidates ──────────────────────────────────────────────────────────
+// ── Voting ─────────────────────────────────────────────────────────────────────
 .vote-prompt { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 16px; }
 .vote-done-msg {
   display: flex; align-items: center; gap: 6px;
   color: var(--primary); font-size: 0.85rem; font-weight: 600; margin: 0 0 16px;
 }
 
-.vote-candidates {
+.motm-teams {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+.motm-team-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.motm-team-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.motm-team-initial {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 800;
+  background: var(--primary); color: #fff;
+  flex-shrink: 0;
+}
+.motm-team-label {
+  font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
+}
+.motm-player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.15s;
 
-.candidate-card {
+  &:hover { border-color: var(--primary); background: var(--primary-soft); }
+  &.voted { border-color: var(--primary); background: var(--primary-soft); }
+}
+.motm-player-num {
+  width: 24px; height: 24px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700;
+  background: var(--bg-elevated); color: var(--text-muted);
+  flex-shrink: 0;
+}
+.motm-player-name {
+  flex: 1;
+  font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
+}
+.motm-check { color: var(--primary); flex-shrink: 0; }
+.motm-vote-btn { flex-shrink: 0; }
+.motm-results-after {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.vr-team { font-size: 0.7rem; color: var(--text-muted); min-width: 60px; }
+
+.mt-2 { margin-top: 6px; }
+
+// ── Prediction ─────────────────────────────────────────────────────────────────
+.predict-candidates {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.predict-card {
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 14px 10px;
   text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   transition: all 0.2s;
+  cursor: pointer;
 
   &.voted {
     border-color: var(--primary);
     background: var(--primary-soft);
   }
 }
-.candidate-avatar {
+.predict-logo {
   width: 56px; height: 56px; border-radius: 50%;
   background: var(--bg-elevated); border: 2px solid var(--border-color);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden; margin-bottom: 4px;
-  img { width: 100%; height: 100%; object-fit: cover; }
 }
-.cand-initial { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
-.candidate-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); }
-.candidate-team { font-size: 0.7rem; color: var(--text-muted); }
-.cand-pct { font-size: 0.8rem; font-weight: 700; color: var(--primary); }
-
-.mt-2 { margin-top: 6px; }
+.predict-initial { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.predict-team-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); }
+.predict-pct { font-size: 0.8rem; font-weight: 700; color: var(--primary); }
+.predict-vs {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
 
 // ── Empty album ────────────────────────────────────────────────────────────────
 .empty-album {
@@ -944,9 +1176,13 @@ useSeoMeta({
   .hero-team-name { font-size: 0.82rem; }
   .score-num { font-size: 2.4rem; }
 
-  .vote-candidates { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .candidate-card { padding: 10px 6px; }
-  .candidate-avatar { width: 44px; height: 44px; }
-  .candidate-name { font-size: 0.72rem; }
+  .motm-teams { gap: 8px; }
+  .motm-player-row { padding: 6px 8px; }
+  .motm-player-name { font-size: 0.72rem; }
+  .motm-player-num { width: 20px; height: 20px; font-size: 0.65rem; }
+  .predict-card { padding: 10px 6px; }
+  .predict-logo { width: 44px; height: 44px; }
+  .predict-team-name { font-size: 0.72rem; }
+  .predict-candidates { gap: 8px; }
 }
 </style>

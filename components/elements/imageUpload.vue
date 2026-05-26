@@ -32,7 +32,6 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { boolean, object } from "yup";
 
 const { $awn } = useNuxtApp();
 const { locale } = useI18n();
