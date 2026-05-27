@@ -6,7 +6,29 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
+    "nuxt-beastcss",
+    "nuxt-vitalizer",
   ],
+
+  vitalizer: {
+    disableStylesheets: "entry",
+    disablePrefetchLinks: true,
+    disablePreloadLinks: true,
+  },
+
+  beastcss: {
+    // Basic config
+    config: {
+      // 1. Critical CSS only
+      pruneSource: true, // Removes the inlined CSS from the original stylesheet to avoid duplication
+
+      // 2. Resource Management
+      additionalStylesheets: [], // Add paths to extra CSS files (like Bootstrap CDN if you must use it)
+
+      // 3. Performance
+      asyncLoad: true, // Loads the remaining "non-critical" CSS asynchronously after the page paints
+    },
+  },
 
   fonts: {
     defaults: { preload: true, display: "swap" },
@@ -26,8 +48,20 @@ export default defineNuxtConfig({
     defaultLocale: "ar",
     lazy: false,
     locales: [
-      { code: "ar", iso: "ar-SA", name: "العربية", file: "ar.json", dir: "rtl" },
-      { code: "en", iso: "en-US", name: "English", file: "en.json", dir: "ltr" },
+      {
+        code: "ar",
+        iso: "ar-SA",
+        name: "العربية",
+        file: "ar.json",
+        dir: "rtl",
+      },
+      {
+        code: "en",
+        iso: "en-US",
+        name: "English",
+        file: "en.json",
+        dir: "ltr",
+      },
     ],
     detectBrowserLanguage: {
       useCookie: true,
@@ -54,9 +88,20 @@ export default defineNuxtConfig({
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { name: "description", content: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية" },
-        { name: "theme-color", media: "(prefers-color-scheme: light)", content: "#22c55e" },
-        { name: "theme-color", media: "(prefers-color-scheme: dark)", content: "#0f1117" },
+        {
+          name: "description",
+          content: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
+        },
+        {
+          name: "theme-color",
+          media: "(prefers-color-scheme: light)",
+          content: "#22c55e",
+        },
+        {
+          name: "theme-color",
+          media: "(prefers-color-scheme: dark)",
+          content: "#0f1117",
+        },
       ],
       link: [
         { rel: "icon", href: "/logo/logo-web.png", type: "image/png" },
@@ -97,33 +142,16 @@ export default defineNuxtConfig({
     server: {
       warmup: {
         clientFiles: [
-          './pages/**/*.vue',
-          './components/**/*.vue',
-          './layouts/**/*.vue',
+          "./pages/**/*.vue",
+          "./components/**/*.vue",
+          "./layouts/**/*.vue",
         ],
       },
     },
     optimizeDeps: {
-      include: [
-        'date-fns',
-        'date-fns/locale',
-        '@fancyapps/ui',
-      ],
+      include: ["date-fns", "date-fns/locale", "@fancyapps/ui"],
     },
   },
 
-  // nitro: {
-  //   preset: "cloudflare_pages",
-  //   compressPublicAssets: true,
-  //   minify: true,
-  //   prerender: {
-  //     failOnError: false,
-  //   },
-  // },
-
   compatibilityDate: "2025-12-29",
-
-  experimental: {
-    // appManifest: false — removed to fix _payload.json 500 in dev
-  },
-})
+});
