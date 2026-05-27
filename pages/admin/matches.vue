@@ -271,8 +271,14 @@ const loadData = async () => {
   teams.value = await admin.getTeams()
   players.value = await admin.getPlayers()
   matches.value = await admin.getMatches()
+  const s = await admin.getSettings()
+  if (s?.groups?.length) settings.value.groups = [...s.groups]
   loading.value = false
 }
+
+onMounted(() => {
+  loadData()
+})
 
 const goalScorers = ref([])
 
@@ -408,12 +414,19 @@ const motmPlayerOptions = computed(() => {
   ]
 })
 
-const groupOptions = [
-  { label: 'المجموعة A', value: 'A' },
-  { label: 'المجموعة B', value: 'B' },
-  { label: 'نصف النهائي', value: 'SF' },
-  { label: 'النهائي', value: 'F' },
-]
+const settings = ref({ groups: ["A", "B"] })
+
+const groupOptions = computed(() => {
+  const groups = (settings.value.groups || ["A", "B"]).map(g => ({
+    label: `المجموعة ${g}`,
+    value: g,
+  }))
+  return [
+    ...groups,
+    { label: 'نصف النهائي', value: 'SF' },
+    { label: 'النهائي', value: 'F' },
+  ]
+})
 
 const matchColumns = [
   { key: 'matchTitle', label: 'المباراة', sortable: true },

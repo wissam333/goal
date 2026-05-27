@@ -240,10 +240,6 @@ const playerStats = computed(() => [
     value: player.value?.goals || 0, color: 'success',
   },
   {
-    key: 'assists', label: 'player.assists', icon: 'mdi:shoe-sneaker',
-    value: player.value?.assists || 0, color: 'info',
-  },
-  {
     key: 'apps', label: 'player.appearances', icon: 'mdi:calendar-check-outline',
     value: player.value?.appearances || playedMatches.value, color: 'primary',
   },

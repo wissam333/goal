@@ -301,12 +301,14 @@ const defaultForm = () => ({
 const form = reactive(defaultForm())
 const formErrors = reactive({ title: '' })
 
-const groupOptions = [
-  { label: 'المجموعة A', value: 'A' },
-  { label: 'المجموعة B', value: 'B' },
-  { label: 'نصف النهائي', value: 'SF' },
-  { label: 'النهائي', value: 'F' },
-]
+const settings = ref({ groups: ["A", "B"] })
+
+const groupOptions = computed(() =>
+  (settings.value.groups || ["A", "B"]).map(g => ({
+    label: `${g}`,
+    value: g,
+  }))
+)
 
 const allPlayers = ref([])
 
@@ -476,9 +478,11 @@ const showAlert = (type, text) => {
   nextTick(() => { alert.visible = true })
 }
 
-const loadTeams = async () => {
+const loadData = async () => {
   loading.value = true
   teams.value = await admin.getTeams()
+  const s = await admin.getSettings()
+  if (s?.groups?.length) settings.value.groups = [...s.groups]
   loading.value = false
 }
 
@@ -540,7 +544,7 @@ const handleSave = async () => {
 
     await admin.saveTeam(teamObj)
     modal.open = false
-    await loadTeams()
+    await loadData()
     showAlert('success', modal.isEdit ? 'تم تحديث الفريق بنجاح' : 'تمت إضافة الفريق بنجاح')
   } catch (e) {
     showAlert('error', 'حدث خطأ أثناء الحفظ')
@@ -561,7 +565,7 @@ const handleDelete = async () => {
     await admin.deleteTeam(deleteConfirm.team.slug)
     deleteConfirm.open = false
     deleteConfirm.team = null
-    await loadTeams()
+    await loadData()
     showAlert('success', 'تم حذف الفريق بنجاح')
   } catch (e) {
     showAlert('error', 'حدث خطأ أثناء الحذف')
@@ -571,7 +575,7 @@ const handleDelete = async () => {
 }
 
 onMounted(() => {
-  loadTeams()
+  loadData()
 })
 </script>
 

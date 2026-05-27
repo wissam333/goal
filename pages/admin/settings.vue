@@ -39,6 +39,34 @@
     </div>
 
     <div class="settings-card">
+      <h3 class="form-section-title">المجموعات</h3>
+      <p class="form-desc">حدد مجموعات دور المجموعات (A, B, C...). المجموعات المضافة هنا ستظهر عند إضافة فرق ومباريات جديدة</p>
+      <div class="groups-editor">
+        <div class="groups-tags">
+          <div v-for="(g, i) in form.groups" :key="i" class="group-tag">
+            <span>{{ g }}</span>
+            <button class="group-tag-remove" @click="removeGroup(i)" type="button">&times;</button>
+          </div>
+        </div>
+        <div class="groups-add-row">
+          <SharedUiFormBaseInput
+            v-model="newGroup"
+            placeholder="حرف المجموعة (مثل C)"
+            class="groups-input"
+          />
+          <SharedUiButtonBase variant="outline" @click="addGroup">
+            إضافة
+          </SharedUiButtonBase>
+        </div>
+      </div>
+      <div class="form-actions">
+        <SharedUiButtonBase variant="primary" @click="handleSaveGroups">
+          حفظ المجموعات
+        </SharedUiButtonBase>
+      </div>
+    </div>
+
+    <div class="settings-card">
       <h3 class="form-section-title">الإعلان / البانر</h3>
       <p class="form-desc">سيظهر الإعلان في أعلى جميع صفحات الموقع. اترك الصورة فارغة لإخفاء الإعلان</p>
 
@@ -97,7 +125,35 @@ const hookUrl = ref(import.meta.client ? localStorage.getItem("league_vercel_hoo
 const form = reactive({
   name: "",
   season: "",
+  groups: ["A", "B"],
 })
+
+const newGroup = ref("")
+
+const addGroup = () => {
+  const val = newGroup.value.trim().toUpperCase()
+  if (!val) return
+  if (form.groups.includes(val)) {
+    newGroup.value = ""
+    return
+  }
+  form.groups.push(val)
+  newGroup.value = ""
+}
+
+const removeGroup = (index) => {
+  form.groups.splice(index, 1)
+}
+
+const handleSaveGroups = async () => {
+  if (!form.groups.length) {
+    form.groups = ["A"]
+  }
+  await admin.saveSettings({ groups: form.groups })
+  alert.show = true
+  alert.type = "success"
+  alert.text = "✅ تم حفظ المجموعات"
+}
 
 const adForm = reactive({
   image: null,
@@ -111,6 +167,7 @@ onMounted(async () => {
   if (s) {
     form.name = s.name || ""
     form.season = s.season || ""
+    form.groups = s.groups?.length ? [...s.groups] : ["A", "B"]
     if (s.ad) {
       adForm.image = s.ad.image || null
       adForm.title = s.ad.title || ""
@@ -179,5 +236,47 @@ const saveHookUrl = () => {
   display: flex;
   justify-content: flex-end;
   padding-top: 4px;
+}
+.groups-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.groups-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.group-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-soft, rgba(34,197,94,0.1));
+  color: var(--primary, #22c55e);
+  border: 1px solid var(--primary-mid, rgba(34,197,94,0.2));
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.group-tag-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.group-tag-remove:hover {
+  color: #ef4444;
+}
+.groups-add-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.groups-input {
+  flex: 1;
 }
 </style>
