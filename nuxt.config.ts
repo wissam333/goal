@@ -6,27 +6,84 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
+    "@vite-pwa/nuxt",
     "nuxt-beastcss",
     "nuxt-vitalizer",
   ],
 
   vitalizer: {
-    disableStylesheets: "entry",
     disablePrefetchLinks: true,
     disablePreloadLinks: true,
   },
 
   beastcss: {
-    // Basic config
     config: {
-      // 1. Critical CSS only
-      pruneSource: true, // Removes the inlined CSS from the original stylesheet to avoid duplication
+      pruneSource: true,
+      visited: [
+        ".dark",
+        "html.dark",
+        ":root.dark",
+        ".dark &",
+        ":root.dark &",
+        "html.dark &",
+        '[data-theme="dark"]',
+      ],
+      asyncLoad: true,
+    },
+  },
 
-      // 2. Resource Management
-      additionalStylesheets: [], // Add paths to extra CSS files (like Bootstrap CDN if you must use it)
-
-      // 3. Performance
-      asyncLoad: true, // Loads the remaining "non-critical" CSS asynchronously after the page paints
+  pwa: {
+    registerType: "autoUpdate",
+    includeAssets: ["pwa-icon.svg"],
+    manifest: {
+      name: "دوري كرة القدم السنوي",
+      short_name: "دوري القرية",
+      description: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
+      theme_color: "#22c55e",
+      background_color: "#ffffff",
+      display: "standalone",
+      orientation: "portrait-primary",
+      scope: "/",
+      start_url: "/",
+      lang: "ar",
+      dir: "rtl",
+      icons: [
+        {
+          src: "pwa-icon-192.svg",
+          sizes: "192x192",
+          type: "image/svg",
+        },
+        {
+          src: "pwa-icon.svg",
+          sizes: "512x512",
+          type: "image/svg",
+        },
+        {
+          src: "pwa-icon.svg",
+          sizes: "512x512",
+          type: "image/svg",
+          purpose: "maskable",
+        },
+      ],
+    },
+    workbox: {
+      globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+          handler: "NetworkFirst",
+          options: {
+            cacheName: "supabase-data",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 60 * 60 * 24,
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+      ],
     },
   },
 

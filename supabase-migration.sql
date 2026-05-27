@@ -165,7 +165,7 @@ DELETE FROM teams;
 DELETE FROM settings;
 
 -- ═══════════════════════════════════════════════════════════════
--- SEED: TEAMS (12 teams, groups A & B)
+-- SEED: TEAMS (16 teams, 8 per group)
 -- ═══════════════════════════════════════════════════════════════
 
 INSERT INTO teams (slug, title, color, "group") VALUES
@@ -175,15 +175,19 @@ INSERT INTO teams (slug, title, color, "group") VALUES
   ('alhilal',   'الهلال',   '#8b5cf6', 'A'),
   ('alahli',    'الأهلي',   '#14b8a6', 'A'),
   ('alraed',    'الرائد',   '#6366f1', 'A'),
+  ('alwehdah',  'الوحدة',   '#a855f7', 'A'),
+  ('alokhdood', 'الأخدود',  '#dc2626', 'A'),
   ('alnasr',    'النصر',    '#eab308', 'B'),
   ('alittihad', 'الاتحاد',  '#f97316', 'B'),
   ('alshabab',  'الشباب',   '#ec4899', 'B'),
   ('alfateh',   'الفتح',    '#06b6d4', 'B'),
   ('altaawoun', 'التعاون',  '#84cc16', 'B'),
-  ('altai',     'الطائي',   '#f59e0b', 'B');
+  ('altai',     'الطائي',   '#f59e0b', 'B'),
+  ('alkhaleej', 'الخليج',   '#0ea5e9', 'B'),
+  ('alriyadh',  'الرياض',   '#64748b', 'B');
 
 -- ═══════════════════════════════════════════════════════════════
--- SEED: PLAYERS (4 per team = 48)
+-- SEED: PLAYERS (4 per team = 64)
 -- ═══════════════════════════════════════════════════════════════
 
 INSERT INTO players (slug, title, team, number, position, goals, assists, appearances) VALUES
@@ -217,6 +221,16 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
   ('sultan-isa',      'سلطان عيسى',  'alraed',     6, 'وسط',   1, 2, 7),
   ('abdulrahman-ali', 'عبدالرحمن علي','alraed',    3, 'مدافع', 0, 0, 7),
   ('faisal-omar',     'فيصل عمر',    'alraed',     1, 'حارس',  0, 0, 7),
+  -- الوحدة
+  ('mohammed-nour',   'محمد نور',    'alwehdah',  10, 'مهاجم', 0, 0, 0),
+  ('khaled-raed',     'خالد رائد',   'alwehdah',   7, 'وسط',   0, 0, 0),
+  ('abdullah-fahd',   'عبدالله فهد', 'alwehdah',   5, 'مدافع', 0, 0, 0),
+  ('saeed-mohammed',  'سعيد محمد',   'alwehdah',   1, 'حارس',  0, 0, 0),
+  -- الأخدود
+  ('nawaf-mohammed',  'نواف محمد',   'alokhdood', 10, 'مهاجم', 0, 0, 0),
+  ('fahd-sultan',     'فهد سلطان',   'alokhdood',  7, 'وسط',   0, 0, 0),
+  ('yasser-naser',    'ياسر ناصر',   'alokhdood',  4, 'مدافع', 0, 0, 0),
+  ('majed-ali',       'ماجد علي',    'alokhdood',  1, 'حارس',  0, 0, 0),
   -- النصر
   ('omar-abdullah',   'عمر عبدالله', 'alnasr',     9, 'مهاجم', 5, 3, 7),
   ('zakaria-youssef', 'زكريا يوسف',  'alnasr',     7, 'وسط',   2, 4, 7),
@@ -246,87 +260,17 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
   ('saad-fahd',       'سعد فهد',     'altai',     11, 'مهاجم', 2, 0, 7),
   ('rakan-ali',       'راكان علي',   'altai',      7, 'وسط',   1, 1, 7),
   ('mohammed-ahmed',  'محمد أحمد',   'altai',      5, 'مدافع', 1, 0, 7),
-  ('abdullah-omar',   'عبدالله عمر', 'altai',      1, 'حارس',  0, 0, 7);
-
--- ═══════════════════════════════════════════════════════════════
--- SEED: MATCHES (37 total)
--- ═══════════════════════════════════════════════════════════════
-
--- GROUP A — Matchday 1 (Apr 10)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('ga1-alnour-vs-aytam',     'النور vs الأيتام',      '2026-04-10T17:00:00+00:00', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'aytam', 2, 0),
-('ga1-alqadsia-vs-alhilal', 'القادسية vs الهلال',    '2026-04-10T19:00:00+00:00', 'A', 'الملعب الفرعي',  'played', 'alqadsia', 'alhilal', 1, 1),
-('ga1-alahli-vs-alraed',    'الأهلي vs الرائد',       '2026-04-10T17:00:00+00:00', 'A', 'ملعب النادي',     'played', 'alahli', 'alraed', 3, 1);
-
--- GROUP A — Matchday 2 (Apr 13)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('ga2-alnour-vs-alqadsia',  'النور vs القادسية',     '2026-04-13T17:00:00+00:00', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alqadsia', 1, 1),
-('ga2-aytam-vs-alahli',     'الأيتام vs الأهلي',     '2026-04-13T19:00:00+00:00', 'A', 'الملعب الفرعي',  'played', 'aytam', 'alahli', 2, 2),
-('ga2-alhilal-vs-alraed',   'الهلال vs الرائد',      '2026-04-13T17:00:00+00:00', 'A', 'ملعب النادي',     'played', 'alhilal', 'alraed', 2, 0);
-
--- GROUP A — Matchday 3 (Apr 17)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('ga3-alnour-vs-alahli',    'النور vs الأهلي',       '2026-04-17T17:00:00+00:00', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alahli', 3, 0),
-('ga3-alqadsia-vs-alraed',  'القادسية vs الرائد',    '2026-04-17T19:00:00+00:00', 'A', 'الملعب الفرعي',  'played', 'alqadsia', 'alraed', 2, 0),
-('ga3-aytam-vs-alhilal',    'الأيتام vs الهلال',     '2026-04-17T17:00:00+00:00', 'A', 'ملعب النادي',     'played', 'aytam', 'alhilal', 1, 1);
-
--- GROUP A — Matchday 4 (Apr 20)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('ga4-alnour-vs-alhilal',   'النور vs الهلال',       '2026-04-20T17:00:00+00:00', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alhilal', 2, 1),
-('ga4-alqadsia-vs-alahli',  'القادسية vs الأهلي',    '2026-04-20T19:00:00+00:00', 'A', 'الملعب الفرعي',  'played', 'alqadsia', 'alahli', 0, 0),
-('ga4-aytam-vs-alraed',     'الأيتام vs الرائد',     '2026-04-20T17:00:00+00:00', 'A', 'ملعب النادي',     'played', 'aytam', 'alraed', 2, 1);
-
--- GROUP A — Matchday 5 (Apr 24)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('ga5-alnour-vs-alraed',    'النور vs الرائد',       '2026-04-24T17:00:00+00:00', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alraed', 3, 0),
-('ga5-alqadsia-vs-aytam',   'القادسية vs الأيتام',   '2026-04-24T19:00:00+00:00', 'A', 'الملعب الفرعي',  'played', 'alqadsia', 'aytam', 2, 0),
-('ga5-alhilal-vs-alahli',   'الهلال vs الأهلي',      '2026-04-24T17:00:00+00:00', 'A', 'ملعب النادي',     'played', 'alhilal', 'alahli', 0, 0);
-
--- GROUP B — Matchday 1 (Apr 11)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('gb1-alnasr-vs-alittihad',   'النصر vs الاتحاد',     '2026-04-11T17:00:00+00:00', 'B', 'الملعب الرئيسي', 'played', 'alnasr', 'alittihad', 1, 0),
-('gb1-alshabab-vs-alfateh',  'الشباب vs الفتح',      '2026-04-11T19:00:00+00:00', 'B', 'الملعب الفرعي',  'played', 'alshabab', 'alfateh', 2, 0),
-('gb1-altaawoun-vs-altai',   'التعاون vs الطائي',     '2026-04-11T17:00:00+00:00', 'B', 'ملعب النادي',     'played', 'altaawoun', 'altai', 0, 0);
-
--- GROUP B — Matchday 2 (Apr 14)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('gb2-alnasr-vs-alshabab',   'النصر vs الشباب',      '2026-04-14T17:00:00+00:00', 'B', 'الملعب الرئيسي', 'played', 'alnasr', 'alshabab', 2, 1),
-('gb2-alittihad-vs-altaawoun','الاتحاد vs التعاون',   '2026-04-14T19:00:00+00:00', 'B', 'الملعب الفرعي',  'played', 'alittihad', 'altaawoun', 2, 1),
-('gb2-alfateh-vs-altai',     'الفتح vs الطائي',      '2026-04-14T17:00:00+00:00', 'B', 'ملعب النادي',     'played', 'alfateh', 'altai', 1, 0);
-
--- GROUP B — Matchday 3 (Apr 18)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('gb3-alnasr-vs-altaawoun',  'النصر vs التعاون',     '2026-04-18T17:00:00+00:00', 'B', 'الملعب الرئيسي', 'played', 'alnasr', 'altaawoun', 3, 1),
-('gb3-alshabab-vs-altai',    'الشباب vs الطائي',     '2026-04-18T19:00:00+00:00', 'B', 'الملعب الفرعي',  'played', 'alshabab', 'altai', 1, 0),
-('gb3-alittihad-vs-alfateh', 'الاتحاد vs الفتح',     '2026-04-18T17:00:00+00:00', 'B', 'ملعب النادي',     'played', 'alittihad', 'alfateh', 1, 1);
-
--- GROUP B — Matchday 4 (Apr 21)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('gb4-alnasr-vs-alfateh',    'النصر vs الفتح',       '2026-04-21T17:00:00+00:00', 'B', 'الملعب الرئيسي', 'played', 'alnasr', 'alfateh', 0, 0),
-('gb4-alshabab-vs-altaawoun','الشباب vs التعاون',    '2026-04-21T19:00:00+00:00', 'B', 'الملعب الفرعي',  'played', 'alshabab', 'altaawoun', 0, 0),
-('gb4-alittihad-vs-altai',   'الاتحاد vs الطائي',    '2026-04-21T17:00:00+00:00', 'B', 'ملعب النادي',     'played', 'alittihad', 'altai', 2, 0);
-
--- GROUP B — Matchday 5 (Apr 25)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('gb5-alnasr-vs-altai',       'النصر vs الطائي',     '2026-04-25T17:00:00+00:00', 'B', 'الملعب الرئيسي', 'played', 'alnasr', 'altai', 3, 0),
-('gb5-alshabab-vs-alittihad','الشباب vs الاتحاد',    '2026-04-25T19:00:00+00:00', 'B', 'الملعب الفرعي',  'played', 'alshabab', 'alittihad', 1, 2),
-('gb5-alfateh-vs-altaawoun', 'الفتح vs التعاون',     '2026-04-25T17:00:00+00:00', 'B', 'ملعب النادي',     'played', 'alfateh', 'altaawoun', 1, 1);
-
--- QUARTER-FINALS (May 2–3)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('qf1-alnour-vs-alshabab',   'ربع النهائي: النور vs الشباب',   '2026-05-02T17:00:00+00:00', 'QF', 'الملعب الرئيسي', 'played', 'alnour', 'alshabab', 2, 0),
-('qf2-alittihad-vs-alqadsia','ربع النهائي: الاتحاد vs القادسية','2026-05-02T19:00:00+00:00', 'QF', 'الملعب الفرعي',  'played', 'alittihad', 'alqadsia', 0, 0),
-('qf3-alnasr-vs-alraed',     'ربع النهائي: النصر vs الرائد',   '2026-05-03T17:00:00+00:00', 'QF', 'الملعب الرئيسي', 'played', 'alnasr', 'alraed', 2, 0),
-('qf4-alahli-vs-aytam',      'ربع النهائي: الأهلي vs الأيتام', '2026-05-03T19:00:00+00:00', 'QF', 'الملعب الفرعي',  'played', 'alahli', 'aytam', 1, 2);
-
--- SEMI-FINALS (May 9–10)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('sf1-alnour-vs-alqadsia', 'نصف النهائي: النور vs القادسية', '2026-05-09T17:00:00+00:00', 'SF', 'الملعب الرئيسي', 'played', 'alnour', 'alqadsia', 1, 0),
-('sf2-alnasr-vs-aytam',    'نصف النهائي: النصر vs الأيتام',  '2026-05-10T19:00:00+00:00', 'SF', 'الملعب الرئيسي', 'played', 'alnasr', 'aytam', 2, 1);
-
--- FINAL (June 6 — upcoming)
-INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
-('f-alnour-vs-alnasr', 'النهائي: النور vs النصر', '2026-06-06T20:00:00+00:00', 'F', 'الملعب الرئيسي', 'upcoming', 'alnour', 'alnasr', NULL, NULL);
+  ('abdullah-omar',   'عبدالله عمر', 'altai',      1, 'حارس',  0, 0, 7),
+  -- الخليج
+  ('hasan-ahmed',     'حسن أحمد',    'alkhaleej', 10, 'مهاجم', 0, 0, 0),
+  ('fahd-abdullah',   'فهد عبدالله', 'alkhaleej',  8, 'وسط',   0, 0, 0),
+  ('mohammed-isa',    'محمد عيسى',   'alkhaleej',  4, 'مدافع', 0, 0, 0),
+  ('khaled-saeed',    'خالد سعيد',   'alkhaleej',  1, 'حارس',  0, 0, 0),
+  -- الرياض
+  ('abdulaziz-nour',  'عبدالعزيز نور','alriyadh',  9, 'مهاجم', 0, 0, 0),
+  ('majed-saad',      'ماجد سعد',    'alriyadh',   6, 'وسط',   0, 0, 0),
+  ('faisal-hasan',    'فيصل حسن',    'alriyadh',   3, 'مدافع', 0, 0, 0),
+  ('nasser-ali',      'ناصر علي',    'alriyadh',   1, 'حارس',  0, 0, 0);
 
 -- ═══════════════════════════════════════════════════════════════
 -- SETTINGS

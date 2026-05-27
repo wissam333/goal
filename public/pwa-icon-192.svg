@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="40" fill="url(#bg)"/>
+  <circle cx="96" cy="96" r="50" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+  <path d="M96 46 L96 146 M46 96 L146 96" stroke="#e5e7eb" stroke-width="1.5"/>
+  <path d="M63 63 L129 129 M129 63 L63 129" stroke="#e5e7eb" stroke-width="1.5"/>
+  <polygon points="96,46 73,68 78,55" fill="#e5e7eb"/>
+  <polygon points="96,146 119,124 114,137" fill="#e5e7eb"/>
+  <polygon points="46,96 68,73 55,78" fill="#e5e7eb"/>
+  <polygon points="146,96 124,119 137,114" fill="#e5e7eb"/>
+  <text x="96" y="166" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="white">دوري</text>
+</svg>

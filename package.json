@@ -16,16 +16,17 @@
     "@nuxt/image": "^2.0.0",
     "@nuxtjs/i18n": "^9.5.2",
     "@supabase/supabase-js": "^2.106.1",
+    "@vite-pwa/nuxt": "^1.1.1",
     "@vueuse/core": "^14.1.0",
     "@vueuse/nuxt": "^14.1.0",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
     "nuxt": "^3.16.2",
+    "nuxt-vitalizer": "^2.0.0",
     "vee-validate": "^4.15.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
-    "yup": "^1.7.1",
-    "nuxt-vitalizer": "^2.0.0"
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@iconify-json/fa6-regular": "^1.2.4",
@@ -37,8 +38,8 @@
     "@iconify-json/mynaui": "^1.2.17",
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/uil": "^1.2.3",
+    "nuxt-beastcss": "^1.0.3",
     "sass": "^1.86.3",
-    "sass-loader": "^16.0.5",
-    "nuxt-beastcss": "^1.0.3"
+    "sass-loader": "^16.0.5"
   }
 }
