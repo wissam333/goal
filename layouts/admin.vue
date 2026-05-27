@@ -50,9 +50,11 @@ const route = useRoute()
 const theme = useTheme()
 const auth = useAdminAuth()
 
-if (!auth.checkSession() && route.path !== '/admin/login') {
-  navigateTo('/admin/login')
-}
+onMounted(() => {
+  if (!auth.checkSession() && route.path !== '/admin/login') {
+    navigateTo('/admin/login')
+  }
+})
 
 const navLinks = [
   { to: '/admin', icon: 'mdi:view-dashboard-outline', label: 'الرئيسية' },
