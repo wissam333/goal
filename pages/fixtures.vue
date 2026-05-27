@@ -179,8 +179,10 @@ const isWinner = (match, teamSlug) => {
 
 const groupStage = computed(() => {
   const groups = {};
-  filteredMatches.value.filter(m => ['A', 'B'].includes(m.group || 'A')).forEach((m) => {
+  const groupPattern = /^[A-Z]$/;
+  filteredMatches.value.forEach((m) => {
     const g = m.group || 'A';
+    if (!groupPattern.test(g)) return;
     if (!groups[g]) groups[g] = [];
     groups[g].push(m);
   });
@@ -191,8 +193,10 @@ const groupStage = computed(() => {
 
 const knockoutStage = computed(() => {
   const rounds = [];
+  const qf = filteredMatches.value.filter(m => m.group === 'QF').sort((a, b) => new Date(a.date) - new Date(b.date));
   const sf = filteredMatches.value.filter(m => m.group === 'SF').sort((a, b) => new Date(a.date) - new Date(b.date));
   const f = filteredMatches.value.filter(m => m.group === 'F').sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (qf.length) rounds.push({ label: t('bracket.quarterfinal'), matches: qf, isFinal: false });
   if (sf.length) rounds.push({ label: t('bracket.semifinal'), matches: sf, isFinal: false });
   if (f.length) rounds.push({ label: t('bracket.final'), matches: f, isFinal: true });
   return rounds;

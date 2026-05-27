@@ -54,7 +54,7 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 - **Fallback logic**: `useLeagueData` fallback functions used when Supabase returns empty/null (not just when client is missing)
 - Removed `nuxt-beastcss`/`nuxt-vitalizer` (conflicted with dark mode CSS)
 - **PWA setup** with `@vite-pwa/nuxt`: SVG icons, manifest, service worker, Supabase data cache
-- **Groups management**: Settings page now has groups editor (add/remove groups A, B, C...), team form reads groups from settings (no SF/F), match form shows settings groups + knockout stages
+- **Groups management**: Settings page now has groups editor (add/remove groups A, B, C...), team form reads groups from settings (no SF/F), match form shows settings groups + knockout stages (QF, SF, F), match team dropdowns filter by selected group during group stage
 
 ## Known Issues
 - Cloudflare Pages SSR: Supabase queries return empty (no errors) — likely runtime issue with `@supabase/supabase-js` in Workers environment. Vercel SSR works fine.

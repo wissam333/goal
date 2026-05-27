@@ -39,7 +39,8 @@
         </div>
       </template>
       <template #cell-group="{ value }">
-        <span v-if="value === 'SF'" class="round-badge">نصف النهائي</span>
+        <span v-if="value === 'QF'" class="round-badge">ربع النهائي</span>
+        <span v-else-if="value === 'SF'" class="round-badge">نصف النهائي</span>
         <span v-else-if="value === 'F'" class="round-badge final">النهائي</span>
         <span v-else class="round-badge group">المجموعة {{ value }}</span>
       </template>
@@ -83,13 +84,13 @@
           <SharedUiFormBaseSelect
             v-model="form.homeTeam"
             label="الفريق المضيف"
-            :options="teamOptions"
+            :options="filteredTeamOptions"
             placeholder="اختر الفريق"
           />
           <SharedUiFormBaseSelect
             v-model="form.awayTeam"
             label="الفريق الضيف"
-            :options="teamOptions"
+            :options="filteredTeamOptions"
             placeholder="اختر الفريق"
           />
           <template v-if="form.date && isPastMatch(form.date)">
@@ -376,13 +377,9 @@ const getMatchTitle = (match) => {
   const home = teams.value.find(t => t.slug === match.homeTeam)
   const away = teams.value.find(t => t.slug === match.awayTeam)
   if (!home || !away) return ''
-  const prefix = match.group === 'SF' ? 'نصف النهائي: ' : match.group === 'F' ? 'النهائي: ' : ''
+  const prefix = match.group === 'QF' ? 'ربع النهائي: ' : match.group === 'SF' ? 'نصف النهائي: ' : match.group === 'F' ? 'النهائي: ' : ''
   return `${prefix}${home.title} vs ${away.title}`
 }
-
-const teamOptions = computed(() =>
-  teams.value.map(t => ({ label: t.title, value: t.slug }))
-)
 
 const motmPlayerOptions = computed(() => {
   if (!form.homeTeam && !form.awayTeam) return []
@@ -423,9 +420,20 @@ const groupOptions = computed(() => {
   }))
   return [
     ...groups,
+    { label: 'ربع النهائي', value: 'QF' },
     { label: 'نصف النهائي', value: 'SF' },
     { label: 'النهائي', value: 'F' },
   ]
+})
+
+const filteredTeamOptions = computed(() => {
+  const isGroupStage = form.group && !['QF', 'SF', 'F'].includes(form.group)
+  if (isGroupStage) {
+    return teams.value
+      .filter(t => t.group === form.group)
+      .map(t => ({ label: t.title, value: t.slug }))
+  }
+  return teams.value.map(t => ({ label: t.title, value: t.slug }))
 })
 
 const matchColumns = [
@@ -517,7 +525,7 @@ const formatDate = (dateStr) => {
 }
 
 const generateSlug = () => {
-  const prefix = form.group === 'SF' ? 'sf' : form.group === 'F' ? 'f' : `g${(form.group || 'a').toLowerCase()}`
+  const prefix = form.group === 'QF' ? 'qf' : form.group === 'SF' ? 'sf' : form.group === 'F' ? 'f' : `g${(form.group || 'a').toLowerCase()}`
   return `${prefix}-${form.homeTeam}-vs-${form.awayTeam}`
 }
 
@@ -533,9 +541,15 @@ const openAddModal = () => {
   modalOpen.value = true
 }
 
+const toLocalDateTimeStr = (iso) => {
+  const d = new Date(iso)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 const openEditModal = (match) => {
   editingMatch.value = match
-  form.date = match.date ? match.date.slice(0, 16) : ''
+  form.date = match.date ? toLocalDateTimeStr(match.date) : ''
   form.group = match.group
   form.venue = match.venue || 'الملعب الرئيسي'
   form.homeTeam = match.homeTeam
@@ -615,7 +629,7 @@ const generateTitle = () => {
   const home = teams.value.find(t => t.slug === form.homeTeam)
   const away = teams.value.find(t => t.slug === form.awayTeam)
   if (!home || !away) return ''
-  const prefix = form.group === 'SF' ? 'نصف النهائي: ' : form.group === 'F' ? 'النهائي: ' : ''
+  const prefix = form.group === 'QF' ? 'ربع النهائي: ' : form.group === 'SF' ? 'نصف النهائي: ' : form.group === 'F' ? 'النهائي: ' : ''
   return `${prefix}${home.title} vs ${away.title}`
 }
 

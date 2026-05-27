@@ -22,7 +22,7 @@
       <!-- ① Scoreboard Hero -->
       <div
         class="scoreboard-hero"
-        :class="`status-${match.status}`"
+        :class="`status-${liveStatus}`"
       >
         <!-- Background pitch lines -->
         <div class="pitch-bg" aria-hidden="true">
@@ -32,10 +32,10 @@
 
         <!-- Status badge -->
         <div class="hero-status">
-          <span v-if="match.status === 'live'" class="badge-live">
+          <span v-if="liveStatus === 'live'" class="badge-live">
             <span class="live-dot" /> LIVE
           </span>
-          <span v-else-if="match.status === 'played'" class="badge-ft">FT</span>
+          <span v-else-if="liveStatus === 'played'" class="badge-ft">FT</span>
           <span v-else class="badge-upcoming">
             {{ $t('match.upcoming') }} · {{ formatMatchDate(match.date) }}
           </span>
@@ -61,7 +61,7 @@
 
           <!-- Score -->
           <div class="hero-score">
-            <template v-if="match.status !== 'upcoming'">
+            <template v-if="liveStatus !== 'upcoming'">
               <span class="score-num" :class="{ winner: match.homeScore > match.awayScore }">
                 {{ match.homeScore ?? 0 }}
               </span>
@@ -153,7 +153,7 @@
       </div>
 
       <!-- ③ Prediction Vote (upcoming matches only) -->
-      <div v-if="match.status === 'upcoming'" class="section-card">
+      <div v-if="liveStatus === 'upcoming'" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:chart-line" size="18" />
           {{ $t('match.predictTitle') }}
@@ -264,7 +264,7 @@
       </div>
 
       <!-- ④ Man of the Match — Vote (during or after match only) -->
-      <div v-if="match.status === 'played' || match.status === 'live'" class="section-card">
+      <div v-if="liveStatus === 'played' || liveStatus === 'live'" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:star-outline" size="18" />
           {{ $t('match.motm') }}
@@ -397,7 +397,7 @@
         </h3>
         <ElementsAlbum :images="match.photos" :columns="3" />
       </div>
-      <div v-else-if="match.status === 'played'" class="section-card empty-album">
+      <div v-else-if="liveStatus === 'played'" class="section-card empty-album">
         <Icon name="mdi:camera-off-outline" size="32" class="empty-icon" />
         <span>{{ $t('match.noPhotos') }}</span>
       </div>
@@ -500,6 +500,18 @@ const teams = computed(() => teamsData.value || []);
 const players = computed(() => playersData.value || []);
 const allMatches = computed(() => allMatchesData.value || []);
 
+// ── Live status (computed from date, overrides DB) ──────────────────────────────
+const liveStatus = computed(() => {
+  if (!match.value?.date) return 'upcoming';
+  const syriaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Damascus' });
+  const now = new Date(syriaTime);
+  const matchDate = parseISO(match.value.date);
+  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000);
+  if (now > matchEnd) return 'played';
+  if (now >= matchDate) return 'live';
+  return 'upcoming';
+});
+
 // ── Team helpers ───────────────────────────────────────────────────────────────
 const teamMap = computed(() => {
   const m = {};
@@ -565,10 +577,16 @@ const countdown = ref({ hours: '00', minutes: '00', seconds: '00' });
 let countdownInterval = null;
 
 const updateCountdown = () => {
-  if (!match.value?.date || match.value?.status !== 'upcoming') return;
+  if (!match.value?.date || liveStatus.value !== 'upcoming') {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+    return;
+  }
   const diff = differenceInSeconds(parseISO(match.value.date), new Date());
   if (diff <= 0) {
     countdown.value = { hours: '00', minutes: '00', seconds: '00' };
+    clearInterval(countdownInterval);
+    countdownInterval = null;
     return;
   }
   const h = Math.floor(diff / 3600);
@@ -988,12 +1006,10 @@ useSeoMeta({
 
 // ── MOTM Winner ───────────────────────────────────────────────────────────────
 .motm-winner {
-  position: relative;
-  text-align: center;
-  padding: 16px 0;
+  position: relative; text-align: center; padding: 20px 0 16px;
 }
 .winner-glow {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
   width: 120px; height: 120px; border-radius: 50%;
   background: radial-gradient(circle, rgba(234,179,8,0.2) 0%, transparent 70%);
   pointer-events: none;
@@ -1002,7 +1018,7 @@ useSeoMeta({
   width: 80px; height: 80px; border-radius: 50%;
   border: 3px solid #ca8a04;
   background: var(--bg-elevated);
-  margin: 0 auto 8px;
+  margin: 0 auto 10px;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   img { width: 100%; height: 100%; object-fit: cover; }
@@ -1035,15 +1051,14 @@ useSeoMeta({
 .motm-team-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .motm-team-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
-  margin-bottom: 4px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: var(--bg-elevated);
 }
 .motm-team-initial {
@@ -1059,14 +1074,17 @@ useSeoMeta({
 .motm-player-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 
   &:hover { border-color: var(--primary); background: var(--primary-soft); }
+  &:active { transform: scale(0.98); }
   &.voted { border-color: var(--primary); background: var(--primary-soft); }
 }
 .motm-player-num {
@@ -1078,7 +1096,7 @@ useSeoMeta({
 }
 .motm-player-name {
   flex: 1;
-  font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
+  font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
 }
 .motm-check { color: var(--primary); flex-shrink: 0; }
 .motm-vote-btn { flex-shrink: 0; }
@@ -1232,10 +1250,17 @@ useSeoMeta({
   .hero-team-name { font-size: 0.82rem; }
   .score-num { font-size: 2.4rem; }
 
-  .motm-teams { gap: 8px; }
-  .motm-player-row { padding: 6px 8px; }
-  .motm-player-name { font-size: 0.72rem; }
-  .motm-player-num { width: 20px; height: 20px; font-size: 0.65rem; }
+  .motm-teams { grid-template-columns: 1fr; gap: 16px; }
+  .motm-player-row { padding: 14px; gap: 12px; border-radius: 14px; min-height: 52px; }
+  .motm-player-name { font-size: 0.88rem; }
+  .motm-player-num { width: 28px; height: 28px; font-size: 0.75rem; border-radius: 8px; }
+  .motm-team-header { padding: 10px 14px; border-radius: 14px; }
+  .motm-team-initial { width: 32px; height: 32px; font-size: 0.85rem; }
+  .motm-team-label { font-size: 0.9rem; }
+  .motm-check { transform: scale(1.2); }
+  .motm-vote-btn { min-width: 52px; justify-content: center; }
+  .vote-result-row { gap: 8px; }
+  .vr-name { min-width: 70px; font-size: 0.75rem; }
   .predict-card { padding: 10px 6px; }
   .predict-logo { width: 44px; height: 44px; }
   .predict-team-name { font-size: 0.72rem; }

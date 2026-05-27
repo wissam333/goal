@@ -7,30 +7,7 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@vite-pwa/nuxt",
-    "nuxt-beastcss",
-    "nuxt-vitalizer",
   ],
-
-  vitalizer: {
-    disablePrefetchLinks: true,
-    disablePreloadLinks: true,
-  },
-
-  beastcss: {
-    config: {
-      pruneSource: true,
-      visited: [
-        ".dark",
-        "html.dark",
-        ":root.dark",
-        ".dark &",
-        ":root.dark &",
-        "html.dark &",
-        '[data-theme="dark"]',
-      ],
-      asyncLoad: true,
-    },
-  },
 
   pwa: {
     registerType: "autoUpdate",
