@@ -426,14 +426,71 @@ const groupOptions = computed(() => {
   ]
 })
 
+function computeStandingsForGroup(group) {
+  const groupTeams = teams.value.filter(t => t.group === group)
+  if (!groupTeams.length) return []
+  const table = {}
+  groupTeams.forEach(t => { table[t.slug] = { slug: t.slug, pts: 0, gf: 0, ga: 0 } })
+  const groupMatches = matches.value.filter(m => m.group === group && m.homeScore != null)
+  for (const m of groupMatches) {
+    const h = table[m.homeTeam]; const a = table[m.awayTeam]
+    if (!h || !a) continue
+    const hg = Number(m.homeScore); const ag = Number(m.awayScore)
+    h.gf += hg; h.ga += ag; a.gf += ag; a.ga += hg
+    if (hg > ag) { h.pts += 3 } else if (hg < ag) { a.pts += 3 } else { h.pts += 1; a.pts += 1 }
+  }
+  return Object.values(table).sort((x, y) => y.pts - x.pts || (y.gf - y.ga) - (x.gf - x.ga))
+}
+
+function getQualifiedTeams() {
+  const groups = settings.value.groups || ['A', 'B']
+  const slugs = []
+  for (const g of groups) {
+    const standings = computeStandingsForGroup(g)
+    slugs.push(...standings.slice(0, 2).map(t => t.slug))
+  }
+  return slugs
+}
+
+function getStageWinners(stage) {
+  return matches.value
+    .filter(m => m.group === stage && m.homeScore != null)
+    .map(m => Number(m.homeScore) > Number(m.awayScore) ? m.homeTeam : m.awayTeam)
+}
+
+function getStageParticipants(stage) {
+  const set = new Set()
+  for (const m of matches.value.filter(m => m.group === stage)) {
+    set.add(m.homeTeam); set.add(m.awayTeam)
+  }
+  return [...set]
+}
+
 const filteredTeamOptions = computed(() => {
-  const isGroupStage = form.group && !['QF', 'SF', 'F'].includes(form.group)
+  if (!form.group) return teams.value.map(t => ({ label: t.title, value: t.slug }))
+
+  const isGroupStage = !['QF', 'SF', 'F'].includes(form.group)
   if (isGroupStage) {
     return teams.value
       .filter(t => t.group === form.group)
       .map(t => ({ label: t.title, value: t.slug }))
   }
-  return teams.value.map(t => ({ label: t.title, value: t.slug }))
+
+  let eligible = []
+  if (form.group === 'QF') {
+    eligible = getQualifiedTeams()
+  } else if (form.group === 'SF') {
+    const winners = getStageWinners('QF')
+    eligible = winners.length ? winners : getStageParticipants('QF')
+  } else if (form.group === 'F') {
+    const winners = getStageWinners('SF')
+    eligible = winners.length ? winners : getStageParticipants('SF')
+  }
+
+  const current = [form.homeTeam, form.awayTeam].filter(Boolean)
+  return teams.value
+    .filter(t => eligible.includes(t.slug) || current.includes(t.slug))
+    .map(t => ({ label: t.title, value: t.slug }))
 })
 
 const matchColumns = [

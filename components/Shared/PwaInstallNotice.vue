@@ -1,48 +1,26 @@
 <template>
-  <div v-if="show" class="pwa-notice">
-    <p class="pwa-notice-text">
-      <Icon name="mdi:cellphone-arrow-down" size="20" />
-      {{ $t('pwa.installNotice') }}
-    </p>
-    <div class="pwa-notice-actions">
-      <button class="pwa-install-btn" @click="install">
-        {{ $t('pwa.install') }}
-      </button>
-      <button class="pwa-dismiss-btn" @click="dismiss">
-        <Icon name="mdi:close" size="18" />
-      </button>
+  <Transition name="pwa-slide">
+    <div
+      v-if="$pwa?.showInstallPrompt && !$pwa?.isPWAInstalled"
+      class="pwa-notice"
+    >
+      <div class="pwa-notice-inner">
+        <Icon name="mdi:cellphone-arrow-down" size="20" class="pwa-icon" />
+        <div class="pwa-text">
+          <div class="pwa-title">{{ $t('pwa.installNotice') }}</div>
+        </div>
+        <div class="pwa-actions">
+          <button class="pwa-install-btn" @click="$pwa?.install()">
+            {{ $t('pwa.install') }}
+          </button>
+          <button class="pwa-dismiss-btn" @click="$pwa?.cancelInstall()">
+            <Icon name="mdi:close" size="18" />
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
+  </Transition>
 </template>
-
-<script setup>
-const show = ref(true)
-const deferredPrompt = ref(null)
-
-onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt.value = e
-  })
-})
-
-const install = async () => {
-  if (!deferredPrompt.value) {
-    show.value = false
-    return
-  }
-  deferredPrompt.value.prompt()
-  const result = await deferredPrompt.value.userChoice
-  if (result.outcome === 'accepted') {
-    show.value = false
-  }
-  deferredPrompt.value = null
-}
-
-const dismiss = () => {
-  show.value = false
-}
-</script>
 
 <style scoped>
 .pwa-notice {
@@ -51,43 +29,52 @@ const dismiss = () => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.pwa-notice-inner {
+  pointer-events: all;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  max-width: calc(100vw - 32px);
-  white-space: nowrap;
-  direction: ltr;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
 }
-:root.dark .pwa-notice {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+:root.dark .pwa-notice-inner {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.4);
 }
-.pwa-notice-text {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.pwa-icon {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+.pwa-text {
+  flex: 1;
+}
+.pwa-title {
   font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
-.pwa-notice-actions {
+.pwa-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 .pwa-install-btn {
-  padding: 6px 14px;
+  padding: 7px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--primary);
   color: #fff;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
   white-space: nowrap;
 }
 .pwa-dismiss-btn {
@@ -97,15 +84,26 @@ const dismiss = () => {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 50%;
-  background: transparent;
+  border-radius: 7px;
+  background: var(--bg-elevated);
   color: var(--text-muted);
   cursor: pointer;
 }
 .pwa-dismiss-btn:hover {
-  background: rgba(0,0,0,0.05);
+  color: var(--text-primary);
 }
-:root.dark .pwa-dismiss-btn:hover {
-  background: rgba(255,255,255,0.1);
+.pwa-slide-enter-active {
+  transition: all 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.pwa-slide-leave-active {
+  transition: all 0.2s ease;
+}
+.pwa-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.pwa-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 </style>

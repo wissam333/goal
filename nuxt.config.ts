@@ -43,6 +43,10 @@ export default defineNuxtConfig({
         },
       ],
     },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600,
+    },
     workbox: {
       globPatterns: ["**/*.{js,css,svg,png,ico,woff2}"],
       navigateFallback: null,
@@ -62,6 +66,11 @@ export default defineNuxtConfig({
           },
         },
       ],
+    },
+    devOptions: {
+      enabled: true,
+      type: "module",
+      suppressWarnings: true,
     },
   },
 
