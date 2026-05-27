@@ -50,7 +50,7 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 - **Removed WhatsApp group link** from footer
 - **Added multi-platform share** (Messenger, WhatsApp, Facebook, Telegram, Copy) to match page
 - **Fixed hero card colors** for light/dark mode on index page
-- **Seed data in `supabase-migration.sql`** (INSERT statements with full 12 teams, 48 players, 37 matches)
+- **Seed data in `supabase-migration.sql`** (INSERT statements with full 16 teams in 4 groups (A-D), 64 players, 24 group-stage matches with scores & goal scorers)
 - **Fallback logic**: `useLeagueData` fallback functions used when Supabase returns empty/null (not just when client is missing)
 - Removed `nuxt-beastcss`/`nuxt-vitalizer` (conflicted with dark mode CSS)
 - **PWA setup** with `@vite-pwa/nuxt`: SVG icons, manifest, service worker, Supabase data cache

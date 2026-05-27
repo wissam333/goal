@@ -165,26 +165,30 @@ DELETE FROM teams;
 DELETE FROM settings;
 
 -- ═══════════════════════════════════════════════════════════════
--- SEED: TEAMS (16 teams, 8 per group)
+-- SEED: TEAMS (16 teams, 4 groups of 4)
 -- ═══════════════════════════════════════════════════════════════
 
 INSERT INTO teams (slug, title, color, "group") VALUES
+  -- Group A
   ('alnour',    'النور',    '#22c55e', 'A'),
   ('aytam',     'الأيتام',  '#3b82f6', 'A'),
   ('alqadsia',  'القادسية', '#ef4444', 'A'),
   ('alhilal',   'الهلال',   '#8b5cf6', 'A'),
-  ('alahli',    'الأهلي',   '#14b8a6', 'A'),
-  ('alraed',    'الرائد',   '#6366f1', 'A'),
-  ('alwehdah',  'الوحدة',   '#a855f7', 'A'),
-  ('alokhdood', 'الأخدود',  '#dc2626', 'A'),
-  ('alnasr',    'النصر',    '#eab308', 'B'),
-  ('alittihad', 'الاتحاد',  '#f97316', 'B'),
-  ('alshabab',  'الشباب',   '#ec4899', 'B'),
-  ('alfateh',   'الفتح',    '#06b6d4', 'B'),
-  ('altaawoun', 'التعاون',  '#84cc16', 'B'),
-  ('altai',     'الطائي',   '#f59e0b', 'B'),
-  ('alkhaleej', 'الخليج',   '#0ea5e9', 'B'),
-  ('alriyadh',  'الرياض',   '#64748b', 'B');
+  -- Group B
+  ('alahli',    'الأهلي',   '#14b8a6', 'B'),
+  ('alraed',    'الرائد',   '#6366f1', 'B'),
+  ('alwehdah',  'الوحدة',   '#a855f7', 'B'),
+  ('alokhdood', 'الأخدود',  '#dc2626', 'B'),
+  -- Group C
+  ('alnasr',    'النصر',    '#eab308', 'C'),
+  ('alittihad', 'الاتحاد',  '#f97316', 'C'),
+  ('alshabab',  'الشباب',   '#ec4899', 'C'),
+  ('alfateh',   'الفتح',    '#06b6d4', 'C'),
+  -- Group D
+  ('altaawoun', 'التعاون',  '#84cc16', 'D'),
+  ('altai',     'الطائي',   '#f59e0b', 'D'),
+  ('alkhaleej', 'الخليج',   '#0ea5e9', 'D'),
+  ('alriyadh',  'الرياض',   '#64748b', 'D');
 
 -- ═══════════════════════════════════════════════════════════════
 -- SEED: PLAYERS (4 per team = 64)
@@ -276,6 +280,56 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
 -- SETTINGS
 -- ═══════════════════════════════════════════════════════════════
 
-INSERT INTO settings (id, name, season)
-VALUES (1, 'دوري القرية السنوي', '2026')
+INSERT INTO settings (id, name, season, "groups", "teamsPerGroup")
+VALUES (1, 'دوري القرية السنوي', '2026', '["A","B","C","D"]', 4)
 ON CONFLICT (id) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════
+-- SEED: MATCHES (24 group-stage matches, 6 per group)
+-- ═══════════════════════════════════════════════════════════════
+
+INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awayTeam", "homeScore", "awayScore", "goalScorers") VALUES
+
+-- ── GROUP A ──────────────────────────────────────────────
+-- MD1
+('ga-alnour-vs-aytam',    'النور vs الأيتام',    '2026-02-15T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'aytam',    2, 1, '[{"player":"ahmed-hassan","team":"alnour","minute":23},{"player":"yasser-ali","team":"alnour","minute":67},{"player":"faris-nour","team":"aytam","minute":45}]'),
+('ga-aytam-vs-alqadsia',  'الأيتام vs القادسية', '2026-02-16T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'aytam', 'alqadsia', 0, 2, '[{"player":"badr-shamari","team":"alqadsia","minute":31},{"player":"faisal-ahmed","team":"alqadsia","minute":78}]'),
+-- MD2
+('ga-alnour-vs-alqadsia', 'النور vs القادسية',   '2026-02-22T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alqadsia', 1, 1, '[{"player":"khaled-omar","team":"alnour","minute":55},{"player":"abdullah-mohammed","team":"alqadsia","minute":72}]'),
+('ga-aytam-vs-alhilal',   'الأيتام vs الهلال',   '2026-02-23T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'aytam', 'alhilal',  2, 2, '[{"player":"hadi-mahmoud","team":"aytam","minute":12},{"player":"sami-ibrahim","team":"aytam","minute":88},{"player":"hasan-ali","team":"alhilal","minute":41},{"player":"mohammed-saad","team":"alhilal","minute":63}]'),
+-- MD3
+('ga-alnour-vs-alhilal',  'النور vs الهلال',     '2026-03-01T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'alnour', 'alhilal',  3, 0, '[{"player":"ahmed-hassan","team":"alnour","minute":17},{"player":"khaled-omar","team":"alnour","minute":34},{"player":"ahmed-hassan","team":"alnour","minute":71}]'),
+('ga-alqadsia-vs-alhilal','القادسية vs الهلال',  '2026-03-02T14:00:00Z', 'A', 'الملعب الرئيسي', 'played', 'alqadsia', 'alhilal', 1, 0, '[{"player":"badr-shamari","team":"alqadsia","minute":59}]'),
+
+-- ── GROUP B ──────────────────────────────────────────────
+-- MD1
+('gb-alahli-vs-alraed',    'الأهلي vs الرائد',    '2026-02-15T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alahli', 'alraed',    2, 0, '[{"player":"ali-nour","team":"alahli","minute":28},{"player":"fahd-saeed","team":"alahli","minute":64}]'),
+('gb-alraed-vs-alwehdah',  'الرائد vs الوحدة',    '2026-02-16T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alraed', 'alwehdah',  0, 1, '[{"player":"mohammed-nour","team":"alwehdah","minute":83}]'),
+-- MD2
+('gb-alahli-vs-alwehdah',  'الأهلي vs الوحدة',    '2026-02-22T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alahli', 'alwehdah',  3, 1, '[{"player":"ali-nour","team":"alahli","minute":15},{"player":"fahd-saeed","team":"alahli","minute":42},{"player":"naser-mohammed","team":"alahli","minute":76},{"player":"khaled-raed","team":"alwehdah","minute":89}]'),
+('gb-alraed-vs-alokhdood', 'الرائد vs الأخدود',  '2026-02-23T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alraed', 'alokhdood', 2, 0, '[{"player":"majed-fahd","team":"alraed","minute":33},{"player":"sultan-isa","team":"alraed","minute":51}]'),
+-- MD3
+('gb-alahli-vs-alokhdood', 'الأهلي vs الأخدود',   '2026-03-01T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alahli', 'alokhdood', 1, 1, '[{"player":"ali-nour","team":"alahli","minute":44},{"player":"nawaf-mohammed","team":"alokhdood","minute":77}]'),
+('gb-alwehdah-vs-alokhdood','الوحدة vs الأخدود',  '2026-03-02T16:00:00Z', 'B', 'الملعب الرئيسي', 'played', 'alwehdah', 'alokhdood', 3, 2, '[{"player":"mohammed-nour","team":"alwehdah","minute":9},{"player":"khaled-raed","team":"alwehdah","minute":48},{"player":"abdullah-fahd","team":"alwehdah","minute":90},{"player":"nawaf-mohammed","team":"alokhdood","minute":22},{"player":"fahd-sultan","team":"alokhdood","minute":39}]'),
+
+-- ── GROUP C ──────────────────────────────────────────────
+-- MD1
+('gc-alnasr-vs-alittihad',  'النصر vs الاتحاد',  '2026-02-15T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alnasr', 'alittihad',  2, 2, '[{"player":"omar-abdullah","team":"alnasr","minute":19},{"player":"zakaria-youssef","team":"alnasr","minute":56},{"player":"abdullah-saad","team":"alittihad","minute":38},{"player":"yousef-nour","team":"alittihad","minute":73}]'),
+('gc-alittihad-vs-alshabab','الاتحاد vs الشباب', '2026-02-16T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alittihad', 'alshabab', 1, 0, '[{"player":"abdullah-saad","team":"alittihad","minute":66}]'),
+-- MD2
+('gc-alnasr-vs-alshabab',   'النصر vs الشباب',   '2026-02-22T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alnasr', 'alshabab',  3, 1, '[{"player":"omar-abdullah","team":"alnasr","minute":11},{"player":"tamer-hassan","team":"alnasr","minute":47},{"player":"zakaria-youssef","team":"alnasr","minute":80},{"player":"nawaf-isa","team":"alshabab","minute":62}]'),
+('gc-alittihad-vs-alfateh', 'الاتحاد vs الفتح',   '2026-02-23T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alittihad', 'alfateh',  2, 0, '[{"player":"abdullah-saad","team":"alittihad","minute":25},{"player":"hasan-fahd","team":"alittihad","minute":54}]'),
+-- MD3
+('gc-alnasr-vs-alfateh',    'النصر vs الفتح',    '2026-03-01T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alnasr', 'alfateh',   4, 0, '[{"player":"omar-abdullah","team":"alnasr","minute":5},{"player":"zakaria-youssef","team":"alnasr","minute":30},{"player":"omar-abdullah","team":"alnasr","minute":58},{"player":"tamer-hassan","team":"alnasr","minute":85}]'),
+('gc-alshabab-vs-alfateh',  'الشباب vs الفتح',   '2026-03-02T18:00:00Z', 'C', 'الملعب الرئيسي', 'played', 'alshabab', 'alfateh',  1, 1, '[{"player":"nawaf-isa","team":"alshabab","minute":44},{"player":"ahmed-saeed","team":"alfateh","minute":90}]'),
+
+-- ── GROUP D ──────────────────────────────────────────────
+-- MD1
+('gd-altaawoun-vs-altai',    'التعاون vs الطائي',    '2026-02-15T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altaawoun', 'altai',     2, 1, '[{"player":"faisal-mohammed","team":"altaawoun","minute":37},{"player":"omar-saad","team":"altaawoun","minute":68},{"player":"saad-fahd","team":"altai","minute":82}]'),
+('gd-altai-vs-alkhaleej',    'الطائي vs الخليج',     '2026-02-16T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altai', 'alkhaleej',    1, 1, '[{"player":"rakan-ali","team":"altai","minute":14},{"player":"hasan-ahmed","team":"alkhaleej","minute":61}]'),
+-- MD2
+('gd-altaawoun-vs-alkhaleej','التعاون vs الخليج',    '2026-02-22T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altaawoun', 'alkhaleej', 3, 0, '[{"player":"faisal-mohammed","team":"altaawoun","minute":26},{"player":"nour-hassan","team":"altaawoun","minute":49},{"player":"omar-saad","team":"altaawoun","minute":74}]'),
+('gd-altai-vs-alriyadh',     'الطائي vs الرياض',     '2026-02-23T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altai', 'alriyadh',     2, 0, '[{"player":"saad-fahd","team":"altai","minute":33},{"player":"mohammed-ahmed","team":"altai","minute":77}]'),
+-- MD3
+('gd-altaawoun-vs-alriyadh', 'التعاون vs الرياض',    '2026-03-01T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altaawoun', 'alriyadh',  0, 0, '[]'),
+('gd-alkhaleej-vs-alriyadh', 'الخليج vs الرياض',     '2026-03-02T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'alkhaleej', 'alriyadh', 1, 0, '[{"player":"fahd-abdullah","team":"alkhaleej","minute":53}]');
