@@ -1,12 +1,12 @@
 <template>
-  <div v-if="show" class="pwa-notice">
+  <div v-if="$pwa?.showInstallPrompt && !$pwa?.isPWAInstalled" class="pwa-notice" :dir="$pwa?.showInstallPrompt ? 'rtl' : 'ltr'">
     <div class="pwa-notice-inner">
       <Icon name="mdi:cellphone-arrow-down" size="20" class="pwa-icon" />
       <div class="pwa-text">{{ $t('pwa.installNotice') }}</div>
-      <button class="pwa-install-btn" @click="install">
+      <button class="pwa-install-btn" @click="$pwa?.install()">
         {{ $t('pwa.install') }}
       </button>
-      <button class="pwa-close" @click="show = false">
+      <button class="pwa-close" @click="$pwa?.cancelInstall()">
         <Icon name="mdi:close" size="18" />
       </button>
     </div>
@@ -14,25 +14,7 @@
 </template>
 
 <script setup>
-const show = ref(false)
-let deferredPrompt = null
-
-if (import.meta.client) {
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  if (isMobile) {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault()
-      deferredPrompt = e
-      show.value = true
-    })
-    setTimeout(() => { if (!show.value) show.value = true }, 3000)
-  }
-}
-
-const install = () => {
-  if (deferredPrompt) deferredPrompt.prompt()
-  show.value = false
-}
+const { $pwa } = useNuxtApp()
 </script>
 
 <style scoped>
