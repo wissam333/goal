@@ -7,9 +7,7 @@
     <div class="navbar-spacer" />
     <SharedAdsBanner />
     <slot />
-    <ClientOnly>
-      <SharedPwaInstallNotice />
-    </ClientOnly>
+    <SharedPwaInstallNotice />
     <ClientOnly>
       <SharedUiNavigationMobileBottomBar :items="bottomNavItems" />
     </ClientOnly>

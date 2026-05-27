@@ -195,6 +195,7 @@ const handleBack = () => {
     flex-direction: column;
     gap: 12px;
     padding-bottom: 14px;
+    padding-top: 14px;
     margin-bottom: 18px;
   }
 
