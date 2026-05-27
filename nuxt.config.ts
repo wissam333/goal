@@ -44,7 +44,8 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
-      globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+      globPatterns: ["**/*.{js,css,svg,png,ico,woff2}"],
+      navigateFallback: null,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
