@@ -1,6 +1,8 @@
 <template>
   <div>
     <ElementsLoader></ElementsLoader>
+    <VitePwaManifest />
+    <SharedPwaInstallNotice />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -20,6 +22,9 @@ useHead({
     lang: computed(() => locale.value),
     dir: computed(() => (locale.value === "ar" ? "rtl" : "ltr")),
   },
+  link: [
+    { rel: "apple-touch-icon", href: "/pwa-192.png" },
+  ],
 });
 
 useSeoMeta({

@@ -50,7 +50,7 @@ export default defineNuxtConfig({
       periodicSyncForUpdates: 3600,
     },
     workbox: {
-      globPatterns: ["**/*.{js,css,svg,png,ico,woff2}"],
+      globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
       navigateFallback: null,
       runtimeCaching: [
         {

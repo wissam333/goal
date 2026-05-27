@@ -8,9 +8,6 @@
     <SharedAdsBanner />
     <slot />
     <ClientOnly>
-      <SharedPwaInstallNotice />
-    </ClientOnly>
-    <ClientOnly>
       <SharedUiNavigationMobileBottomBar :items="bottomNavItems" />
     </ClientOnly>
     <LazySharedFooter hydrate-on-idle />
