@@ -5,7 +5,7 @@
       {{ $t('pwa.installNotice') }}
     </p>
     <div class="pwa-notice-actions">
-      <button v-if="deferredPrompt" class="pwa-install-btn" @click="install">
+      <button class="pwa-install-btn" @click="install">
         {{ $t('pwa.install') }}
       </button>
       <button class="pwa-dismiss-btn" @click="dismiss">
@@ -27,7 +27,10 @@ onMounted(() => {
 })
 
 const install = async () => {
-  if (!deferredPrompt.value) return
+  if (!deferredPrompt.value) {
+    show.value = false
+    return
+  }
   deferredPrompt.value.prompt()
   const result = await deferredPrompt.value.userChoice
   if (result.outcome === 'accepted') {
