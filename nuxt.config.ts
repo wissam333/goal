@@ -11,7 +11,7 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: "autoUpdate",
-    includeAssets: ["pwa-icon.svg"],
+    includeAssets: ["pwa-192.png", "pwa-512.png"],
     manifest: {
       name: "دوري كرة القدم السنوي",
       short_name: "دوري القرية",
@@ -26,19 +26,21 @@ export default defineNuxtConfig({
       dir: "rtl",
       icons: [
         {
-          src: "pwa-icon-192.svg",
+          src: "pwa-192.png",
           sizes: "192x192",
-          type: "image/svg",
+          type: "image/png",
+          purpose: "any",
         },
         {
-          src: "pwa-icon.svg",
+          src: "pwa-512.png",
           sizes: "512x512",
-          type: "image/svg",
+          type: "image/png",
+          purpose: "any",
         },
         {
-          src: "pwa-icon.svg",
+          src: "pwa-512.png",
           sizes: "512x512",
-          type: "image/svg",
+          type: "image/png",
           purpose: "maskable",
         },
       ],

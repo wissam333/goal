@@ -1,40 +1,36 @@
 <template>
-  <Transition name="pwa-slide">
-    <div v-if="show" class="pwa-notice">
-      <div class="pwa-notice-inner">
-        <Icon name="mdi:cellphone-arrow-down" size="20" class="pwa-icon" />
-        <div class="pwa-text">{{ $t('pwa.installNotice') }}</div>
-        <button class="pwa-install-btn" @click="install">
-          {{ $t('pwa.install') }}
-        </button>
-        <button class="pwa-close" @click="show = false">
-          <Icon name="mdi:close" size="18" />
-        </button>
-      </div>
+  <div v-if="show" class="pwa-notice">
+    <div class="pwa-notice-inner">
+      <Icon name="mdi:cellphone-arrow-down" size="20" class="pwa-icon" />
+      <div class="pwa-text">{{ $t('pwa.installNotice') }}</div>
+      <button class="pwa-install-btn" @click="install">
+        {{ $t('pwa.install') }}
+      </button>
+      <button class="pwa-close" @click="show = false">
+        <Icon name="mdi:close" size="18" />
+      </button>
     </div>
-  </Transition>
+  </div>
 </template>
 
 <script setup>
 const show = ref(false)
 let deferredPrompt = null
 
-onMounted(() => {
-  if (window.matchMedia('(display-mode: standalone)').matches) return
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt = e
-    show.value = true
-  })
-  setTimeout(() => {
-    if (!show.value) show.value = true
-  }, 3000)
-})
+if (import.meta.client) {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  if (isMobile) {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault()
+      deferredPrompt = e
+      show.value = true
+    })
+    setTimeout(() => { if (!show.value) show.value = true }, 3000)
+  }
+}
 
 const install = () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt()
-  }
+  if (deferredPrompt) deferredPrompt.prompt()
   show.value = false
 }
 </script>
@@ -98,19 +94,5 @@ const install = () => {
 .pwa-close:hover {
   background: var(--bg-elevated);
   color: var(--text-primary);
-}
-.pwa-slide-enter-active {
-  transition: all 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-.pwa-slide-leave-active {
-  transition: all 0.2s ease;
-}
-.pwa-slide-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-.pwa-slide-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
 }
 </style>
