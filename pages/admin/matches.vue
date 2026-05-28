@@ -188,9 +188,10 @@
         <SharedUiButtonBase
           variant="outline"
           icon-left="mdi:camera-plus-outline"
+          :disabled="uploading"
           @click="addAlbumPhoto"
         >
-          إضافة صورة
+          {{ uploading ? 'جاري الرفع...' : 'إضافة صورة' }}
         </SharedUiButtonBase>
       </div>
 
@@ -323,11 +324,12 @@ const syncPlayerGoals = async () => {
       }
     }
   }
-  for (const p of players.value) {
-    const newGoals = goalCount[p.slug] || 0
-    if (p.goals !== newGoals) {
-      await admin.savePlayer({ ...p, goals: newGoals })
-    }
+  const supabase = useSupabase()
+  const changed = players.value
+    .filter(p => (goalCount[p.slug] || 0) !== p.goals)
+    .map(p => ({ ...p, goals: goalCount[p.slug] || 0 }))
+  if (changed.length) {
+    await supabase.from("players").upsert(changed, { onConflict: "slug" })
   }
 }
 
@@ -527,6 +529,8 @@ const openAlbumModal = (row) => {
   albumModal.open = true
 }
 
+const uploading = ref(false)
+
 const addAlbumPhoto = async () => {
   const input = document.createElement('input')
   input.type = 'file'
@@ -534,18 +538,26 @@ const addAlbumPhoto = async () => {
   input.onchange = async () => {
     const file = input.files?.[0]
     if (!file) return
+    uploading.value = true
     try {
-      const { compressAndEncode } = useImageCompression()
-      const base64 = await compressAndEncode(file, { maxSizeMB: 1, maxWidthOrHeight: 1600 })
-      albumModal.photos.push(base64)
+      const { compressImage } = useImageCompression()
+      const blob = await compressImage(file, { maxSizeMB: 1, maxWidthOrHeight: 1600 })
+      const url = await admin.uploadPhoto(blob, albumModal.match.slug)
+      albumModal.photos.push(url)
     } catch {
-      showAlert('error', 'خطأ', 'فشل ضغط الصورة')
+      showAlert('error', 'خطأ', 'فشل رفع الصورة')
+    } finally {
+      uploading.value = false
     }
   }
   input.click()
 }
 
-const removeAlbumPhoto = (index) => {
+const removeAlbumPhoto = async (index) => {
+  const url = albumModal.photos[index]
+  if (url?.startsWith('http')) {
+    await admin.deletePhoto(url)
+  }
   albumModal.photos.splice(index, 1)
 }
 

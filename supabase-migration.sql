@@ -333,3 +333,15 @@ INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awa
 -- MD3
 ('gd-altaawoun-vs-alriyadh', 'التعاون vs الرياض',    '2026-03-01T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altaawoun', 'alriyadh',  0, 0, '[]'),
 ('gd-alkhaleej-vs-alriyadh', 'الخليج vs الرياض',     '2026-03-02T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'alkhaleej', 'alriyadh', 1, 0, '[{"player":"fahd-abdullah","team":"alkhaleej","minute":53}]');
+
+-- ── SUPABASE STORAGE: match-photos bucket ─────────────────
+-- Create bucket via Supabase Dashboard: Storage → Create bucket → name "match-photos", public
+-- Then run these RLS policies in the SQL Editor:
+
+-- CREATE POLICY "Public Read match-photos" ON storage.objects
+--   FOR SELECT USING (bucket_id = 'match-photos');
+--
+-- CREATE POLICY "Auth Upload match-photos" ON storage.objects
+--   FOR INSERT WITH CHECK (
+--     bucket_id = 'match-photos' AND auth.role() = 'authenticated'
+--   );

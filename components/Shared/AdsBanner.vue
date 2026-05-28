@@ -72,7 +72,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .ad-section {
-  padding: 16px 0px;
+  padding-top: 16px;
 }
 
 .ad-card {

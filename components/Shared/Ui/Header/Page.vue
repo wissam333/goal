@@ -70,6 +70,7 @@ const handleBack = () => {
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
+  padding-top: 14px;
   flex-shrink: 0;
 }
 

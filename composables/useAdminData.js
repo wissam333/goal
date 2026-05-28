@@ -56,9 +56,31 @@ export const useAdminData = () => {
     if (error) throw error
   }
 
+  const uploadPhoto = async (blob, matchSlug) => {
+    const ext = blob.type?.includes("png") ? "png" : "webp"
+    const path = `${matchSlug}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from("match-photos").upload(path, blob, {
+      contentType: blob.type,
+      upsert: false,
+    })
+    if (error) throw error
+    const { data: { publicUrl } } = supabase.storage.from("match-photos").getPublicUrl(path)
+    return publicUrl
+  }
+
+  const deletePhoto = async (url) => {
+    const bucket = supabase.storage.from("match-photos")
+    const parts = url.split("/match-photos/")
+    if (parts.length < 2) return
+    const path = parts[1]
+    const { error } = await bucket.remove([path])
+    if (error) console.error("Failed to delete photo from storage:", error)
+  }
+
   return {
     getTeams, getPlayers, getMatches, getSettings,
     saveTeam, deleteTeam, savePlayer, deletePlayer,
     saveMatch, deleteMatch, saveSettings,
+    uploadPhoto, deletePhoto,
   }
 }

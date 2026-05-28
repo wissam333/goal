@@ -1,12 +1,12 @@
 <template>
   <div class="page-wrap">
     <!-- Back button -->
-    <div class="back-row">
+    <!-- <div class="back-row">
       <button class="back-btn" @click="navigateTo('/fixtures')">
         <Icon :name="locale === 'ar' ? 'mdi:arrow-right' : 'mdi:arrow-left'" size="18" />
         {{ $t('fixtures.back') }}
       </button>
-    </div>
+    </div> -->
 
     <!-- Loading -->
     <div v-if="pending" class="skeleton-hero" />
@@ -24,11 +24,7 @@
         class="scoreboard-hero"
         :class="`status-${liveStatus}`"
       >
-        <!-- Background pitch lines -->
-        <div class="pitch-bg" aria-hidden="true">
-          <div class="pitch-circle" />
-          <div class="pitch-line" />
-        </div>
+        <div class="pitch-center-line" aria-hidden="true" />
 
         <!-- Status badge -->
         <div class="hero-status">
@@ -38,6 +34,14 @@
           <span v-else-if="liveStatus === 'played'" class="badge-ft">FT</span>
           <span v-else class="badge-upcoming">
             {{ $t('match.upcoming') }} · {{ formatMatchDate(match.date) }}
+          </span>
+        </div>
+
+        <!-- Venue -->
+        <div class="hero-venue">
+          <span v-if="match.venue">
+            <Icon name="mdi:map-marker-outline" size="12" />
+            {{ match.venue }}
           </span>
         </div>
 
@@ -62,16 +66,17 @@
           <!-- Score -->
           <div class="hero-score">
             <template v-if="liveStatus !== 'upcoming'">
-              <span class="score-num" :class="{ winner: match.homeScore > match.awayScore }">
-                {{ match.homeScore ?? 0 }}
-              </span>
-              <span class="score-dash">–</span>
-              <span class="score-num" :class="{ winner: match.awayScore > match.homeScore }">
-                {{ match.awayScore ?? 0 }}
-              </span>
+              <div class="score-circle">
+                <span class="score-num" :class="{ winner: match.homeScore > match.awayScore }">
+                  {{ match.homeScore ?? 0 }}
+                </span>
+                <span class="score-dash">–</span>
+                <span class="score-num" :class="{ winner: match.awayScore > match.homeScore }">
+                  {{ match.awayScore ?? 0 }}
+                </span>
+              </div>
             </template>
             <template v-else>
-              <!-- Countdown -->
               <div class="countdown">
                 <div class="countdown-unit">
                   <span class="countdown-num">{{ countdown.hours }}</span>
@@ -89,11 +94,6 @@
                 </div>
               </div>
             </template>
-
-            <!-- Venue -->
-            <div class="score-meta">
-              <span v-if="match.venue">{{ match.venue }}</span>
-            </div>
           </div>
 
           <!-- Away -->
@@ -812,29 +812,14 @@ useSeoMeta({
   }
 }
 
-// Pitch background decoration
-.pitch-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.pitch-circle {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px; height: 200px;
-  border-radius: 50%;
-  border: 2px solid rgba(0,80,0,0.12);
-
-  :root.dark & { border-color: rgba(255,255,255,0.1); }
-}
-.pitch-line {
+.pitch-center-line {
   position: absolute;
   top: 0; bottom: 0;
-  left: 50%; width: 2px;
-  background: rgba(0,80,0,0.12);
+  left: 50%; width: 1px;
+  background: rgba(0,80,0,0.08);
+  pointer-events: none;
 
-  :root.dark & { background: rgba(255,255,255,0.1); }
+  :root.dark & { background: rgba(255,255,255,0.06); }
 }
 
 // Status
@@ -914,29 +899,44 @@ useSeoMeta({
   :root.dark & { color: rgba(255,255,255,0.4); }
 }
 
+.hero-venue {
+  text-align: center;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+
+  :root.dark & { color: rgba(255,255,255,0.4); }
+
+  .iconify { margin-inline-end: 4px; }
+}
+
 .hero-score {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+}
+
+.score-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,80,0,0.12);
+
+  :root.dark & { border-color: rgba(255,255,255,0.1); }
 }
 
 .score-num {
-  font-size: 3rem; font-weight: 900; color: var(--text-primary);
+  font-size: 3.4rem; font-weight: 900; color: var(--text-primary);
   line-height: 1;
 
-  :root.dark & { color: rgba(255,255,255,0.7); }
+  :root.dark & { color: rgba(255,255,255,0.85); }
 
   &.winner { color: var(--primary); }
 }
-.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; margin-bottom: 6px; }
-
-.score-meta {
-  font-size: 0.7rem; color: var(--text-muted);
-  text-align: center;
-
-  :root.dark & { color: rgba(255,255,255,0.35); }
-}
+.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; }
 
 // Countdown
 .countdown {
@@ -1239,7 +1239,9 @@ useSeoMeta({
 
   .hero-logo { width: 52px; height: 52px; border-radius: 10px; }
   .hero-team-name { font-size: 0.82rem; }
-  .score-num { font-size: 2.4rem; }
+  .score-circle { width: 140px; height: 140px; gap: 16px; }
+  .score-num { font-size: 2.6rem; }
+  .score-dash { font-size: 1.4rem; }
 
   .motm-teams { grid-template-columns: 1fr; gap: 16px; }
   .motm-player-row { padding: 14px; gap: 12px; border-radius: 14px; min-height: 52px; }
