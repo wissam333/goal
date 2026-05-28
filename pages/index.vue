@@ -1,8 +1,6 @@
 <template>
   <div class="page-wrap">
-
     <div class="container">
-
       <!-- ── Next Match ─────────────────────────────────── -->
       <div v-if="nextMatch?.slug" class="hero-card">
         <div class="hero-badge">
@@ -12,15 +10,30 @@
 
         <div class="hero-teams">
           <div class="hero-team">
-            <NuxtLink :to="`/teams/${nextMatch.homeTeam}`" class="hero-logo-wrap">
+            <NuxtLink
+              :to="`/teams/${nextMatch.homeTeam}`"
+              class="hero-logo-wrap"
+            >
               <template v-if="getTeamLogo(nextMatch.homeTeam)">
-                <NuxtImg :src="getTeamLogo(nextMatch.homeTeam)" :alt="getTeamName(nextMatch.homeTeam)" width="64" height="64" class="hero-logo" />
+                <NuxtImg
+                  :src="getTeamLogo(nextMatch.homeTeam)"
+                  :alt="getTeamName(nextMatch.homeTeam)"
+                  width="64"
+                  height="64"
+                  class="hero-logo"
+                />
               </template>
-              <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.homeTeam) }">
+              <div
+                v-else
+                class="hero-logo-initial"
+                :style="{ background: getTeamColor(nextMatch.homeTeam) }"
+              >
                 {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
               </div>
             </NuxtLink>
-            <span class="hero-team-name">{{ getTeamName(nextMatch.homeTeam) }}</span>
+            <span class="hero-team-name">{{
+              getTeamName(nextMatch.homeTeam)
+            }}</span>
           </div>
 
           <div class="hero-center">
@@ -33,21 +46,39 @@
           </div>
 
           <div class="hero-team">
-            <NuxtLink :to="`/teams/${nextMatch.awayTeam}`" class="hero-logo-wrap">
+            <NuxtLink
+              :to="`/teams/${nextMatch.awayTeam}`"
+              class="hero-logo-wrap"
+            >
               <template v-if="getTeamLogo(nextMatch.awayTeam)">
-                <NuxtImg :src="getTeamLogo(nextMatch.awayTeam)" :alt="getTeamName(nextMatch.awayTeam)" width="64" height="64" class="hero-logo" />
+                <NuxtImg
+                  :src="getTeamLogo(nextMatch.awayTeam)"
+                  :alt="getTeamName(nextMatch.awayTeam)"
+                  width="64"
+                  height="64"
+                  class="hero-logo"
+                />
               </template>
-              <div v-else class="hero-logo-initial" :style="{ background: getTeamColor(nextMatch.awayTeam) }">
+              <div
+                v-else
+                class="hero-logo-initial"
+                :style="{ background: getTeamColor(nextMatch.awayTeam) }"
+              >
                 {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
               </div>
             </NuxtLink>
-            <span class="hero-team-name">{{ getTeamName(nextMatch.awayTeam) }}</span>
+            <span class="hero-team-name">{{
+              getTeamName(nextMatch.awayTeam)
+            }}</span>
           </div>
         </div>
 
         <NuxtLink :to="`/matches/${nextMatch.slug}`" class="hero-btn">
           {{ $t("home.viewMatch") }}
-          <Icon :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'" size="15" />
+          <Icon
+            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+            size="15"
+          />
         </NuxtLink>
       </div>
 
@@ -67,37 +98,72 @@
           <div class="last-teams">
             <div class="last-team">
               <template v-if="getTeamLogo(lastMatch.homeTeam)">
-                <NuxtImg :src="getTeamLogo(lastMatch.homeTeam)" :alt="getTeamName(lastMatch.homeTeam)" width="28" height="28" class="last-logo" />
+                <NuxtImg
+                  :src="getTeamLogo(lastMatch.homeTeam)"
+                  :alt="getTeamName(lastMatch.homeTeam)"
+                  width="28"
+                  height="28"
+                  class="last-logo"
+                />
               </template>
-              <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.homeTeam) }">{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span>
-              <span class="last-name">{{ getTeamName(lastMatch.homeTeam) }}</span>
+              <span
+                v-else
+                class="last-logo-initial"
+                :style="{ background: getTeamColor(lastMatch.homeTeam) }"
+                >{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span
+              >
+              <span class="last-name">{{
+                getTeamName(lastMatch.homeTeam)
+              }}</span>
             </div>
 
             <div class="last-score">
-              <span class="last-num" :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }">{{ lastMatch.homeScore }}</span>
+              <span
+                class="last-num"
+                :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }"
+                >{{ lastMatch.homeScore }}</span
+              >
               <span class="last-sep">–</span>
-              <span class="last-num" :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }">{{ lastMatch.awayScore }}</span>
+              <span
+                class="last-num"
+                :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }"
+                >{{ lastMatch.awayScore }}</span
+              >
             </div>
 
             <div class="last-team right">
-              <span class="last-name">{{ getTeamName(lastMatch.awayTeam) }}</span>
+              <span class="last-name">{{
+                getTeamName(lastMatch.awayTeam)
+              }}</span>
               <template v-if="getTeamLogo(lastMatch.awayTeam)">
-                <NuxtImg :src="getTeamLogo(lastMatch.awayTeam)" :alt="getTeamName(lastMatch.awayTeam)" width="28" height="28" class="last-logo" />
+                <NuxtImg
+                  :src="getTeamLogo(lastMatch.awayTeam)"
+                  :alt="getTeamName(lastMatch.awayTeam)"
+                  width="28"
+                  height="28"
+                  class="last-logo"
+                />
               </template>
-              <span v-else class="last-logo-initial" :style="{ background: getTeamColor(lastMatch.awayTeam) }">{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span>
+              <span
+                v-else
+                class="last-logo-initial"
+                :style="{ background: getTeamColor(lastMatch.awayTeam) }"
+                >{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span
+              >
             </div>
           </div>
 
           <div class="last-meta">
-            <span><Icon name="mdi:calendar-outline" size="11" /> {{ formatShortDate(lastMatch.date) }}</span>
-            <span v-if="lastMatch.venue"><Icon name="mdi:map-marker-outline" size="11" /> {{ lastMatch.venue }}</span>
+            <span
+              ><Icon name="mdi:calendar-outline" size="11" />
+              {{ formatShortDate(lastMatch.date) }}</span
+            >
+            <span v-if="lastMatch.venue"
+              ><Icon name="mdi:map-marker-outline" size="11" />
+              {{ lastMatch.venue }}</span
+            >
           </div>
         </NuxtLink>
-      </div>
-
-      <!-- ── Quick Stats ───────────────────────────────── -->
-      <div class="mt-4">
-        <SharedUiCardsStats :stats="quickStats" :columns="4" />
       </div>
 
       <!-- ── Standings ─────────────────────────────────── -->
@@ -109,11 +175,14 @@
           </h2>
           <NuxtLink to="/standings" class="section-link">
             {{ $t("home.fullTable") }}
-            <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
+            <Icon
+              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+              size="14"
+            />
           </NuxtLink>
         </div>
 
-        <div class="table-card">
+        <div class="row g-2">
           <table class="mini-table">
             <thead>
               <tr>
@@ -124,11 +193,32 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(team, i) in topStandings" :key="team.slug" class="table-row" @click="navigateTo(`/teams/${team.slug}`)">
-                <td><span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{ i + 1 }}</span></td>
+              <tr
+                v-for="(team, i) in topStandings"
+                :key="team.slug"
+                class="table-row"
+                @click="navigateTo(`/teams/${team.slug}`)"
+              >
+                <td>
+                  <span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{
+                    i + 1
+                  }}</span>
+                </td>
                 <td class="team-cell">
-                  <NuxtImg v-if="team.logo" :src="team.logo" :alt="team.title" width="22" height="22" class="mini-logo" />
-                  <span v-else class="mini-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</span>
+                  <NuxtImg
+                    v-if="team.logo"
+                    :src="team.logo"
+                    :alt="team.title"
+                    width="22"
+                    height="22"
+                    class="mini-logo"
+                  />
+                  <span
+                    v-else
+                    class="mini-logo-initial"
+                    :style="{ background: team.color }"
+                    >{{ team.title?.charAt(0) }}</span
+                  >
                   <span>{{ team.title }}</span>
                 </td>
                 <td class="num-cell">{{ team.P }}</td>
@@ -148,22 +238,40 @@
           </h2>
           <NuxtLink to="/teams" class="section-link">
             {{ $t("home.allTeams") }}
-            <Icon :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'" size="14" />
+            <Icon
+              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+              size="14"
+            />
           </NuxtLink>
         </div>
 
         <div class="row g-2">
           <div v-for="team in teams" :key="team.slug" class="col-6 col-md-3">
             <NuxtLink :to="`/teams/${team.slug}`" class="team-card">
-              <NuxtImg v-if="team.logo" :src="team.logo" :alt="team.title" width="44" height="44" class="team-card-logo" />
-              <div v-else class="team-card-logo-initial" :style="{ background: team.color }">{{ team.title?.charAt(0) }}</div>
+              <NuxtImg
+                v-if="team.logo"
+                :src="team.logo"
+                :alt="team.title"
+                width="44"
+                height="44"
+                class="team-card-logo"
+              />
+              <div
+                v-else
+                class="team-card-logo-initial"
+                :style="{ background: team.color }"
+              >
+                {{ team.title?.charAt(0) }}
+              </div>
               <span class="team-card-name">{{ team.title }}</span>
-              <span class="team-card-pts">{{ getTeamPoints(team.slug) }} <small>{{ $t("standings.points") }}</small></span>
+              <span class="team-card-pts"
+                >{{ getTeamPoints(team.slug) }}
+                <small>{{ $t("standings.points") }}</small></span
+              >
             </NuxtLink>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -176,28 +284,42 @@ const { locale } = useI18n();
 const { fetchMatches, fetchTeams, fetchPlayers } = useLeagueData();
 const dateLocale = computed(() => (locale.value === "ar" ? ar : enUS));
 
-const [{ data: nextMatch }, { data: lastMatch }, { data: allMatches }, { data: teams }, { data: allPlayers }] = await Promise.all([
+const [
+  { data: nextMatch },
+  { data: lastMatch },
+  { data: allMatches },
+  { data: teams },
+  { data: allPlayers },
+] = await Promise.all([
   useAsyncData("home-next", () =>
-    fetchMatches({ statusIn: ["upcoming", "live"], orderBy: { field: "date", dir: "asc" }, limit: 1 }).then(r => r?.[0] || null),
+    fetchMatches({
+      statusIn: ["upcoming", "live"],
+      orderBy: { field: "date", dir: "asc" },
+      limit: 1,
+    }).then((r) => r?.[0] || null),
   ),
   useAsyncData("home-last", () =>
-    fetchMatches({ status: "played", orderBy: { field: "date", dir: "desc" }, limit: 1 }).then(r => r?.[0] || null),
+    fetchMatches({
+      status: "played",
+      orderBy: { field: "date", dir: "desc" },
+      limit: 1,
+    }).then((r) => r?.[0] || null),
   ),
-  useAsyncData("home-all-matches", () =>
-    fetchMatches({ status: "played" }),
-  ),
+  useAsyncData("home-all-matches", () => fetchMatches({ status: "played" })),
   useAsyncData("home-teams", () => fetchTeams()),
   useAsyncData("home-players", () => fetchPlayers()),
 ]);
 
 const teamMap = computed(() => {
   const m = {};
-  (teams.value || []).forEach(t => { m[t.slug] = t; });
+  (teams.value || []).forEach((t) => {
+    m[t.slug] = t;
+  });
   return m;
 });
 const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
-const getTeamLogo = (slug) => slug ? (teamMap.value[slug]?.logo || null) : null;
-const getTeamColor = (slug) => teamMap.value[slug]?.color || '#22c55e';
+const getTeamLogo = (slug) => (slug ? teamMap.value[slug]?.logo || null : null);
+const getTeamColor = (slug) => teamMap.value[slug]?.color || "#22c55e";
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
@@ -218,18 +340,33 @@ const standingsMap = computed(() => {
   const map = {};
   if (!teams.value || !allMatches.value) return map;
   teams.value.forEach((team) => {
-    let W = 0, D = 0, L = 0, GF = 0, GA = 0;
-    allMatches.value.filter((m) => m.homeTeam === team.slug || m.awayTeam === team.slug).forEach((m) => {
-      const isHome = m.homeTeam === team.slug;
-      const scored = isHome ? m.homeScore : m.awayScore;
-      const conceded = isHome ? m.awayScore : m.homeScore;
-      if (scored > conceded) W++;
-      else if (scored === conceded) D++;
-      else L++;
-      GF += scored;
-      GA += conceded;
-    });
-    map[team.slug] = { P: W + D + L, W, D, L, GF, GA, GD: GF - GA, Pts: W * 3 + D };
+    let W = 0,
+      D = 0,
+      L = 0,
+      GF = 0,
+      GA = 0;
+    allMatches.value
+      .filter((m) => m.homeTeam === team.slug || m.awayTeam === team.slug)
+      .forEach((m) => {
+        const isHome = m.homeTeam === team.slug;
+        const scored = isHome ? m.homeScore : m.awayScore;
+        const conceded = isHome ? m.awayScore : m.homeScore;
+        if (scored > conceded) W++;
+        else if (scored === conceded) D++;
+        else L++;
+        GF += scored;
+        GA += conceded;
+      });
+    map[team.slug] = {
+      P: W + D + L,
+      W,
+      D,
+      L,
+      GF,
+      GA,
+      GD: GF - GA,
+      Pts: W * 3 + D,
+    };
   });
   return map;
 });
@@ -237,22 +374,56 @@ const standingsMap = computed(() => {
 const getTeamPoints = (slug) => standingsMap.value[slug]?.Pts ?? 0;
 
 const topStandings = computed(() =>
-  [...(teams.value ?? [])].map((t) => ({ ...t, ...(standingsMap.value[t.slug] ?? { P: 0, Pts: 0 }) })).sort((a, b) => b.Pts - a.Pts || b.GD - a.GD).slice(0, 4),
+  [...(teams.value ?? [])]
+    .map((t) => ({ ...t, ...(standingsMap.value[t.slug] ?? { P: 0, Pts: 0 }) }))
+    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD)
+    .slice(0, 4),
 );
 
 const quickStats = computed(() => {
   const played = allMatches.value?.length ?? 0;
-  const totalGoals = allMatches.value?.reduce((acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0), 0) ?? 0;
+  const totalGoals =
+    allMatches.value?.reduce(
+      (acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0),
+      0,
+    ) ?? 0;
   const playerMap = {};
-  (allPlayers.value || []).forEach((p) => { playerMap[p.slug] = p.title; });
+  (allPlayers.value || []).forEach((p) => {
+    playerMap[p.slug] = p.title;
+  });
   const scorerMap = {};
-  allMatches.value?.forEach((m) => { m.goalScorers?.forEach((g) => { scorerMap[g.player] = (scorerMap[g.player] ?? 0) + 1; }); });
+  allMatches.value?.forEach((m) => {
+    m.goalScorers?.forEach((g) => {
+      scorerMap[g.player] = (scorerMap[g.player] ?? 0) + 1;
+    });
+  });
   const topScorer = Object.entries(scorerMap).sort((a, b) => b[1] - a[1])[0];
-  const topScorerName = topScorer ? (playerMap[topScorer[0]] || topScorer[0]) : "-";
+  const topScorerName = topScorer
+    ? playerMap[topScorer[0]] || topScorer[0]
+    : "-";
   return [
-    { key: "played", label: "home.stats.played", value: played, icon: "game-icons:soccer-ball", color: "success" },
-    { key: "goals", label: "home.stats.goals", value: totalGoals, icon: "mdi:bullseye-arrow", color: "warning" },
-    { key: "topScorer", label: "home.stats.topScorer", value: topScorer ? topScorer[1] : 0, icon: "mdi:star-outline", color: "primary", description: topScorerName },
+    {
+      key: "played",
+      label: "home.stats.played",
+      value: played,
+      icon: "game-icons:soccer-ball",
+      color: "success",
+    },
+    {
+      key: "goals",
+      label: "home.stats.goals",
+      value: totalGoals,
+      icon: "mdi:bullseye-arrow",
+      color: "warning",
+    },
+    {
+      key: "topScorer",
+      label: "home.stats.topScorer",
+      value: topScorer ? topScorer[1] : 0,
+      icon: "mdi:star-outline",
+      color: "primary",
+      description: topScorerName,
+    },
   ];
 });
 
@@ -260,9 +431,13 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 </script>
 
 <style lang="scss" scoped>
-.page-wrap { padding-bottom: calc(var(--bottom-nav-height) + 24px); }
+.page-wrap {
+  padding-bottom: calc(var(--bottom-nav-height) + 24px);
+}
 
-.container { padding-top: 24px; }
+.container {
+  padding-top: 24px;
+}
 
 .section-header {
   display: flex;
@@ -279,7 +454,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-  .iconify { color: var(--primary); }
+  .iconify {
+    color: var(--primary);
+  }
 }
 
 .section-link {
@@ -290,7 +467,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .section-label {
@@ -309,7 +488,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .hero-card {
   background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 60%, #e8f5e9 100%);
   border-radius: 20px;
-  :root.dark & { background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%); }
+  :root.dark & {
+    background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%);
+  }
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
@@ -322,12 +503,17 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     content: "";
     position: absolute;
     inset: 0;
-    background-image: linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px);
+    background-image:
+      linear-gradient(var(--primary) 1px, transparent 1px),
+      linear-gradient(90deg, var(--primary) 1px, transparent 1px);
     background-size: 40px 40px;
     opacity: 0.04;
   }
 
-  @media (max-width: 480px) { padding: 24px 16px; border-radius: 16px; }
+  @media (max-width: 480px) {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
 }
 
 .hero-badge {
@@ -352,7 +538,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   width: 100%;
   position: relative;
   z-index: 1;
-  @media (max-width: 480px) { gap: 12px; }
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
 }
 
 .hero-team {
@@ -367,8 +555,11 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   width: 64px;
   height: 64px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-  @media (max-width: 480px) { width: 48px; height: 48px; }
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+  @media (max-width: 480px) {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 .hero-logo-initial {
@@ -381,8 +572,12 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-size: 1.6rem;
   font-weight: 800;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  @media (max-width: 480px) { width: 48px; height: 48px; font-size: 1.2rem; }
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  @media (max-width: 480px) {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
 }
 
 .hero-team-name {
@@ -391,8 +586,12 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   color: var(--text-primary);
   text-align: center;
   line-height: 1.2;
-  :root.dark & { color: #fff; }
-  @media (max-width: 480px) { font-size: 0.78rem; }
+  :root.dark & {
+    color: #fff;
+  }
+  @media (max-width: 480px) {
+    font-size: 0.78rem;
+  }
 }
 
 .hero-center {
@@ -409,15 +608,21 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1;
-  :root.dark & { color: #fff; }
-  @media (max-width: 480px) { font-size: 1.4rem; }
+  :root.dark & {
+    color: #fff;
+  }
+  @media (max-width: 480px) {
+    font-size: 1.4rem;
+  }
 }
 
 .hero-date {
   font-size: 0.7rem;
   color: var(--text-muted);
   text-align: center;
-  :root.dark & { color: rgba(255,255,255,0.55); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.55);
+  }
 }
 
 .hero-venue {
@@ -426,7 +631,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   gap: 3px;
   font-size: 0.7rem;
   color: var(--text-muted);
-  :root.dark & { color: rgba(255,255,255,0.4); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.4);
+  }
 }
 
 .hero-btn {
@@ -443,7 +650,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   transition: all 0.15s;
   position: relative;
   z-index: 1;
-  &:hover { background: color-mix(in srgb, var(--primary) 85%, #000); }
+  &:hover {
+    background: color-mix(in srgb, var(--primary) 85%, #000);
+  }
 }
 
 .hero-empty {
@@ -455,8 +664,14 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   align-items: center;
   gap: 12px;
   color: var(--text-muted);
-  :root.dark & { background: linear-gradient(160deg, #0a1a0f, #0d1f14); color: rgba(255,255,255,0.3); }
-  p { margin: 0; font-size: 0.9rem; }
+  :root.dark & {
+    background: linear-gradient(160deg, #0a1a0f, #0d1f14);
+    color: rgba(255, 255, 255, 0.3);
+  }
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
 }
 
 // ── Last Match ─────────────────────────────────────────────
@@ -468,8 +683,12 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   padding: 16px 20px;
   text-decoration: none;
   transition: all 0.15s;
-  &:hover { border-color: var(--primary); }
-  &:active { transform: scale(0.99); }
+  &:hover {
+    border-color: var(--primary);
+  }
+  &:active {
+    transform: scale(0.99);
+  }
 }
 
 .last-teams {
@@ -483,11 +702,30 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: flex;
   align-items: center;
   gap: 8px;
-  &.right { justify-content: flex-end; }
+  &.right {
+    justify-content: flex-end;
+  }
 }
 
-.last-logo { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
-.last-logo-initial { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.last-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.last-logo-initial {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
 
 .last-name {
   font-size: 0.88rem;
@@ -497,7 +735,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 90px;
-  @media (max-width: 480px) { font-size: 0.8rem; max-width: 70px; }
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    max-width: 70px;
+  }
 }
 
 .last-score {
@@ -513,10 +754,16 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   color: var(--text-primary);
   min-width: 22px;
   text-align: center;
-  &.winner { color: var(--primary); }
+  &.winner {
+    color: var(--primary);
+  }
 }
 
-.last-sep { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
+.last-sep {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
 
 .last-meta {
   display: flex;
@@ -526,25 +773,35 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   border-top: 1px solid var(--border-color);
   font-size: 0.72rem;
   color: var(--text-muted);
-  span { display: flex; align-items: center; gap: 4px; }
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
 }
 
 // ── Standings ──────────────────────────────────────────────
-.table-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  overflow: hidden;
-}
 
 .mini-table {
   width: 100%;
   border-collapse: collapse;
   thead tr {
     background: var(--bg-elevated);
-    th { padding: 10px 14px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-align: center; }
-    th:first-child { width: 36px; }
-    th.th-team { text-align: start; }
+    th {
+      padding: 10px 14px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    th:first-child {
+      width: 36px;
+    }
+    th.th-team {
+      text-align: start;
+    }
   }
 }
 
@@ -552,19 +809,33 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   cursor: pointer;
   border-top: 1px solid var(--border-color);
   transition: background 0.1s;
-  &:hover { background: var(--bg-elevated); }
-  td { padding: 10px 14px; text-align: center; }
-  td:nth-child(2) { text-align: start; }
+  &:hover {
+    background: var(--bg-elevated);
+  }
+  td {
+    padding: 10px 14px;
+    text-align: center;
+  }
+  td:nth-child(2) {
+    text-align: start;
+  }
 }
 
 .pos-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px; height: 24px; border-radius: 6px;
-  font-size: 0.78rem; font-weight: 700;
-  background: var(--bg-elevated); color: var(--text-muted);
-  &.pos-top { background: var(--primary-soft); color: var(--primary); }
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  &.pos-top {
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
 }
 
 .team-cell {
@@ -576,10 +847,33 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   color: var(--text-primary);
 }
 
-.mini-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
-.mini-logo-initial { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.6rem; font-weight: 700; color: #fff; flex-shrink: 0; }
-.num-cell { font-size: 0.85rem; color: var(--text-muted); }
-.pts-cell { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+.mini-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.mini-logo-initial {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.num-cell {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.pts-cell {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+}
 
 // ── Teams ──────────────────────────────────────────────────
 .team-card {
@@ -594,13 +888,37 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   text-decoration: none;
   transition: all 0.15s;
   height: 100%;
-  &:hover { border-color: var(--primary); }
-  &:active { transform: scale(0.97); background: var(--bg-elevated); }
+  &:hover {
+    border-color: var(--primary);
+  }
+  &:active {
+    transform: scale(0.97);
+    background: var(--bg-elevated);
+  }
 }
 
-.team-card-logo { width: 44px; height: 44px; object-fit: contain; }
-.team-card-logo-initial { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1rem; font-weight: 800; color: #fff; }
-.team-card-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); text-align: center; }
+.team-card-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.team-card-logo-initial {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+.team-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
 .team-card-pts {
   font-size: 1rem;
   font-weight: 800;
@@ -608,6 +926,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   display: flex;
   align-items: baseline;
   gap: 2px;
-  small { font-size: 0.62rem; font-weight: 500; color: var(--text-muted); }
+  small {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
 }
 </style>
