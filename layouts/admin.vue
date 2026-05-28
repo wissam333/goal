@@ -2,7 +2,7 @@
   <div :class="locale === 'ar' ? 'bodyAR' : 'bodyEN'" class="admin-layout">
     <!-- Top bar -->
     <header class="admin-topbar">
-      <div class="topbar-inner">
+      <div class="topbar-inner container">
         <NuxtLink to="/admin" class="topbar-brand">
           <span class="brand-badge">D</span>
           <span class="brand-title">لوحة التحكم</span>
@@ -84,7 +84,6 @@ const navLinks = [
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 16px;
   gap: 16px;
 }
 .topbar-brand {

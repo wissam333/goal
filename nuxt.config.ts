@@ -80,7 +80,16 @@ export default defineNuxtConfig({
     defaults: { preload: true, display: "swap" },
   },
 
-  routeRules: {},
+  routeRules: {
+    "/": { swr: 60 },
+    "/standings": { swr: 60 },
+    "/fixtures": { swr: 60 },
+    "/bracket": { swr: 60 },
+    "/stats": { swr: 60 },
+    "/teams": { swr: 60 },
+    "/teams/**": { swr: 60 },
+    "/players/**": { swr: 60 },
+  },
 
   i18n: {
     strategy: "no_prefix",
