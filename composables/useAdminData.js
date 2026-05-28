@@ -56,17 +56,9 @@ export const useAdminData = () => {
     if (error) throw error
   }
 
-  const publish = () => {
-    const hookUrl = import.meta.client ? localStorage.getItem("league_vercel_hook") || "" : ""
-    if (!hookUrl) return { error: "لم يتم تعيين رابط النشر (Vercel Deploy Hook)" }
-    return fetch(hookUrl, { method: "POST" })
-      .then(r => r.ok ? { error: null } : { error: "فشل النشر" })
-      .catch(() => ({ error: "فشل الاتصال" }))
-  }
-
   return {
     getTeams, getPlayers, getMatches, getSettings,
     saveTeam, deleteTeam, savePlayer, deletePlayer,
-    saveMatch, deleteMatch, saveSettings, publish,
+    saveMatch, deleteMatch, saveSettings,
   }
 }

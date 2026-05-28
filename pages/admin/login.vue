@@ -9,6 +9,14 @@
 
       <form @submit.prevent="handleLogin" class="login-form">
         <SharedUiFormBaseInput
+          v-model="email"
+          type="email"
+          label="البريد الإلكتروني"
+          placeholder="أدخل البريد الإلكتروني"
+          size="lg"
+          required
+        />
+        <SharedUiFormBaseInput
           v-model="password"
           type="password"
           label="كلمة المرور"
@@ -35,18 +43,21 @@
 definePageMeta({ layout: false })
 
 const auth = useAdminAuth()
+const email = ref("")
 const password = ref("")
 const error = ref("")
 const loading = ref(false)
 
-onMounted(() => {
-  if (auth.checkSession()) navigateTo("/admin")
+onMounted(async () => {
+  if (await auth.checkSession()) navigateTo("/admin")
 })
 
-const handleLogin = () => {
-  if (!password.value) return
+const handleLogin = async () => {
+  if (!email.value || !password.value) return
   error.value = ""
-  const result = auth.login(password.value)
+  loading.value = true
+  const result = await auth.login(email.value, password.value)
+  loading.value = false
   if (result.error) error.value = result.error
   else navigateTo("/admin")
 }

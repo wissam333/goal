@@ -2,7 +2,6 @@
   <div>
     <ElementsLoader></ElementsLoader>
     <VitePwaManifest />
-    <SharedPwaInstallNotice />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

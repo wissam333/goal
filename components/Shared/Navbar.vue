@@ -1,7 +1,7 @@
 <template>
   <header class="navbar" :class="{ scrolled: isScrolled }">
     <div class="navbar-inner">
-      <NuxtLink to="/" class="navbar-brand">
+      <NuxtLink to="/" class="navbar-logo">
         <span class="brand-icon">
           <Icon name="game-icons:soccer-ball" size="24" />
         </span>
@@ -38,7 +38,11 @@
           @click="theme.toggleMode()"
         >
           <Icon
-            :name="theme.isDark.value ? 'mdi:white-balance-sunny' : 'mdi:moon-waning-crescent'"
+            :name="
+              theme.isDark.value
+                ? 'mdi:white-balance-sunny'
+                : 'mdi:moon-waning-crescent'
+            "
             size="18"
           />
         </button>
@@ -68,7 +72,11 @@
 
     <!-- Mobile dropdown menu -->
     <Transition name="mobile-nav">
-      <div v-if="mobileOpen" class="mobile-nav-overlay" @click="mobileOpen = false">
+      <div
+        v-if="mobileOpen"
+        class="mobile-nav-overlay"
+        @click="mobileOpen = false"
+      >
         <div class="mobile-nav" @click.stop>
           <NuxtLink
             v-for="item in navItems"
@@ -175,27 +183,24 @@ onMounted(() => {
     box-shadow: 0 1px 0 var(--border-color);
   }
 
-    @media (max-width: 991.98px) {
-        height: 56px;
-        background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        box-shadow: 0 1px 0 var(--border-color);
-    }
+  @media (max-width: 991.98px) {
+    height: 56px;
+    background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 var(--border-color);
+  }
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   height: 100%;
-  padding: 0 20px;
   gap: 16px;
-  max-width: 1280px;
-  margin: 0 auto;
 }
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
-.navbar-brand {
+.navbar-logo {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -248,7 +253,7 @@ onMounted(() => {
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
   flex: 1;
   justify-content: center;
 
@@ -387,8 +392,7 @@ onMounted(() => {
 // ── Transitions ───────────────────────────────────────────────────────────────
 .mobile-nav-enter-active,
 .mobile-nav-leave-active {
-  transition:
-    opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 .mobile-nav-enter-active .mobile-nav {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);

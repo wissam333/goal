@@ -476,25 +476,17 @@ const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 // ── Data ───────────────────────────────────────────────────────────────────────
-const { data: match, pending, error } = await useAsyncData(
-  `match-${slug.value}`,
-  () => fetchMatch(slug.value)
-);
-
-const { data: teamsData } = await useAsyncData(
-  `match-teams-${slug.value}`,
-  () => fetchTeams()
-);
-
-const { data: playersData } = await useAsyncData(
-  `match-players-${slug.value}`,
-  () => fetchPlayers()
-);
-
-const { data: allMatchesData } = await useAsyncData(
-  `match-allmatches-${slug.value}`,
-  () => fetchMatches({ status: "played" })
-);
+const [
+  { data: match },
+  { data: teamsData },
+  { data: playersData },
+  { data: allMatchesData },
+] = await Promise.all([
+  useAsyncData(`match-${slug.value}`, () => fetchMatch(slug.value)),
+  useAsyncData(`match-teams-${slug.value}`, () => fetchTeams()),
+  useAsyncData(`match-players-${slug.value}`, () => fetchPlayers()),
+  useAsyncData(`match-allmatches-${slug.value}`, () => fetchMatches({ status: "played" })),
+]);
 
 const teams = computed(() => teamsData.value || []);
 const players = computed(() => playersData.value || []);
@@ -924,10 +916,9 @@ useSeoMeta({
 
 .hero-score {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-width: 100px;
+  justify-content: center;
+  gap: 10px;
 }
 
 .score-num {
@@ -938,7 +929,7 @@ useSeoMeta({
 
   &.winner { color: var(--primary); }
 }
-.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; }
+.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; margin-bottom: 6px; }
 
 .score-meta {
   font-size: 0.7rem; color: var(--text-muted);

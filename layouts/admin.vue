@@ -50,8 +50,8 @@ const route = useRoute()
 const theme = useTheme()
 const auth = useAdminAuth()
 
-onMounted(() => {
-  if (!auth.checkSession() && route.path !== '/admin/login') {
+onMounted(async () => {
+  if (!await auth.checkSession() && route.path !== '/admin/login') {
     navigateTo('/admin/login')
   }
 })

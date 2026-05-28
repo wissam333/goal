@@ -191,25 +191,17 @@ const { locale, t } = useI18n();
 const { fetchTeam, fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
-const { data: team, pending: teamPending, error: teamError } = await useAsyncData(
-  `team-${slug.value}`,
-  () => fetchTeam(slug.value)
-);
-
-const { data: playersData, pending: playersPending } = await useAsyncData(
-  `team-players-${slug.value}`,
-  () => fetchPlayers({ team: slug.value })
-);
-
-const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  `team-matches-${slug.value}`,
-  () => fetchMatches()
-);
-
-const { data: teamsData } = await useAsyncData(
-  `all-teams-${slug.value}`,
-  () => fetchTeams()
-);
+const [
+  { data: team, pending: teamPending, error: teamError },
+  { data: playersData, pending: playersPending },
+  { data: matchesData, pending: matchesPending },
+  { data: teamsData },
+] = await Promise.all([
+  useAsyncData(`team-${slug.value}`, () => fetchTeam(slug.value)),
+  useAsyncData(`team-players-${slug.value}`, () => fetchPlayers({ team: slug.value })),
+  useAsyncData(`team-matches-${slug.value}`, () => fetchMatches()),
+  useAsyncData(`all-teams-${slug.value}`, () => fetchTeams()),
+]);
 
 const pending = computed(() => teamPending.value || playersPending.value || matchesPending.value);
 const error = computed(() => teamError.value);

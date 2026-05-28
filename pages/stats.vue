@@ -164,15 +164,15 @@
 const { locale } = useI18n();
 const { fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 
-const { data: playersData, pending: playersPending, error: playersError } = await useAsyncData(
-  'stats-players', () => fetchPlayers()
-);
-const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  'stats-matches', () => fetchMatches({ status: "played" })
-);
-const { data: teamsData } = await useAsyncData(
-  'stats-teams', () => fetchTeams()
-);
+const [
+  { data: playersData, pending: playersPending, error: playersError },
+  { data: matchesData, pending: matchesPending },
+  { data: teamsData },
+] = await Promise.all([
+  useAsyncData('stats-players', () => fetchPlayers()),
+  useAsyncData('stats-matches', () => fetchMatches({ status: "played" })),
+  useAsyncData('stats-teams', () => fetchTeams()),
+]);
 
 const pending = computed(() => playersPending.value || matchesPending.value);
 const error = computed(() => playersError.value);

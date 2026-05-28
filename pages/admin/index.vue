@@ -6,78 +6,46 @@
       :is-rtl="true"
     />
 
-    <!-- Stats -->
-    <SharedUiCardsStats
-      v-if="!loading"
-      :stats="dashboardStats"
-      :columns="4"
-      class="mb-4"
-    />
-
-    <!-- Quick actions -->
-    <div v-if="!loading" class="quick-actions">
-      <NuxtLink
-        v-for="action in quickActions"
-        :key="action.to"
-        :to="action.to"
-        class="qa-card"
-      >
-        <div class="qa-icon" :style="{ background: action.color }">
-          <Icon :name="action.icon" size="24" />
-        </div>
-        <div class="qa-info">
-          <span class="qa-label">{{ action.label }}</span>
-          <span class="qa-count">{{ action.count }}</span>
-        </div>
-      </NuxtLink>
-    </div>
-
-    <!-- Publish -->
-    <div class="publish-section">
-      <h3 class="section-title">نشر التغييرات</h3>
-      <p class="publish-desc">
-        بعد إجراء التعديلات، انقر لنشر التغييرات على الموقع
-      </p>
-      <div class="publish-row">
-        <SharedUiFormBaseInput
-          v-model="hookUrl"
-          placeholder="رابط النشر من Vercel (اختياري)"
-          size="sm"
-          class="hook-input"
-        />
-        <SharedUiButtonBase
-          variant="success"
-          icon-left="mdi:rocket-launch"
-          :loading="publishing"
-          @click="handlePublish"
-        >
-          نشر
-        </SharedUiButtonBase>
+    <!-- Skeleton -->
+    <template v-if="loading">
+      <div class="sk-stats">
+        <div v-for="i in 4" :key="i" class="sk-stat" />
       </div>
-      <span
-        v-if="publishMsg"
-        class="publish-msg"
-        :class="{ error: publishError }"
-        >{{ publishMsg }}</span
-      >
-    </div>
+      <div class="sk-actions">
+        <div v-for="i in 3" :key="i" class="sk-action" />
+      </div>
+    </template>
+
+    <!-- Content -->
+    <template v-else>
+      <SharedUiCardsStats
+        :stats="dashboardStats"
+        :columns="4"
+        class="mb-4"
+      />
+      <div class="quick-actions">
+        <NuxtLink
+          v-for="action in quickActions"
+          :key="action.to"
+          :to="action.to"
+          class="qa-card"
+        >
+          <div class="qa-icon" :style="{ background: action.color }">
+            <Icon :name="action.icon" size="24" />
+          </div>
+          <div class="qa-info">
+            <span class="qa-label">{{ action.label }}</span>
+            <span class="qa-count">{{ action.count }}</span>
+          </div>
+        </NuxtLink>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 definePageMeta({ layout: "admin" });
 const admin = useAdminData();
-
-const DEFAULT_HOOK =
-  "https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/8a433047-4bf7-4965-b57a-f56e91af8d3a";
-const hookUrl = ref(
-  import.meta.client
-    ? localStorage.getItem("league_vercel_hook") || DEFAULT_HOOK
-    : DEFAULT_HOOK,
-);
-const publishing = ref(false);
-const publishMsg = ref("");
-const publishError = ref(false);
 
 const teams = ref([]);
 const players = ref([]);
@@ -148,20 +116,6 @@ const quickActions = computed(() => [
   },
 ]);
 
-const handlePublish = async () => {
-  if (hookUrl.value) localStorage.setItem("league_vercel_hook", hookUrl.value);
-  publishing.value = true;
-  publishMsg.value = "";
-  publishError.value = false;
-  const result = await admin.publish();
-  publishing.value = false;
-  if (result.error) {
-    publishError.value = true;
-    publishMsg.value = result.error;
-  } else {
-    publishMsg.value = "✅ تم بدء النشر بنجاح!";
-  }
-};
 </script>
 
 <style lang="scss" scoped>
@@ -215,39 +169,44 @@ const handlePublish = async () => {
   font-weight: 700;
   color: var(--text-muted);
 }
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 4px;
+
+// ── Skeleton ───────────────────────────────────────────────────────────────────
+.sk-stats,
+.sk-actions {
+  display: grid;
+  gap: 12px;
 }
-.publish-section {
-  background: var(--bg-surface);
+.sk-stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 24px; }
+.sk-actions { grid-template-columns: repeat(2, 1fr); margin-bottom: 28px; }
+.sk-stat,
+.sk-action {
+  background: var(--bg-elevated);
   border-radius: 14px;
-  padding: 20px;
-  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
 }
-.publish-desc {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin: 0 0 14px;
+.sk-stat { height: 100px; }
+.sk-action { height: 84px; }
+.sk-stat::after,
+.sk-action::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0,
+    rgba(255 255 255 / 0.08) 20%,
+    rgba(255 255 255 / 0.15) 60%,
+    transparent
+  );
+  animation: sk-shimmer 1.8s infinite;
 }
-.publish-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+@keyframes sk-shimmer {
+  100% { transform: translateX(100%); }
 }
-.hook-input {
-  flex: 1;
-}
-.publish-msg {
-  display: block;
-  margin-top: 10px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--primary);
-  &.error {
-    color: #ef4444;
-  }
+@media (max-width: 480px) {
+  .sk-stats { grid-template-columns: repeat(2, 1fr); }
+  .sk-actions { grid-template-columns: 1fr; }
 }
 </style>

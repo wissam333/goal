@@ -252,15 +252,13 @@ const tabs = computed(() => [
   { value: "knockout", label: "bracket.knockout", icon: "mdi:trophy-outline" },
 ]);
 
-const { data: teamsData, pending: teamsPending } = await useAsyncData(
-  "bracket-teams",
-  () => fetchTeams(),
-);
-const {
-  data: matchesData,
-  pending: matchesPending,
-  error,
-} = await useAsyncData("bracket-matches", () => fetchMatches());
+const [
+  { data: teamsData, pending: teamsPending },
+  { data: matchesData, pending: matchesPending, error },
+] = await Promise.all([
+  useAsyncData("bracket-teams", () => fetchTeams()),
+  useAsyncData("bracket-matches", () => fetchMatches()),
+]);
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const teams = computed(() => teamsData.value || []);

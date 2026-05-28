@@ -115,17 +115,15 @@ import { ar, enUS } from "date-fns/locale";
 const { locale, t } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
 
-const {
-  data: matchesData,
-  pending,
-  error,
-} = await useAsyncData("fixtures-matches", () =>
-  fetchMatches({ orderBy: { field: "date", dir: "asc" } }),
-);
-
-const { data: teamsData } = await useAsyncData("fixtures-teams", () =>
-  fetchTeams(),
-);
+const [
+  { data: matchesData, pending, error },
+  { data: teamsData },
+] = await Promise.all([
+  useAsyncData("fixtures-matches", () =>
+    fetchMatches({ orderBy: { field: "date", dir: "asc" } }),
+  ),
+  useAsyncData("fixtures-teams", () => fetchTeams()),
+]);
 
 const matches = computed(() => matchesData.value || []);
 const teams = computed(() => teamsData.value || []);
@@ -139,7 +137,6 @@ const teamMap = computed(() => {
   return m;
 });
 const getTeamName = (slug) => teamMap.value[slug]?.title || slug;
-const getTeamLogo = (slug) => teamMap.value[slug]?.logo || null;
 
 // Filter
 const activeFilter = ref("all");

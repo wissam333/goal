@@ -176,8 +176,8 @@ onBeforeUnmount(() => clear);
   }
 
   .logo-pulse {
-    width: 72px;
-    height: 72px;
+    width: 100px;
+    height: 100px;
     color: var(--primary);
 
     @media (max-width: 991px) {
@@ -195,7 +195,6 @@ onBeforeUnmount(() => clear);
     .progress-container {
       width: 300px;
     }
-
   }
 }
 .progress-container {
@@ -213,7 +212,11 @@ onBeforeUnmount(() => clear);
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 70%, #000) 100%);
+      background: linear-gradient(
+        90deg,
+        var(--primary) 0%,
+        color-mix(in srgb, var(--primary) 70%, #000) 100%
+      );
       border-radius: 4px;
       transition: width 0.3s ease;
       box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 0.3, transparent);

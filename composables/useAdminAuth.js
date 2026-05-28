@@ -1,31 +1,31 @@
-const ADMIN_KEY = "league-admin-auth"
-const ADMIN_PASSWORD = "admin123"
-
 export const useAdminAuth = () => {
   const isLoggedIn = useState("adminLoggedIn", () => false)
 
-  const checkSession = () => {
+  const checkSession = async () => {
     if (!import.meta.client) return false
-    const session = localStorage.getItem(ADMIN_KEY)
-    if (session === "true") {
+    const supabase = useSupabase()
+    if (!supabase) return false
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
       isLoggedIn.value = true
       return true
     }
     return false
   }
 
-  const login = (password) => {
-    if (password !== ADMIN_PASSWORD) {
-      return { error: "كلمة المرور غير صحيحة" }
-    }
+  const login = async (email, password) => {
+    const supabase = useSupabase()
+    if (!supabase) return { error: "خطأ في الاتصال" }
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة" }
     isLoggedIn.value = true
-    if (import.meta.client) localStorage.setItem(ADMIN_KEY, "true")
     return { error: null }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    const supabase = useSupabase()
+    if (supabase) await supabase.auth.signOut()
     isLoggedIn.value = false
-    if (import.meta.client) localStorage.removeItem(ADMIN_KEY)
     navigateTo("/admin/login")
   }
 

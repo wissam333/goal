@@ -164,38 +164,23 @@ import { ar, enUS } from 'date-fns/locale';
 
 const route = useRoute();
 const { locale, t } = useI18n();
-const { fetchPlayer, fetchMatches, fetchTeams, fetchPlayers } = useLeagueData();
+const { fetchPlayer, fetchMatches, fetchTeams } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
-const { data: player, pending: playerPending, error: playerError } = await useAsyncData(
-  `player-${slug.value}`,
-  () => fetchPlayer(slug.value)
-);
-
-const { data: matchesData, pending: matchesPending } = await useAsyncData(
-  `player-matches-${slug.value}`,
-  () => fetchMatches({ status: "played" })
-);
-
-const { data: allMatchesData } = await useAsyncData(
-  `player-all-matches-${slug.value}`,
-  () => fetchMatches()
-);
-
-const { data: teamsData } = await useAsyncData(
-  `player-teams-${slug.value}`,
-  () => fetchTeams()
-);
-
-const { data: playersData } = await useAsyncData(
-  `player-all-players-${slug.value}`,
-  () => fetchPlayers()
-);
+const [
+  { data: player, pending: playerPending, error: playerError },
+  { data: matchesData, pending: matchesPending },
+  { data: teamsData },
+] = await Promise.all([
+  useAsyncData(`player-${slug.value}`, () => fetchPlayer(slug.value)),
+  useAsyncData(`player-matches-${slug.value}`, () => fetchMatches()),
+  useAsyncData(`player-teams-${slug.value}`, () => fetchTeams()),
+]);
 
 const pending = computed(() => playerPending.value || matchesPending.value);
 const error = computed(() => playerError.value);
-const playedMatches_data = computed(() => matchesData.value || []);
-const allMatches = computed(() => allMatchesData.value || []);
+const allMatches = computed(() => matchesData.value || []);
+const playedMatches_data = computed(() => allMatches.value.filter(m => m.status === "played"));
 const teams = computed(() => teamsData.value || []);
 
 // Team info

@@ -95,21 +95,6 @@
       </div>
     </div>
 
-    <div class="settings-card">
-      <h3 class="form-section-title">النشر التلقائي</h3>
-      <p class="form-desc">عند ضبط رابط النشر، يمكنك النشر من الصفحة الرئيسية للوحة التحكم</p>
-      <SharedUiFormBaseInput
-        v-model="hookUrl"
-        label="رابط نشر Vercel"
-        placeholder="https://api.vercel.com/v1/integrations/deploy/..."
-        hint="اختياري — يستخدم لنشر التغييرات على الموقع"
-      />
-      <div class="form-actions">
-        <SharedUiButtonBase variant="outline" @click="saveHookUrl">
-          حفظ الرابط
-        </SharedUiButtonBase>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -118,9 +103,6 @@ definePageMeta({ layout: 'admin' })
 
 const admin = useAdminData()
 const alert = reactive({ show: false, type: 'success', text: '' })
-
-const DEFAULT_HOOK = "https://api.vercel.com/v1/integrations/deploy/prj_v2as9FW28UNLGCKsm3jKRhllC7H8/4RsaK5dU22"
-const hookUrl = ref(import.meta.client ? localStorage.getItem("league_vercel_hook") || DEFAULT_HOOK : DEFAULT_HOOK)
 
 const form = reactive({
   name: "",
@@ -202,12 +184,6 @@ const handleSaveAd = async () => {
   alert.text = "✅ تم حفظ الإعلان"
 }
 
-const saveHookUrl = () => {
-  if (import.meta.client) localStorage.setItem("league_vercel_hook", hookUrl.value)
-  alert.show = true
-  alert.type = "success"
-  alert.text = "✅ تم حفظ رابط النشر"
-}
 </script>
 
 <style lang="scss" scoped>
@@ -230,7 +206,7 @@ const saveHookUrl = () => {
 .form-desc {
   font-size: 0.82rem;
   color: var(--text-muted);
-  margin: -8px 0 0;
+  margin: 4px 0 0;
 }
 .form-actions {
   display: flex;

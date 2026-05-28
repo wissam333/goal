@@ -80,13 +80,7 @@ export default defineNuxtConfig({
     defaults: { preload: true, display: "swap" },
   },
 
-  routeRules: {
-    "/": { prerender: true },
-    "/standings": { prerender: true },
-    "/fixtures": { prerender: true },
-    "/bracket": { prerender: true },
-    "/stats": { prerender: true },
-  },
+  routeRules: {},
 
   i18n: {
     strategy: "no_prefix",
