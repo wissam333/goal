@@ -1,6 +1,6 @@
 <template>
   <header class="navbar" :class="{ scrolled: isScrolled }">
-    <div class="navbar-inner">
+    <div class="navbar-inner container">
       <NuxtLink to="/" class="navbar-logo">
         <span class="brand-icon">
           <Icon name="game-icons:soccer-ball" size="24" />
