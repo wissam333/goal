@@ -180,9 +180,6 @@
             <span class="stat-badge" title="الأهداف">
               <Icon name="mdi:soccer" size="14" /> {{ p.goals || 0 }}
             </span>
-            <span class="stat-badge" title="التمريرات">
-              <Icon name="mdi:shoe-cleat" size="14" /> {{ p.assists || 0 }}
-            </span>
           </div>
           <div class="player-item-actions">
             <button class="player-action-btn edit" title="تعديل" @click="openPlayerEdit(p)">
@@ -236,12 +233,6 @@
         <SharedUiFormBaseInput
           v-model="playerForm.goals"
           label="الأهداف"
-          type="number"
-          placeholder="0"
-        />
-        <SharedUiFormBaseInput
-          v-model="playerForm.assists"
-          label="التمريرات الحاسمة"
           type="number"
           placeholder="0"
         />
@@ -360,7 +351,6 @@ const playerForm = reactive({
   number: null,
   position: '',
   goals: 0,
-  assists: 0,
   appearances: 0,
   photo: null,
 })
@@ -372,7 +362,6 @@ const playerDefaultForm = (teamSlug) => ({
   number: null,
   position: '',
   goals: 0,
-  assists: 0,
   appearances: 0,
   photo: null,
 })
@@ -414,7 +403,6 @@ const openPlayerEdit = (player) => {
     number: player.number,
     position: player.position,
     goals: player.goals,
-    assists: player.assists,
     appearances: player.appearances,
     photo: player.photo,
   })
@@ -432,7 +420,6 @@ const handlePlayerSave = async () => {
     number: playerForm.number ? Number(playerForm.number) : null,
     position: playerForm.position,
     goals: Number(playerForm.goals) || 0,
-    assists: Number(playerForm.assists) || 0,
     appearances: Number(playerForm.appearances) || 0,
     photo: playerForm.photo,
   }

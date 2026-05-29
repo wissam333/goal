@@ -90,10 +90,6 @@
                 <Icon name="mdi:soccer" size="12" />
                 {{ player.goals || 0 }}
               </span>
-              <span class="pstat">
-                <Icon name="mdi:shoe-sneaker" size="12" />
-                {{ player.assists || 0 }}
-              </span>
             </div>
           </div>
         </div>
