@@ -180,7 +180,8 @@
 
 <script setup>
 import { format, parseISO } from 'date-fns';
-import { ar, enUS } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
+import { syrianAr } from '~/utils/syrianAr';
 
 const route = useRoute();
 const { locale, t } = useI18n();
@@ -279,7 +280,7 @@ const getResult = (match) => {
 };
 
 // Date formatting
-const dateFnsLocale = computed(() => locale.value === 'ar' ? ar : enUS);
+const dateFnsLocale = computed(() => locale.value === 'ar' ? syrianAr : enUS);
 const formatShortDate = (d) => {
   try { return format(parseISO(d), 'd MMM', { locale: dateFnsLocale.value }); }
   catch { return d; }

@@ -110,7 +110,8 @@
 
 <script setup>
 import { format, parseISO } from "date-fns";
-import { ar, enUS } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
+import { syrianAr } from "~/utils/syrianAr";
 
 const { locale, t } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
@@ -200,16 +201,16 @@ const knockoutStage = computed(() => {
 });
 
 // Date formatting
-const dateFnsLocale = computed(() => (locale.value === "ar" ? ar : enUS));
+const dateFnsLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return "";
   try {
     return format(parseISO(dateStr), "EEE, d MMM", {
-      locale: dateFnsLocale.value,
+      locale: syrianAr,
     });
   } catch {
-    return dateStr;
+    return "";
   }
 };
 

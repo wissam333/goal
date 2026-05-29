@@ -8,6 +8,9 @@
     <ClientOnly>
       <SharedUiFeedbackToast position="center" :duration="6000" />
     </ClientOnly>
+    <ClientOnly>
+      <SharedPwaInstallNotice />
+    </ClientOnly>
   </div>
 </template>
 

@@ -14,16 +14,20 @@
     <div
       v-else
       class="upload-zone"
-      :class="{ dragover: dragging }"
-      @click="openPicker"
+      :class="{ dragover: dragging, uploading }"
+      @click="!uploading && openPicker()"
       @dragenter.prevent="dragging = true"
       @dragover.prevent="dragging = true"
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
     >
-      <Icon name="mdi:camera-plus-outline" size="28" />
-      <span class="zone-text">{{ hint || 'اختر صورة' }}</span>
-      <span class="zone-sub">أو اسحب وأفلت</span>
+      <Icon v-if="!uploading" name="mdi:camera-plus-outline" size="28" />
+      <span v-if="!uploading" class="zone-text">{{ hint || 'اختر صورة' }}</span>
+      <span v-if="!uploading" class="zone-sub">أو اسحب وأفلت</span>
+      <span v-else class="zone-uploading">
+        <Icon name="mdi:loading" size="20" class="spin" />
+        جاري الرفع...
+      </span>
       <input ref="fileInput" type="file" accept="image/*" class="file-input" @change="onFileChange" />
     </div>
   </div>
@@ -36,13 +40,15 @@ const props = defineProps({
   hint: { type: String, default: "" },
   maxWidth: { type: Number, default: 800 },
   maxSizeMB: { type: Number, default: 0.5 },
+  upload: { type: Function, default: null },
 })
 
 const emit = defineEmits(["update:modelValue"])
 
 const dragging = ref(false)
+const uploading = ref(false)
 const fileInput = ref(null)
-const { compressAndEncode } = useImageCompression()
+const { compressImage, blobToBase64 } = useImageCompression()
 
 const openPicker = () => fileInput.value?.click()
 
@@ -61,13 +67,22 @@ const onFileChange = async (e) => {
 const handleFile = async (file) => {
   if (!file || !file.type.startsWith("image/")) return
   try {
-    const base64 = await compressAndEncode(file, {
+    uploading.value = true
+    const blob = await compressImage(file, {
       maxSizeMB: props.maxSizeMB,
       maxWidthOrHeight: props.maxWidth,
     })
-    emit("update:modelValue", base64)
-  } catch {
-    console.error("Image compression failed")
+    const base64 = await blobToBase64(blob)
+    if (props.upload) {
+      const url = await props.upload(blob, base64)
+      emit("update:modelValue", url)
+    } else {
+      emit("update:modelValue", base64)
+    }
+  } catch (e) {
+    console.error("Image processing failed", e)
+  } finally {
+    uploading.value = false
   }
 }
 </script>
@@ -127,6 +142,19 @@ const handleFile = async (file) => {
 }
 .zone-text { font-size: 0.75rem; font-weight: 600; }
 .zone-sub { font-size: 0.65rem; }
+.upload-zone.uploading {
+  cursor: default;
+  opacity: 0.6;
+}
+.zone-uploading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .file-input {
   position: absolute;
   inset: 0;

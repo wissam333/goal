@@ -121,7 +121,7 @@
           </template>
         </div>
 
-        <div v-if="form.date && isPastMatch(form.date) && goalScorers.length" class="goal-scorers-section">
+          <div v-if="form.date && isPastMatch(form.date) && goalScorers.length" class="goal-scorers-section">
           <div class="goal-scorers-header">
             <span class="goal-title">مسجلو الأهداف</span>
             <span class="goal-hint">اختياري</span>
@@ -145,6 +145,45 @@
               <Icon name="mdi:close" size="14" />
             </button>
           </div>
+        </div>
+
+        <div v-if="form.date && isPastMatch(form.date)" class="goal-scorers-section">
+          <div class="goal-scorers-header">
+            <span class="goal-title">البطاقات</span>
+            <span class="goal-hint">اختياري</span>
+          </div>
+          <div v-for="(c, i) in cards" :key="i" class="goal-scorer-row">
+            <SharedUiFormBaseSelect
+              v-model="c.player"
+              :options="goalScorerPlayerOptions"
+              placeholder="اللاعب"
+              searchable
+              size="sm"
+              @change="(val) => { const p = players.find(p2 => p2.slug === val); if (p) c.team = p.team }"
+            />
+            <SharedUiFormBaseSelect
+              v-model="c.type"
+              :options="cardTypeOptions"
+              placeholder="النوع"
+              size="sm"
+              style="width:100px;flex-shrink:0"
+            />
+            <div style="width:90px;flex-shrink:0">
+              <SharedUiFormBaseInput
+                v-model="c.minute"
+                type="number"
+                placeholder="دقيقة"
+                size="sm"
+              />
+            </div>
+            <button class="goal-remove" type="button" @click="removeCard(i)" title="إزالة">
+              <Icon name="mdi:close" size="14" />
+            </button>
+          </div>
+          <button class="card-add-btn" type="button" @click="addCard">
+            <Icon name="mdi:plus" size="14" />
+            إضافة بطاقة
+          </button>
         </div>
       </form>
 
@@ -283,6 +322,20 @@ onMounted(() => {
 })
 
 const goalScorers = ref([])
+const cards = ref([])
+
+const cardTypeOptions = [
+  { label: 'صفراء', value: 'yellow' },
+  { label: 'حمراء', value: 'red' },
+]
+
+const addCard = () => {
+  cards.value.push({ player: '', team: '', type: 'yellow', minute: '' })
+}
+
+const removeCard = (index) => {
+  cards.value.splice(index, 1)
+}
 
 const loadVotes = async (matchSlug) => {
   if (!matchSlug) return
@@ -603,6 +656,7 @@ const resetForm = () => {
   editingMatch.value = null
   votesData.value = []
   goalScorers.value = []
+  cards.value = []
 }
 
 const openAddModal = () => {
@@ -630,6 +684,11 @@ const openEditModal = (match) => {
     goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers))
   } else {
     goalScorers.value = []
+  }
+  if (match.cards?.length) {
+    cards.value = JSON.parse(JSON.stringify(match.cards))
+  } else {
+    cards.value = []
   }
   loadVotes(match.slug)
   modalOpen.value = true
@@ -679,6 +738,16 @@ const handleSave = async () => {
       minute: g.minute ? Number(g.minute) : null,
     }))
   }
+
+  // Save cards
+  matchObj.cards = cards.value
+    .filter(c => c.player)
+    .map(c => ({
+      player: c.player,
+      team: c.team,
+      type: c.type,
+      minute: c.minute ? Number(c.minute) : null,
+    }))
 
   try {
     await admin.saveMatch(matchObj)
@@ -930,5 +999,24 @@ const handleDelete = async (match) => {
   background: rgba(239,68,68,0.1);
   color: #ef4444;
   border-color: #ef4444;
+}
+
+.card-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.15s;
+}
+.card-add-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 </style>

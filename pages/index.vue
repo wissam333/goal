@@ -289,11 +289,12 @@
 
 <script setup>
 import { format, parseISO } from "date-fns";
-import { ar, enUS } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
+import { syrianAr } from "~/utils/syrianAr";
 
 const { locale } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
-const dateLocale = computed(() => (locale.value === "ar" ? ar : enUS));
+const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const [
   { data: nextMatch, pending: nextPending },
@@ -334,17 +335,23 @@ const getTeamColor = (slug) => teamMap.value[slug]?.color || "#22c55e";
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
-  return format(new Date(dateStr), "HH:mm");
+  try {
+    return format(parseISO(dateStr), "h:mm a", { locale: dateLocale.value });
+  } catch { return "--:--"; }
 };
 
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return "";
-  return format(new Date(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
+  try {
+    return format(parseISO(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
+  } catch { return ""; }
 };
 
 const formatShortDate = (dateStr) => {
   if (!dateStr) return "";
-  return format(new Date(dateStr), "d MMM", { locale: dateLocale.value });
+  try {
+    return format(parseISO(dateStr), "d MMM", { locale: dateLocale.value });
+  } catch { return ""; }
 };
 
 const standingsMap = computed(() => {

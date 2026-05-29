@@ -56,6 +56,18 @@ export const useAdminData = () => {
     if (error) throw error
   }
 
+  const uploadToStorage = async (blob, bucket, fileName) => {
+    const ext = blob.type?.includes("png") ? "png" : "webp"
+    const path = `${fileName}.${ext}`
+    const { error } = await supabase.storage.from(bucket).upload(path, blob, {
+      contentType: blob.type,
+      upsert: true,
+    })
+    if (error) throw error
+    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path)
+    return `${publicUrl}?t=${Date.now()}`
+  }
+
   const uploadPhoto = async (blob, matchSlug) => {
     const ext = blob.type?.includes("png") ? "png" : "webp"
     const path = `${matchSlug}/${Date.now()}.${ext}`
@@ -81,6 +93,6 @@ export const useAdminData = () => {
     getTeams, getPlayers, getMatches, getSettings,
     saveTeam, deleteTeam, savePlayer, deletePlayer,
     saveMatch, deleteMatch, saveSettings,
-    uploadPhoto, deletePhoto,
+    uploadToStorage, uploadPhoto, deletePhoto,
   }
 }

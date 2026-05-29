@@ -111,7 +111,8 @@
     "noPhotos": "No photos available",
     "h2h": "Head to Head",
     "venue": "Venue",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "cards": "Cards"
   },
 
   "home": {
@@ -176,8 +177,9 @@
 
   "player": {
     "goals": "Goals",
-    "assists": "Assists",
     "appearances": "Apps",
+    "yellows": "Yellow",
+    "reds": "Red",
     "motmWins": "MOTM",
     "seasonProgress": "Season Progress",
     "matchHistory": "Match History",

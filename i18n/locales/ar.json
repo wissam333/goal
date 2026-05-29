@@ -111,7 +111,8 @@
     "noPhotos": "لا توجد صور متاحة",
     "h2h": "المواجهات المباشرة",
     "venue": "الملعب",
-    "viewDetails": "عرض التفاصيل"
+    "viewDetails": "عرض التفاصيل",
+    "cards": "البطاقات"
   },
 
   "home": {
@@ -176,8 +177,9 @@
 
   "player": {
     "goals": "أهداف",
-    "assists": "تمريرات حاسمة",
     "appearances": "مباريات",
+    "yellows": "صفراء",
+    "reds": "حمراء",
     "motmWins": "أفضل لاعب",
     "seasonProgress": "تقدم الموسم",
     "matchHistory": "تاريخ المباريات",

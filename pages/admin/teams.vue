@@ -67,7 +67,11 @@
       max-width="520px"
     >
       <div class="form-grid">
-        <AdminImageUpload v-model="form.logo" label="شعار الفريق" />
+        <AdminImageUpload
+          v-model="form.logo"
+          label="شعار الفريق"
+          :upload="uploadTeamLogo"
+        />
         <SharedUiFormBaseInput
           v-model="form.title"
           label="الاسم"
@@ -205,7 +209,11 @@
       max-width="520px"
     >
       <div class="form-grid">
-        <AdminImageUpload v-model="playerForm.photo" label="صورة اللاعب" />
+        <AdminImageUpload
+          v-model="playerForm.photo"
+          label="صورة اللاعب"
+          :upload="uploadPlayerPhoto"
+        />
         <SharedUiFormBaseInput
           v-model="playerForm.title"
           label="الاسم"
@@ -463,6 +471,16 @@ const showAlert = (type, text) => {
   alert.text = text
   alert.visible = false
   nextTick(() => { alert.visible = true })
+}
+
+const uploadTeamLogo = async (blob) => {
+  const name = form.slug || generateSlug(form.title)
+  return await admin.uploadToStorage(blob, 'team-logos', name)
+}
+
+const uploadPlayerPhoto = async (blob) => {
+  const name = playerForm.editingSlug || makeSlug(playerForm.title)
+  return await admin.uploadToStorage(blob, 'player-photos', name)
 }
 
 const loadData = async () => {

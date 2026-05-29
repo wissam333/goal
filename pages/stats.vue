@@ -135,7 +135,91 @@
         />
       </div>
 
-      <!-- ④ Season Photo Album -->
+      <!-- ④ Card Leaders -->
+      <template v-if="cardLeaders.yellows.length || cardLeaders.reds.length">
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <Icon name="mdi:card-bulleted-outline" size="20" />
+              البطاقات
+            </h2>
+          </div>
+          <div class="card-leader-grid">
+            <div v-if="cardLeaders.yellows.length" class="card-leader-col">
+              <h4 class="card-leader-title">
+                <Icon name="mdi:square-rounded-outline" size="16" class="card-yellow-icon" />
+                الأكثر صفراء
+              </h4>
+              <div class="rank-list compact">
+                <div
+                  v-for="(p, i) in cardLeaders.yellows"
+                  :key="'y-'+p.slug"
+                  class="rank-row"
+                  @click="navigateTo(`/players/${p.slug}`)"
+                >
+                  <div class="rank-pos">
+                    <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
+                      <Icon :name="['mdi:medal','mdi:medal','mdi:medal'][i]" size="14" />
+                    </span>
+                    <span v-else class="rank-num">{{ i + 1 }}</span>
+                  </div>
+                  <div class="rank-avatar small">
+                    <img v-if="p.photo" :src="p.photo" :alt="p.title" width="32" height="32" loading="lazy" @error="onImgError" />
+                    <span v-else class="rank-initial">{{ p.title?.charAt(0) }}</span>
+                  </div>
+                  <div class="rank-info">
+                    <span class="rank-name">{{ p.title }}</span>
+                    <span class="rank-team">{{ getTeamName(p.team) }}</span>
+                  </div>
+                  <div class="rank-stat">
+                    <span class="rank-value">{{ p.count }}</span>
+                    <span class="rank-label">
+                      <Icon name="mdi:square-rounded-outline" size="12" class="card-yellow-icon" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="cardLeaders.reds.length" class="card-leader-col">
+              <h4 class="card-leader-title">
+                <Icon name="mdi:square-rounded" size="16" class="card-red-icon" />
+                الأكثر حمراء
+              </h4>
+              <div class="rank-list compact">
+                <div
+                  v-for="(p, i) in cardLeaders.reds"
+                  :key="'r-'+p.slug"
+                  class="rank-row"
+                  @click="navigateTo(`/players/${p.slug}`)"
+                >
+                  <div class="rank-pos">
+                    <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
+                      <Icon :name="['mdi:medal','mdi:medal','mdi:medal'][i]" size="14" />
+                    </span>
+                    <span v-else class="rank-num">{{ i + 1 }}</span>
+                  </div>
+                  <div class="rank-avatar small">
+                    <img v-if="p.photo" :src="p.photo" :alt="p.title" width="32" height="32" loading="lazy" @error="onImgError" />
+                    <span v-else class="rank-initial">{{ p.title?.charAt(0) }}</span>
+                  </div>
+                  <div class="rank-info">
+                    <span class="rank-name">{{ p.title }}</span>
+                    <span class="rank-team">{{ getTeamName(p.team) }}</span>
+                  </div>
+                  <div class="rank-stat">
+                    <span class="rank-value">{{ p.count }}</span>
+                    <span class="rank-label">
+                      <Icon name="mdi:square-rounded" size="12" class="card-red-icon" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ⑤ Season Photo Album -->
       <div class="section">
         <div class="section-header">
           <h2 class="section-title">
@@ -210,6 +294,30 @@ const motmLeaders = computed(() => {
     .sort((a, b) => b.motmWins - a.motmWins)
     .slice(0, 5);
 });
+
+// ── Card Leaders ───────────────────────────────────────────────────────────────
+const cardLeaders = computed(() => {
+  const yellowCount = {}
+  const redCount = {}
+  matches.value.forEach(m => {
+    for (const c of (m.cards || [])) {
+      if (c.type === 'red') redCount[c.player] = (redCount[c.player] || 0) + 1
+      else yellowCount[c.player] = (yellowCount[c.player] || 0) + 1
+    }
+  })
+  return {
+    yellows: players.value
+      .map(p => ({ ...p, count: yellowCount[p.slug] || 0 }))
+      .filter(p => p.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5),
+    reds: players.value
+      .map(p => ({ ...p, count: redCount[p.slug] || 0 }))
+      .filter(p => p.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5),
+  }
+})
 
 // ── Match Stats ────────────────────────────────────────────────────────────────
 const totalGoals = computed(() =>
@@ -435,7 +543,31 @@ useSeoMeta({
   padding: 16px;
 }
 
+// ── Card Leaders ──────────────────────────────────────────────────────────────
+.card-leader-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.card-leader-col {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 14px;
+}
+.card-leader-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--text-primary);
+}
+.card-yellow-icon { color: #eab308; }
+.card-red-icon { color: #ef4444; }
 @media (max-width: 576px) {
   .section { margin-bottom: 20px; }
+  .card-leader-grid { grid-template-columns: 1fr; }
 }
 </style>

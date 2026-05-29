@@ -3,6 +3,8 @@ const parseJsonFields = (match) => {
     match.goalScorers = JSON.parse(match.goalScorers);
   if (typeof match.photos === "string")
     match.photos = JSON.parse(match.photos);
+  if (typeof match.cards === "string")
+    match.cards = JSON.parse(match.cards);
   return match;
 };
 
@@ -13,16 +15,16 @@ export const useLeagueData = () => {
     if (!supabase) return null;
     let q = supabase.from(table).select(query.select || "*");
     if (query.eq) for (const [k, v] of Object.entries(query.eq)) q = q.eq(k, v);
+    if (query.in)
+      for (const { column, values } of query.in) q = q.in(column, values);
+    if (query.or)
+      for (const condition of query.or) q = q.or(condition);
     if (query.order)
       q = q.order(
         query.order.field,
         query.order.dir ? { ascending: query.order.dir === "asc" } : {},
       );
     if (query.limit) q = q.limit(query.limit);
-    if (query.in)
-      for (const { column, values } of query.in) q = q.in(column, values);
-    if (query.or)
-      for (const condition of query.or) q = q.or(condition);
     const { data } = await q;
     return data;
   };

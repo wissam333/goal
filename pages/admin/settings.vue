@@ -7,14 +7,41 @@
     />
 
     <SharedUiFeedbackAlert
-      v-if="alert.show"
+      v-model="alert.show"
       :type="alert.type"
+      :title="alert.title"
       :message="alert.text"
       dismissible
       :duration="3000"
-      @update:model-value="alert.show = false"
     />
 
+    <template v-if="loading">
+      <div class="settings-card">
+        <div class="sk-title" />
+        <div class="sk-input" />
+        <div class="sk-input" />
+        <div class="sk-actions" />
+      </div>
+      <div class="settings-card">
+        <div class="sk-title" />
+        <div class="sk-desc" />
+        <div class="sk-tags">
+          <div class="sk-tag" />
+          <div class="sk-tag" />
+        </div>
+        <div class="sk-actions" />
+      </div>
+      <div class="settings-card">
+        <div class="sk-title" />
+        <div class="sk-desc" />
+        <div class="sk-input" />
+        <div class="sk-input" />
+        <div class="sk-input" />
+        <div class="sk-actions" />
+      </div>
+    </template>
+
+    <template v-else>
     <div class="settings-card">
       <h3 class="form-section-title">إعدادات الدوري</h3>
 
@@ -68,32 +95,60 @@
 
     <div class="settings-card">
       <h3 class="form-section-title">الإعلان / البانر</h3>
-      <p class="form-desc">سيظهر الإعلان في أعلى جميع صفحات الموقع. اترك الصورة فارغة لإخفاء الإعلان</p>
+      <p class="form-desc">سيظهر الإعلان في أعلى جميع صفحات الموقع. اترك الحقول فارغة لإخفاء الإعلان</p>
 
-      <AdminImageUpload v-model="adForm.image" label="صورة الإعلان" />
-      <SharedUiFormBaseInput
-        v-model="adForm.title"
-        label="عنوان الإعلان"
-        placeholder="راعي البطولة"
-      />
-      <SharedUiFormBaseInput
-        v-model="adForm.description"
-        label="وصف الإعلان"
-        placeholder="شركة ABC"
-      />
-      <SharedUiFormBaseInput
-        v-model="adForm.link"
-        label="رابط الإعلان (اختياري)"
-        placeholder="https://example.com"
-        hint="عند الضغط على الإعلان يذهب المستخدم لهذا الرابط"
-      />
+      <div class="ad-layout">
+        <div class="ad-form-fields">
+          <AdminImageUpload
+            v-model="adForm.image"
+            label="صورة الإعلان"
+            :upload="(blob) => admin.uploadToStorage(blob, 'ads', 'ad-banner')"
+          />
+          <SharedUiFormBaseInput
+            v-model="adForm.title"
+            label="عنوان الإعلان"
+            placeholder="راعي البطولة"
+          />
+          <SharedUiFormBaseInput
+            v-model="adForm.description"
+            label="وصف الإعلان"
+            placeholder="شركة ABC"
+          />
+          <SharedUiFormBaseInput
+            v-model="adForm.link"
+            label="رابط الإعلان (اختياري)"
+            placeholder="https://example.com"
+            hint="عند الضغط على الإعلان يذهب المستخدم لهذا الرابط"
+          />
+        </div>
+
+        <div class="ad-preview-box">
+          <h4 class="preview-label">معاينة</h4>
+          <div class="ad-preview">
+            <div v-if="adForm.image" class="preview-img-wrap">
+              <img :src="adForm.image" alt="إعلان" class="preview-img" />
+            </div>
+            <div class="preview-texts">
+              <span v-if="adForm.title" class="preview-title">{{ adForm.title }}</span>
+              <span v-if="adForm.description" class="preview-desc">{{ adForm.description }}</span>
+              <span v-if="!adForm.image && !adForm.title && !adForm.description" class="preview-empty">سيظهر الإعلان هنا</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="form-actions">
-        <SharedUiButtonBase variant="primary" @click="handleSaveAd">
+        <SharedUiButtonBase
+          variant="primary"
+          :loading="savingAd"
+          :disabled="savingAd"
+          @click="handleSaveAd"
+        >
           حفظ الإعلان
         </SharedUiButtonBase>
       </div>
     </div>
+    </template>
 
   </div>
 </template>
@@ -102,7 +157,17 @@
 definePageMeta({ layout: 'admin' })
 
 const admin = useAdminData()
-const alert = reactive({ show: false, type: 'success', text: '' })
+const alert = reactive({ show: false, type: 'success', title: '', text: '' })
+const loading = ref(true)
+const savingAd = ref(false)
+
+const showAlert = (type, title, text) => {
+  alert.type = type
+  alert.title = title
+  alert.text = text
+  alert.show = false
+  nextTick(() => { alert.show = true })
+}
 
 const form = reactive({
   name: "",
@@ -131,10 +196,12 @@ const handleSaveGroups = async () => {
   if (!form.groups.length) {
     form.groups = ["A"]
   }
-  await admin.saveSettings({ groups: form.groups })
-  alert.show = true
-  alert.type = "success"
-  alert.text = "✅ تم حفظ المجموعات"
+  try {
+    await admin.saveSettings({ groups: form.groups })
+    showAlert('success', '✅ تم الحفظ', 'تم حفظ المجموعات بنجاح')
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل حفظ المجموعات')
+  }
 }
 
 const adForm = reactive({
@@ -157,31 +224,39 @@ onMounted(async () => {
       adForm.link = s.ad.link || ""
     }
   }
+  loading.value = false
 })
 
 const handleSave = async () => {
-  await admin.saveSettings({ ...form })
-  alert.show = true
-  alert.type = "success"
-  alert.text = "✅ تم حفظ الإعدادات"
+  try {
+    await admin.saveSettings({ ...form })
+    showAlert('success', '✅ تم الحفظ', 'تم حفظ الإعدادات بنجاح')
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل حفظ الإعدادات')
+  }
 }
 
 const handleSaveAd = async () => {
-  const s = await admin.getSettings()
-  const ad = {
-    image: adForm.image || null,
-    title: adForm.title || "",
-    description: adForm.description || "",
-    link: adForm.link || "",
+  savingAd.value = true
+  try {
+    const s = await admin.getSettings()
+    const ad = {
+      image: adForm.image || null,
+      title: adForm.title || "",
+      description: adForm.description || "",
+      link: adForm.link || "",
+    }
+    await admin.saveSettings({
+      name: s?.name || form.name,
+      season: s?.season || form.season,
+      ad,
+    })
+    showAlert('success', '✅ تم الحفظ', 'تم حفظ الإعلان بنجاح')
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل حفظ الإعلان')
+  } finally {
+    savingAd.value = false
   }
-  await admin.saveSettings({
-    name: s?.name || form.name,
-    season: s?.season || form.season,
-    ad,
-  })
-  alert.show = true
-  alert.type = "success"
-  alert.text = "✅ تم حفظ الإعلان"
 }
 
 </script>
@@ -254,5 +329,127 @@ const handleSaveAd = async () => {
 }
 .groups-input {
   flex: 1;
+}
+
+// ── Ad section ─────────────────────────────────────────────────
+.ad-layout {
+  display: flex;
+  gap: 20px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}
+
+.ad-form-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ad-preview-box {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+}
+
+.preview-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ad-preview {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.preview-img-wrap {
+  width: 100%;
+  max-height: 100px;
+  overflow: hidden;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-texts {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.preview-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.preview-empty {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  padding: 24px 0;
+}
+
+// ── Skeleton ──────────────────────────────────────────────────
+.sk-title {
+  height: 20px; width: 120px; border-radius: 6px;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+}
+.sk-desc {
+  height: 14px; width: 240px; border-radius: 4px;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+}
+.sk-input {
+  height: 42px; border-radius: 8px;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+}
+.sk-actions {
+  height: 36px; width: 120px; border-radius: 8px; align-self: flex-end;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+}
+.sk-tags {
+  display: flex; gap: 8px;
+}
+.sk-tag {
+  height: 34px; width: 50px; border-radius: 8px;
+  background: var(--bg-elevated); position: relative; overflow: hidden;
+}
+.sk-title::after, .sk-desc::after, .sk-input::after,
+.sk-actions::after, .sk-tag::after {
+  content: ""; position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg,
+    transparent 0, rgba(255 255 255 / 0.08) 20%,
+    rgba(255 255 255 / 0.15) 60%, transparent);
+  animation: sk-shimmer 1.8s infinite;
+}
+@keyframes sk-shimmer {
+  100% { transform: translateX(100%); }
 }
 </style>

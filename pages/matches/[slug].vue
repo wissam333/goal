@@ -160,7 +160,32 @@
         </div>
       </div>
 
-      <!-- ③ Prediction Vote (upcoming matches only) -->
+      <!-- ③ Cards -->
+      <div v-if="match.cards?.length" class="section-card">
+        <h3 class="section-title">
+          <Icon name="mdi:card-bulleted-outline" size="18" />
+          {{ $t('match.cards') }}
+        </h3>
+        <div class="goals-grid">
+          <div class="goals-col goals-home">
+            <div v-for="card in homeCards" :key="`${card.player}-${card.minute}`" class="goal-item">
+              <span class="goal-player">{{ getPlayerName(card.player) }}</span>
+              <span class="goal-minute">{{ card.minute }}'</span>
+              <Icon :name="card.type === 'red' ? 'mdi:square-rounded' : 'mdi:square-rounded-outline'" size="16" :class="card.type === 'red' ? 'card-red' : 'card-yellow'" />
+            </div>
+          </div>
+          <div class="goals-divider" />
+          <div class="goals-col goals-away">
+            <div v-for="card in awayCards" :key="`${card.player}-${card.minute}`" class="goal-item away">
+              <Icon :name="card.type === 'red' ? 'mdi:square-rounded' : 'mdi:square-rounded-outline'" size="16" :class="card.type === 'red' ? 'card-red' : 'card-yellow'" />
+              <span class="goal-minute">{{ card.minute }}'</span>
+              <span class="goal-player">{{ getPlayerName(card.player) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ Prediction Vote (upcoming matches only) -->
       <div v-if="liveStatus === 'upcoming'" class="section-card">
         <h3 class="section-title">
           <Icon name="mdi:chart-line" size="18" />
@@ -476,7 +501,8 @@
 
 <script setup>
 import { format, parseISO, differenceInSeconds } from 'date-fns';
-import { ar, enUS } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
+import { syrianAr } from '~/utils/syrianAr';
 
 const route = useRoute();
 const { locale, t } = useI18n();
@@ -586,6 +612,13 @@ const homeGoals = computed(() =>
 const awayGoals = computed(() =>
   (match.value?.goalScorers || []).filter(g => g.team === match.value?.awayTeam)
     .sort((a, b) => a.minute - b.minute)
+);
+
+const homeCards = computed(() =>
+  (match.value?.cards || []).filter(c => c.team === match.value?.homeTeam)
+);
+const awayCards = computed(() =>
+  (match.value?.cards || []).filter(c => c.team === match.value?.awayTeam)
 );
 
 // ── Countdown ──────────────────────────────────────────────────────────────────
@@ -714,7 +747,7 @@ const h2h = computed(() => {
 });
 
 // ── Date formatting ────────────────────────────────────────────────────────────
-const dateFnsLocale = computed(() => locale.value === 'ar' ? ar : enUS);
+const dateFnsLocale = computed(() => locale.value === 'ar' ? syrianAr : enUS);
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return '';
   try { return format(parseISO(dateStr), 'EEEE، d MMMM yyyy', { locale: dateFnsLocale.value }); }
@@ -1030,6 +1063,8 @@ useSeoMeta({
 .goal-player { font-weight: 600; color: var(--text-primary); }
 .goal-minute { font-size: 0.75rem; color: var(--text-muted); }
 .goal-icon { color: var(--primary); flex-shrink: 0; }
+.card-yellow { color: #eab308; }
+.card-red { color: #ef4444; }
 
 // ── MOTM Winner ───────────────────────────────────────────────────────────────
 .motm-winner {
@@ -1279,8 +1314,12 @@ useSeoMeta({
   .score-num { font-size: 2.6rem; }
   .score-dash { font-size: 1.4rem; }
 
-  .motm-teams { grid-template-columns: 1fr; gap: 16px; }
-  .motm-player-row { padding: 14px; gap: 12px; border-radius: 14px; min-height: 52px; }
+  .motm-teams { gap: 6px; }
+  .motm-team-col { min-width: 0; overflow: hidden; }
+  .motm-player-row { padding: 8px 6px; gap: 4px; border-radius: 10px; min-height: 40px; }
+  .motm-player-num { width: 20px; height: 20px; font-size: 0.6rem; }
+  .motm-player-name { font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .motm-vote-btn { display: none; }
   .motm-player-name { font-size: 0.88rem; }
   .motm-player-num { width: 28px; height: 28px; font-size: 0.75rem; border-radius: 8px; }
   .motm-team-header { padding: 10px 14px; border-radius: 14px; }

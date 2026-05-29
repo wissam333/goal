@@ -60,6 +60,7 @@ CREATE TABLE matches (
   "goalScorers" JSONB DEFAULT '[]'::jsonb,
   "motmWinner" TEXT,
   photos JSONB DEFAULT '[]'::jsonb,
+  cards JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
