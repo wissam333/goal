@@ -21,6 +21,8 @@ export const useLeagueData = () => {
     if (query.limit) q = q.limit(query.limit);
     if (query.in)
       for (const { column, values } of query.in) q = q.in(column, values);
+    if (query.or)
+      for (const condition of query.or) q = q.or(condition);
     const { data } = await q;
     return data;
   };
@@ -67,6 +69,8 @@ export const useLeagueData = () => {
         dir: filters.orderBy.dir || "asc",
       };
     if (filters.limit) query.limit = filters.limit;
+    if (filters.team)
+      query.or = [`homeTeam.eq.${filters.team},awayTeam.eq.${filters.team}`];
     if (filters.statusIn)
       query.in = [{ column: "status", values: filters.statusIn }];
     const d = await fromSupabase("matches", query);

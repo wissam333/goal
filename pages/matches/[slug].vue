@@ -9,7 +9,15 @@
     </div> -->
 
     <!-- Loading -->
-    <div v-if="pending" class="skeleton-hero" />
+    <template v-if="pending">
+      <div class="skeleton-hero" />
+      <div class="container">
+        <div class="skeleton-section" />
+        <div class="skeleton-section tall" />
+        <div class="skeleton-section" />
+        <div class="skeleton-section short" />
+      </div>
+    </template>
 
     <!-- Error -->
     <SharedUiFeedbackEmptyState
@@ -476,19 +484,35 @@ const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 // ── Data ───────────────────────────────────────────────────────────────────────
-const [
-  { data: match },
-  { data: teamsData },
-  { data: playersData },
-  { data: allMatchesData },
-] = await Promise.all([
-  useAsyncData(`match-${slug.value}`, () => fetchMatch(slug.value)),
-  useAsyncData(`match-teams-${slug.value}`, () => fetchTeams()),
-  useAsyncData(`match-players-${slug.value}`, () => fetchPlayers()),
-  useAsyncData(`match-allmatches-${slug.value}`, () => fetchMatches({ status: "played" })),
-]);
+// Phase 1: match + teams (teams is tiny, both needed immediately)
+const { data: match, pending: pending1, error: error1 } = await useAsyncData(
+  `match-${slug.value}`, () => fetchMatch(slug.value),
+);
+const { data: teamsData, pending: pending2, error: error2 } = await useAsyncData(
+  `match-teams-${slug.value}`, () => fetchTeams(),
+);
 
+const pending = computed(() => pending1.value || pending2.value);
+const error = computed(() => error1.value || error2.value);
 const teams = computed(() => teamsData.value || []);
+
+// Phase 2: players from the two teams only + H2H matches for this team
+const ht = match.value?.homeTeam;
+const at = match.value?.awayTeam;
+
+const { data: playersData } = await useAsyncData(
+  `match-players-${slug.value}`,
+  () => Promise.all([
+    ht ? fetchPlayers({ team: ht }) : [],
+    at ? fetchPlayers({ team: at }) : [],
+  ]).then(([h, a]) => [...h, ...a]),
+);
+
+const { data: allMatchesData } = await useAsyncData(
+  `match-h2h-${slug.value}`,
+  () => ht ? fetchMatches({ status: "played", team: ht }) : [],
+);
+
 const players = computed(() => playersData.value || []);
 const allMatches = computed(() => allMatchesData.value || []);
 
@@ -788,6 +812,18 @@ useSeoMeta({
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
+}
+
+.skeleton-section {
+  height: 120px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
+
+  &.tall { height: 200px; }
+  &.short { height: 80px; }
 }
 
 @keyframes sh { to { background-position: -200% 0; } }

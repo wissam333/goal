@@ -199,7 +199,7 @@ const [
 ] = await Promise.all([
   useAsyncData(`team-${slug.value}`, () => fetchTeam(slug.value)),
   useAsyncData(`team-players-${slug.value}`, () => fetchPlayers({ team: slug.value })),
-  useAsyncData(`team-matches-${slug.value}`, () => fetchMatches()),
+  useAsyncData(`team-matches-${slug.value}`, () => fetchMatches({ team: slug.value })),
   useAsyncData(`all-teams-${slug.value}`, () => fetchTeams()),
 ]);
 

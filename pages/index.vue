@@ -1,6 +1,16 @@
 <template>
   <div class="page-wrap">
     <div class="container">
+      <template v-if="pending">
+        <div class="skeleton-hero" />
+        <div class="skeleton-table">
+          <div v-for="i in 4" :key="i" class="skeleton-row" />
+        </div>
+        <div class="skeleton-grid">
+          <div v-for="i in 8" :key="i" class="skeleton-card" />
+        </div>
+      </template>
+      <template v-else>
       <!-- ── Next Match ─────────────────────────────────── -->
       <div v-if="nextMatch?.slug" class="hero-card">
         <div class="hero-badge">
@@ -272,6 +282,7 @@
           </div>
         </div>
       </div>
+    </template>
     </div>
   </div>
 </template>
@@ -281,15 +292,14 @@ import { format, parseISO } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 const { locale } = useI18n();
-const { fetchMatches, fetchTeams, fetchPlayers } = useLeagueData();
+const { fetchMatches, fetchTeams } = useLeagueData();
 const dateLocale = computed(() => (locale.value === "ar" ? ar : enUS));
 
 const [
-  { data: nextMatch },
-  { data: lastMatch },
-  { data: allMatches },
-  { data: teams },
-  { data: allPlayers },
+  { data: nextMatch, pending: nextPending },
+  { data: lastMatch, pending: lastPending },
+  { data: allMatches, pending: matchesPending },
+  { data: teams, pending: teamsPending },
 ] = await Promise.all([
   useAsyncData("home-next", () =>
     fetchMatches({
@@ -307,8 +317,9 @@ const [
   ),
   useAsyncData("home-all-matches", () => fetchMatches({ status: "played" })),
   useAsyncData("home-teams", () => fetchTeams()),
-  useAsyncData("home-players", () => fetchPlayers()),
 ]);
+
+const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value);
 
 const teamMap = computed(() => {
   const m = {};
@@ -380,53 +391,6 @@ const topStandings = computed(() =>
     .slice(0, 4),
 );
 
-const quickStats = computed(() => {
-  const played = allMatches.value?.length ?? 0;
-  const totalGoals =
-    allMatches.value?.reduce(
-      (acc, m) => acc + (m.homeScore ?? 0) + (m.awayScore ?? 0),
-      0,
-    ) ?? 0;
-  const playerMap = {};
-  (allPlayers.value || []).forEach((p) => {
-    playerMap[p.slug] = p.title;
-  });
-  const scorerMap = {};
-  allMatches.value?.forEach((m) => {
-    m.goalScorers?.forEach((g) => {
-      scorerMap[g.player] = (scorerMap[g.player] ?? 0) + 1;
-    });
-  });
-  const topScorer = Object.entries(scorerMap).sort((a, b) => b[1] - a[1])[0];
-  const topScorerName = topScorer
-    ? playerMap[topScorer[0]] || topScorer[0]
-    : "-";
-  return [
-    {
-      key: "played",
-      label: "home.stats.played",
-      value: played,
-      icon: "game-icons:soccer-ball",
-      color: "success",
-    },
-    {
-      key: "goals",
-      label: "home.stats.goals",
-      value: totalGoals,
-      icon: "mdi:bullseye-arrow",
-      color: "warning",
-    },
-    {
-      key: "topScorer",
-      label: "home.stats.topScorer",
-      value: topScorer ? topScorer[1] : 0,
-      icon: "mdi:star-outline",
-      color: "primary",
-      description: topScorerName,
-    },
-  ];
-});
-
 useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") });
 </script>
 
@@ -438,6 +402,41 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .container {
   padding-top: 24px;
 }
+
+// ── Skeleton ────────────────────────────────────────────
+.skeleton-hero {
+  height: 200px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
+}
+.skeleton-table {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 20px;
+}
+.skeleton-row {
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
+}
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.skeleton-card {
+  height: 100px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
+}
+@keyframes sh { to { background-position: -200% 0; } }
 
 .section-header {
   display: flex;
