@@ -178,6 +178,7 @@ export default defineNuxtConfig({
       },
     },
     server: {
+      allowedHosts: true,
       warmup: {
         clientFiles: [
           "./pages/**/*.vue",

@@ -1,83 +1,111 @@
 <template>
-  <div v-if="visible" class="pwa-notice">
-    <div class="pwa-content">
-      <template v-if="platform === 'ios'">
-        <Icon name="mdi:apple" size="22" />
-        <div class="pwa-text">
-          <strong>تثبيت التطبيق</strong>
-          <span>اضغط مشاركة <Icon name="mdi:share-variant" size="14" /> ثم أضف إلى الشاشة الرئيسية</span>
-        </div>
-      </template>
-      <template v-else-if="platform === 'android'">
-        <Icon name="mdi:google-chrome" size="22" />
-        <div class="pwa-text">
-          <strong>تثبيت التطبيق</strong>
-          <span>حمّل التطبيق لتصفح أسرع</span>
-        </div>
-        <button class="pwa-install-btn" @click="install">تثبيت</button>
-      </template>
-      <button class="pwa-close" @click="dismiss">&times;</button>
+  <Transition name="pwa-slide">
+    <div v-if="visible" class="pwa-notice">
+      <div class="pwa-content">
+        <!-- iOS -->
+        <template v-if="platform === 'ios'">
+          <div class="pwa-icon">
+            <Icon name="mdi:apple" size="24" />
+          </div>
+          <div class="pwa-text">
+            <strong>{{ $t("pwa.install") }}</strong>
+            <span>
+              {{ $t("pwa.ios_hint_before") }}
+              <Icon name="mdi:export-variant" size="13" class="inline-icon" />
+              {{ $t("pwa.ios_hint_after") }}
+            </span>
+          </div>
+        </template>
+
+        <!-- Android / Chrome — prompt available -->
+        <template v-else-if="platform === 'android' && isInstallable">
+          <div class="pwa-icon">
+            <Icon name="mdi:cellphone-arrow-down" size="24" />
+          </div>
+          <div class="pwa-text">
+            <strong>{{ $t("pwa.install") }}</strong>
+            <span>{{ $t("pwa.android_hint") }}</span>
+          </div>
+          <button
+            class="pwa-install-btn"
+            :class="{ loading: installing }"
+            :disabled="installing"
+            @click="handleInstall"
+          >
+            <Icon v-if="installing" name="mdi:loading" size="15" class="spin" />
+            <span v-else>{{ $t("pwa.install_btn") }}</span>
+          </button>
+        </template>
+
+        <!-- Android — prompt not available (fallback) -->
+        <template v-else-if="platform === 'android' && !isInstallable">
+          <div class="pwa-icon">
+            <Icon name="mdi:dots-vertical" size="24" />
+          </div>
+          <div class="pwa-text">
+            <strong>{{ $t("pwa.install") }}</strong>
+            <span>{{ $t("pwa.android_manual_hint") }}</span>
+          </div>
+        </template>
+
+        <button
+          class="pwa-close"
+          :aria-label="$t('pwa.dismiss')"
+          @click="dismiss"
+        >
+          <Icon name="mdi:close" size="18" />
+        </button>
+      </div>
     </div>
-  </div>
+  </Transition>
 </template>
 
-<script setup>
-const dismissed = ref(false)
-const platform = ref('')
-const visible = ref(false)
-const deferredPrompt = ref(null)
+<script setup lang="ts">
+const LS_KEY = "pwa-install-dismissed";
+const visible = ref(false);
+const platform = ref<"ios" | "android" | "desktop">("desktop");
+const installing = ref(false);
 
-const LS_KEY = 'pwa-install-dismissed'
+const { isInstallable, install } = usePwaInstall();
 
-const isStandalone = () => {
-  return window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone
-}
+const isStandalone = () =>
+  window.matchMedia("(display-mode: standalone)").matches ||
+  !!(window.navigator as any).standalone;
 
-const detectPlatform = () => {
-  const ua = navigator.userAgent
-  if (/iphone|ipad|ipod/i.test(ua)) return 'ios'
-  if (/android/i.test(ua)) return 'android'
-  return 'desktop'
-}
+const detectPlatform = (): "ios" | "android" | "desktop" => {
+  const ua = navigator.userAgent;
+  if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+  if (/android/i.test(ua)) return "android";
+  return "desktop";
+};
 
 const dismiss = () => {
-  dismissed.value = true
-  visible.value = false
-  try { localStorage.setItem(LS_KEY, '1') } catch {}
-}
-
-const install = async () => {
-  const prompt = deferredPrompt.value
-  if (prompt) {
-    prompt.prompt()
-    const result = await prompt.userChoice
-    deferredPrompt.value = null
-    if (result.outcome === 'accepted') dismiss()
-    return
-  }
+  visible.value = false;
   try {
-    const { $pwa } = useNuxtApp()
-    const showed = await $pwa.showInstallPrompt?.()
-    if (showed) dismiss()
+    localStorage.setItem(LS_KEY, "1");
   } catch {}
-}
+};
+
+const handleInstall = async () => {
+  installing.value = true;
+  try {
+    const accepted = await install();
+    if (accepted) dismiss();
+  } finally {
+    installing.value = false;
+  }
+};
 
 onMounted(() => {
-  if (isStandalone()) return
+  if (isStandalone()) return;
   try {
-    if (localStorage.getItem(LS_KEY)) return
+    if (localStorage.getItem(LS_KEY)) return;
   } catch {}
-  const p = detectPlatform()
-  if (p === 'desktop') return
-  platform.value = p
-  visible.value = true
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt.value = e
-  })
-})
+  const p = detectPlatform();
+  if (p === "desktop") return;
+  platform.value = p;
+  visible.value = true;
+});
 </script>
 
 <style scoped>
@@ -88,64 +116,132 @@ onMounted(() => {
   right: 0;
   z-index: 9999;
   padding: 0 12px 16px;
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
   pointer-events: none;
 }
+
 .pwa-content {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 12px 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   pointer-events: auto;
-  max-width: 400px;
+  max-width: 420px;
   margin: 0 auto;
 }
+
+.pwa-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .pwa-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
   min-width: 0;
-  font-size: 0.82rem;
-  color: var(--text-primary);
-  strong { font-size: 0.9rem; }
-  span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-  }
 }
+
+.pwa-text strong {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.pwa-text span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+  font-size: 0.775rem;
+  line-height: 1.4;
+}
+
+.inline-icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
 .pwa-install-btn {
   flex-shrink: 0;
-  padding: 6px 16px;
+  padding: 7px 18px;
   background: var(--primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
 }
-.pwa-install-btn:hover {
-  opacity: 0.9;
+
+.pwa-install-btn:hover:not(:disabled) {
+  opacity: 0.88;
 }
+
+.pwa-install-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .pwa-close {
   flex-shrink: 0;
   background: none;
   border: none;
-  font-size: 1.3rem;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0 2px;
-  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
+
 .pwa-close:hover {
   color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.spin {
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pwa-slide-enter-active,
+.pwa-slide-leave-active {
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease;
+}
+
+.pwa-slide-enter-from,
+.pwa-slide-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
 }
 </style>

@@ -73,7 +73,6 @@
   "fileReadError": "خطأ في قراءة الملف",
   "imagesOnly": "صور فقط",
   "bottomNav": "شريط التنقل السفلي",
-
   "nav": {
     "home": "الرئيسية",
     "standings": "الترتيب",
@@ -82,7 +81,6 @@
     "stats": "الإحصائيات",
     "bracket": "مخطط الدوري"
   },
-
   "match": {
     "upcoming": "قادمة",
     "played": "منتهية",
@@ -114,7 +112,6 @@
     "viewDetails": "عرض التفاصيل",
     "cards": "البطاقات"
   },
-
   "home": {
     "nextMatch": "المباراة القادمة",
     "viewMatch": "عرض المباراة",
@@ -131,7 +128,6 @@
       "currentWeek": "الجولة الحالية"
     }
   },
-
   "standings": {
     "team": "الفريق",
     "played": "لعب",
@@ -147,13 +143,11 @@
     "advance": "تأهل",
     "danger": "خطر"
   },
-
   "fixtures": {
     "all": "الكل",
     "matches": "المباريات",
     "back": "رجوع"
   },
-
   "stats": {
     "totalTeams": "الفرق",
     "totalGoals": "الأهداف",
@@ -167,7 +161,6 @@
     "mostGoals": "أكثر مباراة تهديفية",
     "album": "ألبوم الموسم"
   },
-
   "bracket": {
     "groupStage": "دور المجموعات",
     "knockout": "الأدوار الإقصائية",
@@ -176,7 +169,6 @@
     "semifinal": "نصف النهائي",
     "quarterfinal": "ربع النهائي"
   },
-
   "player": {
     "goals": "أهداف",
     "appearances": "مباريات",
@@ -188,7 +180,6 @@
     "noMatches": "لا توجد مباريات",
     "share": "مشاركة"
   },
-
   "team": {
     "players": "اللاعبين",
     "results": "النتائج",
@@ -197,7 +188,6 @@
     "noPlayers": "لا يوجد لاعبين",
     "stats": "إحصائيات الفريق"
   },
-
   "footer": {
     "tagline": "دوري كرة القدم السنوي للقرية",
     "quickLinks": "روابط سريعة",
@@ -207,16 +197,13 @@
     "builtWith": "طُور بواسطة",
     "builtBy": "بني بواسطة وسام نجوم"
   },
-
   "error": {
     "noData": "عذراً، لا توجد بيانات متاحة حالياً"
   },
-
   "sidebar": {
     "orders": "الطلبات",
     "dashboard": "لوحة التحكم"
   },
-
   "ad": {
     "banner": "إعلان",
     "title": "عنوان الإعلان",
@@ -227,7 +214,12 @@
     "saveSuccess": "✅ تم حفظ الإعلان"
   },
   "pwa": {
-    "installNotice": "حمّل التطبيق على جهازك",
-    "install": "تثبيت"
+    "install": "تثبيت التطبيق",
+    "install_btn": "تثبيت",
+    "dismiss": "إغلاق",
+    "ios_hint_before": "اضغط على",
+    "ios_hint_after": "ثم أضف إلى الشاشة الرئيسية",
+    "android_hint": "حمّل التطبيق للوصول السريع بدون متصفح",
+    "android_manual_hint": "افتح قائمة المتصفح ← أضف إلى الشاشة الرئيسية"
   }
 }

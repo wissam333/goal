@@ -73,7 +73,6 @@
   "fileReadError": "Error reading file",
   "imagesOnly": "Images Only",
   "bottomNav": "Bottom Navigation",
-
   "nav": {
     "home": "Home",
     "standings": "Standings",
@@ -82,7 +81,6 @@
     "stats": "Stats",
     "bracket": "Bracket"
   },
-
   "match": {
     "upcoming": "Upcoming",
     "played": "Played",
@@ -114,7 +112,6 @@
     "viewDetails": "View Details",
     "cards": "Cards"
   },
-
   "home": {
     "nextMatch": "Next Match",
     "viewMatch": "View Match",
@@ -131,7 +128,6 @@
       "currentWeek": "Current Week"
     }
   },
-
   "standings": {
     "team": "Team",
     "played": "Pld",
@@ -147,13 +143,11 @@
     "advance": "Advance",
     "danger": "Danger"
   },
-
   "fixtures": {
     "all": "All",
     "matches": "Matches",
     "back": "Back"
   },
-
   "stats": {
     "totalTeams": "Teams",
     "totalGoals": "Total Goals",
@@ -167,7 +161,6 @@
     "mostGoals": "Most Goals",
     "album": "Season Album"
   },
-
   "bracket": {
     "groupStage": "Group Stage",
     "knockout": "Knockout",
@@ -176,7 +169,6 @@
     "semifinal": "Semi-Final",
     "quarterfinal": "Quarter-Final"
   },
-
   "player": {
     "goals": "Goals",
     "appearances": "Apps",
@@ -188,7 +180,6 @@
     "noMatches": "No matches played",
     "share": "Share"
   },
-
   "team": {
     "players": "Players",
     "results": "Results",
@@ -197,7 +188,6 @@
     "noPlayers": "No players yet",
     "stats": "Team Stats"
   },
-
   "footer": {
     "tagline": "Annual Village Football League",
     "quickLinks": "Quick Links",
@@ -207,16 +197,13 @@
     "builtWith": "Built with",
     "builtBy": "built by wissam najjom"
   },
-
   "error": {
     "noData": "Sorry, no data available at the moment"
   },
-
   "sidebar": {
     "orders": "Orders",
     "dashboard": "Dashboard"
   },
-
   "ad": {
     "banner": "Advertisement",
     "title": "Ad Title",
@@ -227,7 +214,12 @@
     "saveSuccess": "✅ Ad saved successfully"
   },
   "pwa": {
-    "installNotice": "Install the app on your device",
-    "install": "Install"
+    "install": "Install App",
+    "install_btn": "Install",
+    "dismiss": "Dismiss",
+    "ios_hint_before": "Tap",
+    "ios_hint_after": "then Add to Home Screen",
+    "android_hint": "Install for faster access without the browser",
+    "android_manual_hint": "Open browser menu → Add to Home Screen"
   }
 }
