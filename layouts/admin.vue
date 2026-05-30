@@ -60,6 +60,7 @@ const navLinks = [
   { to: '/admin', icon: 'mdi:view-dashboard-outline', label: 'الرئيسية' },
   { to: '/admin/teams', icon: 'mdi:shield-outline', label: 'الفرق' },
   { to: '/admin/matches', icon: 'mdi:calendar-outline', label: 'المباريات' },
+  { to: '/admin/seasons', icon: 'mdi:trophy-outline', label: 'المواسم' },
   { to: '/admin/settings', icon: 'mdi:cog-outline', label: 'الإعدادات' },
 ]
 </script>

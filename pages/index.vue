@@ -11,11 +11,57 @@
         </div>
       </template>
       <template v-else>
+      <!-- ── Champion Celebration ──────────────────────── -->
+      <div v-if="champion" class="hero-card champion-card">
+        <div class="confetti-container">
+          <div v-for="i in 30" :key="i" class="confetti-piece" :style="confettiStyle(i)" />
+        </div>
+        <div class="champion-glow" />
+        <div class="hero-badge champion-badge">
+          <Icon name="mdi:trophy" size="14" />
+          {{ $t("home.champion") }}
+        </div>
+        <div class="champion-team">
+          <NuxtLink :to="`/teams/${champion}`" class="hero-logo-wrap">
+            <template v-if="getTeamLogo(champion)">
+              <NuxtImg
+                :src="getTeamLogo(champion)"
+                :alt="getTeamName(champion)"
+                width="80"
+                height="80"
+                class="hero-logo champion-logo"
+              />
+            </template>
+            <div
+              v-else
+              class="hero-logo-initial champion-initial"
+              :style="{ background: getTeamColor(champion) }"
+            >
+              {{ getTeamName(champion)?.charAt(0) }}
+            </div>
+          </NuxtLink>
+          <span class="champion-name">{{ getTeamName(champion) }}</span>
+          <span class="champion-congrats">{{ $t("home.congrats") }}</span>
+        </div>
+        <NuxtLink :to="`/matches/${finalMatch.slug}`" class="hero-btn">
+          {{ $t("home.viewMatch") }}
+          <Icon
+            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+            size="15"
+          />
+        </NuxtLink>
+      </div>
+
       <!-- ── Next Match ─────────────────────────────────── -->
-      <div v-if="nextMatch?.slug" class="hero-card">
-        <div class="hero-badge">
-          <Icon name="mdi:clock-outline" size="14" />
-          {{ $t("home.nextMatch") }}
+      <div v-else-if="nextMatch?.slug" class="hero-card">
+        <div class="hero-badge" :class="{ 'hero-badge-live': nextMatch.status === 'live' }">
+          <template v-if="nextMatch.status === 'live'">
+            <span class="live-dot-sm" /> {{ $t('match.live') }}
+          </template>
+          <template v-else>
+            <Icon name="mdi:clock-outline" size="14" />
+            {{ $t("home.nextMatch") }}
+          </template>
         </div>
 
         <div class="hero-teams">
@@ -47,8 +93,15 @@
           </div>
 
           <div class="hero-center">
-            <span class="hero-time">{{ formatMatchTime(nextMatch.date) }}</span>
-            <span class="hero-date">{{ formatMatchDate(nextMatch.date) }}</span>
+            <template v-if="nextMatch.status === 'live'">
+              <span class="hero-live">
+                <span class="live-dot" /> {{ $t('match.live') }}
+              </span>
+            </template>
+            <template v-else>
+              <span class="hero-time">{{ formatMatchTime(nextMatch.date) }}</span>
+              <span class="hero-date">{{ formatMatchDate(nextMatch.date) }}</span>
+            </template>
             <span v-if="nextMatch.venue" class="hero-venue">
               <Icon name="mdi:map-marker-outline" size="12" />
               {{ nextMatch.venue }}
@@ -301,6 +354,7 @@ const [
   { data: lastMatch, pending: lastPending },
   { data: allMatches, pending: matchesPending },
   { data: teams, pending: teamsPending },
+  { data: finalMatch, pending: finalPending },
 ] = await Promise.all([
   useAsyncData("home-next", () =>
     fetchMatches({
@@ -318,9 +372,20 @@ const [
   ),
   useAsyncData("home-all-matches", () => fetchMatches({ status: "played" })),
   useAsyncData("home-teams", () => fetchTeams()),
+  useAsyncData("home-final", () =>
+    fetchMatches({ group: "F" }).then((r) => r?.[0] || null),
+  ),
 ]);
 
-const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value);
+const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value);
+
+const champion = computed(() => {
+  if (!finalMatch.value || finalMatch.value.status !== "played") return null;
+  const home = finalMatch.value.homeScore ?? 0;
+  const away = finalMatch.value.awayScore ?? 0;
+  if (home === away) return null;
+  return home > away ? finalMatch.value.homeTeam : finalMatch.value.awayTeam;
+});
 
 const teamMap = computed(() => {
   const m = {};
@@ -345,6 +410,19 @@ const formatMatchDate = (dateStr) => {
   try {
     return format(parseISO(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
   } catch { return ""; }
+};
+
+const confettiStyle = (i) => {
+  const colors = ['#f59e0b','#22c55e','#ef4444','#3b82f6','#a855f7','#ec4899','#14b8a6'];
+  return {
+    left: `${Math.random() * 100}%`,
+    animationDelay: `${Math.random() * 3}s`,
+    animationDuration: `${2 + Math.random() * 3}s`,
+    backgroundColor: colors[i % colors.length],
+    width: `${6 + Math.random() * 8}px`,
+    height: `${6 + Math.random() * 8}px`,
+    borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+  };
 };
 
 const formatShortDate = (dateStr) => {
@@ -537,6 +615,122 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   z-index: 1;
 }
 
+.hero-badge-live {
+  background: rgba(22,163,74,0.12);
+  color: #16a34a;
+  border-color: rgba(22,163,74,0.25);
+}
+
+.live-dot-sm {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: pulse-green 1.5s infinite;
+}
+
+// ── Champion Card ──────────────────────────────────────
+.champion-card {
+  background: linear-gradient(160deg, #fef9c3 0%, #fde047 60%, #fef9c3 100%) !important;
+  :root.dark & {
+    background: linear-gradient(160deg, #1a1500 0%, #2a2200 60%, #1a1500 100%) !important;
+  }
+  padding: 40px 24px !important;
+}
+
+.champion-badge {
+  background: rgba(234,179,8,0.15) !important;
+  color: #ca8a04 !important;
+  border-color: rgba(234,179,8,0.3) !important;
+  z-index: 2 !important;
+}
+
+.champion-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(234,179,8,0.12) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.champion-team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.champion-logo {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 16px !important;
+  animation: champ-bounce 2s ease-in-out infinite;
+}
+
+.champion-initial {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  font-size: 2rem;
+  animation: champ-bounce 2s ease-in-out infinite;
+}
+
+.champion-name {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  :root.dark & {
+    color: #fde047;
+  }
+}
+
+.champion-congrats {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ca8a04;
+}
+
+// ── Confetti ─────────────────────────────────────────
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  opacity: 0.9;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes champ-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
 .hero-teams {
   display: flex;
   align-items: center;
@@ -607,6 +801,32 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   align-items: center;
   gap: 4px;
   min-width: 80px;
+}
+
+.hero-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #16a34a;
+  background: rgba(22,163,74,0.1);
+  padding: 6px 16px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
 }
 
 .hero-time {

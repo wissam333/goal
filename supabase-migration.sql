@@ -7,6 +7,19 @@
 -- 0a. Add ad column to settings (if table already exists from a previous run)
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS ad JSONB DEFAULT NULL;
 
+-- 0b. Seasons table
+CREATE TABLE IF NOT EXISTS seasons (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  is_active BOOLEAN DEFAULT false,
+  snapshot JSONB DEFAULT NULL,
+  started_at TIMESTAMPTZ DEFAULT NOW(),
+  archived_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ═══════════════════════════════════════════════════════════════
 -- SCHEMA
 -- ═══════════════════════════════════════════════════════════════
@@ -108,6 +121,7 @@ ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE match_predictions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seasons ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "anon_select_teams" ON teams;
 DROP POLICY IF EXISTS "anon_select_players" ON players;
@@ -131,6 +145,10 @@ DROP POLICY IF EXISTS "anon_delete_match_predictions" ON match_predictions;
 DROP POLICY IF EXISTS "anon_insert_settings" ON settings;
 DROP POLICY IF EXISTS "anon_update_settings" ON settings;
 DROP POLICY IF EXISTS "anon_delete_settings" ON settings;
+DROP POLICY IF EXISTS "anon_select_seasons" ON seasons;
+DROP POLICY IF EXISTS "anon_insert_seasons" ON seasons;
+DROP POLICY IF EXISTS "anon_update_seasons" ON seasons;
+DROP POLICY IF EXISTS "anon_delete_seasons" ON seasons;
 
 CREATE POLICY "anon_select_teams" ON teams FOR SELECT USING (true);
 CREATE POLICY "anon_select_players" ON players FOR SELECT USING (true);
@@ -153,11 +171,16 @@ CREATE POLICY "anon_delete_match_predictions" ON match_predictions FOR DELETE US
 CREATE POLICY "anon_insert_settings" ON settings FOR INSERT WITH CHECK (true);
 CREATE POLICY "anon_update_settings" ON settings FOR UPDATE USING (true);
 CREATE POLICY "anon_delete_settings" ON settings FOR DELETE USING (true);
+CREATE POLICY "anon_select_seasons" ON seasons FOR SELECT USING (true);
+CREATE POLICY "anon_insert_seasons" ON seasons FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_update_seasons" ON seasons FOR UPDATE USING (true);
+CREATE POLICY "anon_delete_seasons" ON seasons FOR DELETE USING (true);
 
 -- ═══════════════════════════════════════════════════════════════
 -- CLEAR EXISTING DATA (order respects FK constraints)
 -- ═══════════════════════════════════════════════════════════════
 
+DELETE FROM seasons;
 DELETE FROM match_predictions;
 DELETE FROM votes;
 DELETE FROM matches;
@@ -284,6 +307,14 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
 INSERT INTO settings (id, name, season, "groups", "teamsPerGroup")
 VALUES (1, 'دوري القرية السنوي', '2026', '["A","B","C","D"]', 4)
 ON CONFLICT (id) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════
+-- SEASONS
+-- ═══════════════════════════════════════════════════════════════
+
+INSERT INTO seasons (name, slug, is_active, started_at)
+VALUES ('2026', '2026', true, NOW())
+ON CONFLICT (slug) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════
 -- SEED: MATCHES (24 group-stage matches, 6 per group)

@@ -119,6 +119,8 @@
     "nextMatch": "المباراة القادمة",
     "viewMatch": "عرض المباراة",
     "lastMatch": "آخر مباراة",
+    "champion": "البطل",
+    "congrats": "مبروك ! 🏆",
     "fullTable": "الجدول الكامل",
     "allTeams": "جميع الفرق",
     "latestResults": "آخر النتائج",
@@ -202,7 +204,8 @@
     "season": "الموسم",
     "teamsCount": "عدد الفرق",
     "location": "الموقع",
-    "builtWith": "طُور بواسطة"
+    "builtWith": "طُور بواسطة",
+    "builtBy": "بني بواسطة وسام نجوم"
   },
 
   "error": {

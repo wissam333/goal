@@ -119,6 +119,8 @@
     "nextMatch": "Next Match",
     "viewMatch": "View Match",
     "lastMatch": "Last Match",
+    "champion": "Champion",
+    "congrats": "Congratulations! 🏆",
     "fullTable": "Full Table",
     "allTeams": "All Teams",
     "latestResults": "Latest Results",
@@ -202,7 +204,8 @@
     "season": "Season",
     "teamsCount": "Teams",
     "location": "Location",
-    "builtWith": "Built with"
+    "builtWith": "Built with",
+    "builtBy": "built by wissam najjom"
   },
 
   "error": {

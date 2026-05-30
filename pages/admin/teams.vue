@@ -17,6 +17,13 @@
       >
         إضافة فريق
       </SharedUiButtonBase>
+      <SharedUiButtonBase
+        variant="outline"
+        icon-left="mdi:archive-arrow-up-outline"
+        @click="openRestoreModal"
+      >
+        استعادة من الأرشيف
+      </SharedUiButtonBase>
     </div>
 
     <SharedUiTableDataTable
@@ -275,6 +282,49 @@
         </SharedUiButtonBase>
       </template>
     </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
+      v-model="restoreModal.open"
+      title="استعادة فريق من الأرشيف"
+      max-width="640px"
+    >
+      <div v-if="restoreModal.loading" class="modal-loading">جاري تحميل الأرشيف...</div>
+      <template v-else-if="!restoreModal.seasons?.length">
+        <SharedUiFeedbackEmptyState
+          title="لا توجد مواسم مؤرشفة"
+          description="قم بأرشفة موسم أولاً من صفحة المواسم."
+          icon="mdi:archive-off-outline"
+        />
+      </template>
+      <div v-else class="restore-list">
+        <div v-for="season in restoreModal.seasons" :key="season.id" class="restore-season-group">
+          <div class="restore-season-header">
+            <Icon name="mdi:trophy-outline" size="16" />
+            {{ season.name }}
+          </div>
+          <div v-if="!season._teams?.length" class="restore-empty">لا توجد فرق في هذا الموسم</div>
+          <div v-for="t in season._teams" :key="t.slug" class="restore-team-row">
+            <div class="restore-team-info">
+              <span class="restore-team-name">{{ t.title }}</span>
+              <span class="restore-player-count">{{ t.players?.length || 0 }} لاعب</span>
+            </div>
+            <SharedUiButtonBase
+              size="sm"
+              variant="primary"
+              :loading="restoreModal.restoring === t.slug"
+              @click="handleRestore(t)"
+            >
+              استعادة
+            </SharedUiButtonBase>
+          </div>
+        </div>
+      </div>
+      <template #actions>
+        <SharedUiButtonBase variant="outline" @click="restoreModal.open = false">
+          إغلاق
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
   </div>
 </template>
 
@@ -378,6 +428,13 @@ const playerDelete = reactive({
   open: false,
   deleting: false,
   player: null,
+})
+
+const restoreModal = reactive({
+  open: false,
+  loading: false,
+  seasons: [],
+  restoring: null,
 })
 
 const showTeamPlayers = async (team) => {
@@ -579,6 +636,42 @@ const handleDelete = async () => {
   }
 }
 
+const openRestoreModal = async () => {
+  restoreModal.open = true
+  restoreModal.loading = true
+  try {
+    const seasonsApi = useSeasons()
+    const all = await seasonsApi.getSeasons()
+    const archived = all.filter(s => !s.is_active && s.snapshot?.teams?.length)
+    for (const s of archived) {
+      s._teams = s.snapshot.teams
+    }
+    restoreModal.seasons = archived
+  } catch {
+    restoreModal.seasons = []
+  } finally {
+    restoreModal.loading = false
+  }
+}
+
+const handleRestore = async (archivedTeam) => {
+  restoreModal.restoring = archivedTeam.slug
+  try {
+    await admin.saveTeam({ slug: archivedTeam.slug, title: archivedTeam.title })
+    const players = archivedTeam.players || []
+    for (const name of players) {
+      const slug = name.trim().replace(/\s+/g, '-')
+      await admin.savePlayer({ slug, title: name.trim(), team: archivedTeam.slug })
+    }
+    showAlert('success', `تمت استعادة فريق ${archivedTeam.title} مع ${players.length} لاعب`)
+    await loadData()
+  } catch {
+    showAlert('error', 'حدث خطأ أثناء استعادة الفريق')
+  } finally {
+    restoreModal.restoring = null
+  }
+}
+
 onMounted(() => {
   loadData()
 })
@@ -587,6 +680,8 @@ onMounted(() => {
 <style lang="scss" scoped>
 .teams-toolbar {
   margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
 }
 
 .team-logo-sm {
@@ -744,6 +839,67 @@ onMounted(() => {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+}
+
+.restore-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.restore-season-group {
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.restore-season-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.restore-empty {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px;
+}
+
+.restore-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-color);
+
+  &:last-child { border-bottom: none; }
+}
+
+.restore-team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.restore-team-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.restore-player-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
 
 .player-action-btn {

@@ -61,12 +61,7 @@
           © {{ currentYear }} {{ $t("leagueName") }}
         </span>
         <span class="footer-built">
-          <!-- <Icon
-            name="mdi:heart"
-            size="13"
-            class="footer-heart"
-            aria-hidden="true"
-          /> -->
+          <a href="https://wa.me/963933446665" target="_blank" rel="noopener noreferrer" class="footer-author-link">{{ $t('footer.builtBy') }}</a>
         </span>
       </div>
     </div>
@@ -242,5 +237,13 @@ const navItems = [
 
 .footer-heart {
   color: #ef4444;
+}
+
+.footer-author-link {
+  color: var(--primary);
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>

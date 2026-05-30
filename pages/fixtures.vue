@@ -175,12 +175,13 @@ const isWinner = (match, teamSlug) => {
   return (scored ?? 0) > (conceded ?? 0);
 };
 
+const KNOCKOUT_GROUPS = ['QF', 'SF', 'F']
+
 const groupStage = computed(() => {
   const groups = {};
-  const groupPattern = /^[A-Z]$/;
   filteredMatches.value.forEach((m) => {
     const g = m.group || 'A';
-    if (!groupPattern.test(g)) return;
+    if (KNOCKOUT_GROUPS.includes(g)) return;
     if (!groups[g]) groups[g] = [];
     groups[g].push(m);
   });

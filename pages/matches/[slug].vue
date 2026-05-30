@@ -322,8 +322,8 @@
           <span class="winner-label">{{ $t('match.motm') }}</span>
         </div>
 
-        <!-- Active voting (always open for played/live) -->
-        <div>
+        <!-- Active voting (hidden when admin sets a MOTM winner) -->
+        <div v-if="!motmWinnerResolved">
           <p v-if="!alreadyVoted" class="vote-prompt">{{ $t('match.votePrompt') }}</p>
           <p v-else class="vote-done-msg">
             <Icon name="mdi:check-circle" size="16" />
@@ -477,17 +477,23 @@
       <div class="share-section">
         <div class="share-label">{{ $t('match.share') }}</div>
         <div class="share-row">
-          <button class="share-btn messenger" title="Messenger" @click="sharePlatform('messenger')">
-            <Icon name="mdi:facebook-messenger" size="20" />
+          <button v-if="supportsShare" class="share-btn native" title="Share" @click="nativeShare">
+            <Icon name="mdi:share-variant" size="20" />
           </button>
           <button class="share-btn whatsapp" title="WhatsApp" @click="sharePlatform('whatsapp')">
             <Icon name="mdi:whatsapp" size="20" />
+          </button>
+          <button class="share-btn messenger" title="Messenger" @click="sharePlatform('messenger')">
+            <Icon name="mdi:facebook-messenger" size="20" />
           </button>
           <button class="share-btn facebook" title="Facebook" @click="sharePlatform('facebook')">
             <Icon name="mdi:facebook" size="20" />
           </button>
           <button class="share-btn telegram" title="Telegram" @click="sharePlatform('telegram')">
             <Icon name="mdi:telegram" size="20" />
+          </button>
+          <button class="share-btn twitter" title="Twitter" @click="sharePlatform('twitter')">
+            <Icon name="mdi:twitter" size="20" />
           </button>
           <button class="share-btn copy" title="Copy link" @click="copyLink">
             <Icon name="mdi:link-variant" size="20" />
@@ -774,6 +780,14 @@ const shareText = () => {
     : `${ht} ${hs}–${as} ${at} 🏆 | Village League`;
 };
 
+const supportsShare = computed(() => typeof navigator !== 'undefined' && !!navigator.share);
+
+const nativeShare = async () => {
+  try {
+    await navigator.share({ title: document.title, text: shareText(), url: window.location.href });
+  } catch {}
+};
+
 const sharePlatform = (platform) => {
   const text = shareText();
   const url = window.location.href;
@@ -782,6 +796,7 @@ const sharePlatform = (platform) => {
     whatsapp: `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`,
     telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + '\n' + url)}`,
   };
   window.open(urls[platform], '_blank', 'width=600,height=500');
 };
@@ -1294,10 +1309,12 @@ useSeoMeta({
   &:hover { transform: translateY(-2px); }
   &:active { transform: scale(0.95); }
 
+  &.native    { background: var(--primary); &:hover { background: color-mix(in srgb, var(--primary) 85%, #000); } }
   &.messenger { background: #006AFF; &:hover { background: #0052cc; } }
   &.whatsapp  { background: #25D366; &:hover { background: #1da851; } }
   &.facebook  { background: #1877F2; &:hover { background: #166fe5; } }
   &.telegram  { background: #0088cc; &:hover { background: #0077b5; } }
+  &.twitter   { background: #1DA1F2; &:hover { background: #1a8cd8; } }
   &.copy      { background: var(--text-muted); &:hover { background: var(--text-sub); } }
 }
 
