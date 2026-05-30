@@ -25,6 +25,7 @@
 const dismissed = ref(false)
 const platform = ref('')
 const visible = ref(false)
+const deferredPrompt = ref(null)
 
 const LS_KEY = 'pwa-install-dismissed'
 
@@ -47,13 +48,19 @@ const dismiss = () => {
 }
 
 const install = async () => {
+  const prompt = deferredPrompt.value
+  if (prompt) {
+    prompt.prompt()
+    const result = await prompt.userChoice
+    deferredPrompt.value = null
+    if (result.outcome === 'accepted') dismiss()
+    return
+  }
   try {
     const { $pwa } = useNuxtApp()
-    await $pwa.showInstallPrompt?.()
-    dismiss()
-  } catch {
-    // prompt not available
-  }
+    const showed = await $pwa.showInstallPrompt?.()
+    if (showed) dismiss()
+  } catch {}
 }
 
 onMounted(() => {
@@ -65,6 +72,11 @@ onMounted(() => {
   if (p === 'desktop') return
   platform.value = p
   visible.value = true
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault()
+    deferredPrompt.value = e
+  })
 })
 </script>
 
