@@ -25,7 +25,7 @@ useHead({
     dir: computed(() => (locale.value === "ar" ? "rtl" : "ltr")),
   },
   link: [
-    { rel: "apple-touch-icon", href: "/pwa-192.png" },
+    { rel: "apple-touch-icon", href: "/logo.png" },
   ],
 });
 
