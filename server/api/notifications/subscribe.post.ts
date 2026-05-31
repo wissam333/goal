@@ -7,18 +7,27 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const supabaseUrl = config.public.supabaseUrl
-  const serviceKey = config.supabaseServiceKey || config.public.supabaseKey
-  if (!supabaseUrl || !serviceKey) {
+  const anonKey = config.public.supabaseKey
+  const serviceKey = config.supabaseServiceKey
+  if (!supabaseUrl || !anonKey) {
     throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
   }
 
+  const auth = serviceKey ? `Bearer ${serviceKey}` : `Bearer ${anonKey}`
+
+  // Delete any existing subscription for this endpoint (cleanup)
+  await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(subscription.endpoint)}`, {
+    method: 'DELETE',
+    headers: { apikey: anonKey, Authorization: auth },
+  })
+
+  // Insert new subscription
   const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apikey: config.public.supabaseKey,
-      Authorization: `Bearer ${serviceKey}`,
-      Prefer: 'resolution=merge-duplicates',
+      apikey: anonKey,
+      Authorization: auth,
     },
     body: JSON.stringify({
       endpoint: subscription.endpoint,
@@ -28,7 +37,8 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!res.ok) {
-    throw createError({ statusCode: 500, statusMessage: `Subscribe failed: ${res.status}` })
+    const text = await res.text().catch(() => 'unknown')
+    throw createError({ statusCode: 500, statusMessage: `Subscribe failed (${res.status}): ${text}` })
   }
 
   return { ok: true }

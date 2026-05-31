@@ -23,13 +23,17 @@ export default defineNuxtPlugin({
           userVisibleOnly: true,
           applicationServerKey: b64(key),
         })
-        await fetch('/api/notifications/subscribe', {
+        const subRes = await fetch('/api/notifications/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ subscription: subscription.toJSON() }),
         })
-      } catch {
-        // silent
+        if (!subRes.ok) {
+          const text = await subRes.text().catch(() => 'unknown')
+          throw new Error(`Server (${subRes.status}): ${text}`)
+        }
+      } catch (err) {
+        console.warn('[Push] subscribe error:', err instanceof Error ? err.message : err)
       }
     }
 
