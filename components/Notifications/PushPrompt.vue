@@ -9,6 +9,7 @@
         {{ $t('notifications.later') }}
       </button>
     </div>
+    
   </div>
 </template>
 
