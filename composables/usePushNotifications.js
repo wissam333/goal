@@ -8,8 +8,11 @@ export const usePushNotifications = () => {
   async function getReg() {
     if (!supported) return null
     try {
-      const reg = await navigator.serviceWorker.ready
-      swReady.value = true
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise(r => setTimeout(() => r(null), 5000)),
+      ])
+      swReady.value = !!reg
       return reg
     } catch {
       return null

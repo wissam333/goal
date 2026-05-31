@@ -20,16 +20,20 @@ const visible = computed(() => {
 })
 
 async function tryAutoSubscribe() {
-  if (!push.supported || push.permission !== 'default' || hasAutoAsked.value) return
+  if (!push.supported || hasAutoAsked.value) return
   hasAutoAsked.value = true
-  const result = await push.requestPermission()
-  if (result === 'granted') {
+  if (push.permission === 'granted') {
     await push.subscribe()
+  } else if (push.permission === 'default') {
+    const result = await push.requestPermission()
+    if (result === 'granted') {
+      await push.subscribe()
+    }
   }
 }
 
 onMounted(() => {
-  setTimeout(tryAutoSubscribe, 1000)
+  setTimeout(tryAutoSubscribe, 2000)
 })
 </script>
 
