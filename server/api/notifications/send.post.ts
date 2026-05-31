@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
     const subscriptions = await res.json()
     if (!subscriptions?.length) {
-      return { ok: true, sent: 0, message: 'No subscribers. Open the site and allow notifications.' }
+      return { ok: true, sent: 0, message: 'No subscribers.' }
     }
 
     const payload = {
@@ -40,39 +40,61 @@ export default defineEventHandler(async (event) => {
       data: { url: url || '/' },
     }
 
-    // Create VAPID auth once (all FCM endpoints share same origin)
-    const origin = new URL(subscriptions[0].endpoint).origin
-    const vapidAuth = await createVapidAuth(
-      config.vapidPrivateKey,
-      config.public.vapidPublicKey,
-      origin
-    )
-
     let sent = 0
     const errors = []
-    await Promise.allSettled(
-      subscriptions.map(async (sub) => {
-        const shortEndpoint = (sub.endpoint || '').slice(0, 60)
-        try {
-          const result = await sendPush(sub, payload, vapidAuth)
-          if (result.ok) {
+
+    // Try web-push (works on Node.js/Vercel), fall back to Web Crypto (Cloudflare Workers)
+    try {
+      const webPush = await import('web-push').then(m => m.default || m)
+      webPush.setVapidDetails(
+        'mailto:admin@example.com',
+        config.public.vapidPublicKey,
+        config.vapidPrivateKey
+      )
+      await Promise.allSettled(
+        subscriptions.map(async (sub) => {
+          try {
+            await webPush.sendNotification(
+              { endpoint: sub.endpoint, keys: sub.keys },
+              JSON.stringify(payload),
+              { TTL: 86400 }
+            )
             sent++
-          } else if (result.status === 410 || result.status === 404) {
-            await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
-              method: 'DELETE',
-              headers: {
-                apikey: config.public.supabaseKey,
-                Authorization: `Bearer ${serviceKey}`,
-              },
-            })
-          } else {
-            errors.push(`ep=${shortEndpoint} status=${result.status}`)
+          } catch (e) {
+            if (e.statusCode === 410 || e.statusCode === 404) {
+              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
+                method: 'DELETE',
+                headers: { apikey: config.public.supabaseKey, Authorization: `Bearer ${serviceKey}` },
+              })
+            } else {
+              errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} status=${e.statusCode || 0}`)
+            }
           }
-        } catch (e) {
-          errors.push(`ep=${shortEndpoint} err=${e?.message || e}`)
-        }
-      })
-    )
+        })
+      )
+    } catch {
+      // web-push not available (Cloudflare Workers) — use Web Crypto fallback
+      const origin = new URL(subscriptions[0].endpoint).origin
+      const vapidAuth = await createVapidAuth(config.vapidPrivateKey, config.public.vapidPublicKey, origin)
+      await Promise.allSettled(
+        subscriptions.map(async (sub) => {
+          try {
+            const result = await sendPush(sub, payload, vapidAuth)
+            if (result.ok) { sent++ }
+            else if (result.status === 410 || result.status === 404) {
+              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
+                method: 'DELETE',
+                headers: { apikey: config.public.supabaseKey, Authorization: `Bearer ${serviceKey}` },
+              })
+            } else {
+              errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} status=${result.status}`)
+            }
+          } catch (e) {
+            errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} err=${e?.message || e}`)
+          }
+        })
+      )
+    }
 
     return { ok: true, sent, total: subscriptions.length, errors: errors.length ? errors : undefined }
   } catch (err) {
