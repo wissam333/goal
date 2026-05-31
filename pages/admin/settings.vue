@@ -313,8 +313,9 @@ const handleSendNotification = async () => {
     notifForm.title = ""
     notifForm.body = ""
     notifForm.url = "/"
-  } catch {
-    showAlert('error', '❌ خطأ', 'فشل إرسال الإشعار')
+  } catch (err) {
+    const msg = err?.data?.statusMessage || err?.message || 'فشل إرسال الإشعار'
+    showAlert('error', '❌ خطأ', msg)
   } finally {
     sendingNotif.value = false
   }
