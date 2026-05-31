@@ -19,13 +19,23 @@
       <div v-if="open && !isMobile" class="notif-dropdown" @click.stop>
         <div class="notif-header">
           <h4>{{ $t("notifications.title") }}</h4>
-          <button
-            v-if="unreadCount > 0"
-            class="mark-read-btn"
-            @click="center.markAllRead()"
-          >
-            {{ $t("notifications.markAllRead") }}
-          </button>
+          <div class="notif-header-actions">
+            <button
+              v-if="permState !== 'granted'"
+              class="subscribe-btn"
+              @click.stop="handleSubscribe"
+            >
+              <Icon :name="permState === 'denied' ? 'mdi:bell-off' : 'mdi:bell-plus'" size="14" />
+              {{ permState === 'denied' ? '🔕 الإشعارات مقفلة' : $t('notifications.allow') }}
+            </button>
+            <button
+              v-if="unreadCount > 0"
+              class="mark-read-btn"
+              @click="center.markAllRead()"
+            >
+              {{ $t("notifications.markAllRead") }}
+            </button>
+          </div>
         </div>
 
         <div v-if="!center.notifications.value.length" class="notif-empty">
@@ -64,6 +74,14 @@
       :title="$t('notifications.title')"
     >
       <div class="notif-header-mobile">
+        <button
+          v-if="permState !== 'granted'"
+          class="subscribe-btn"
+          @click="handleSubscribe"
+        >
+          <Icon :name="permState === 'denied' ? 'mdi:bell-off' : 'mdi:bell-plus'" size="16" />
+          {{ permState === 'denied' ? '🔕 الإشعارات مقفلة' : $t('notifications.allow') }}
+        </button>
         <button
           v-if="unreadCount > 0"
           class="mark-read-btn"
@@ -107,14 +125,29 @@
 
 <script setup>
 const center = useNotificationCenter();
+const push = usePushNotifications();
 const open = ref(false);
 const wrapperRef = ref(null);
 const isMobile = ref(false);
 
 const unreadCount = computed(() => center.unreadCount.value);
+const permState = computed(() => push.supported ? push.permission.value : 'denied');
 
 function toggleOpen() {
   open.value = !open.value;
+}
+
+async function handleSubscribe() {
+  if (push.permission.value === 'granted') return
+  if (push.permission.value === 'denied') {
+    alert('يرجى تفعيل الإشعارات من إعدادات المتصفح')
+    return
+  }
+  const result = await push.requestPermission()
+  if (result === 'granted') {
+    await push.subscribe()
+    open.value = false
+  }
 }
 
 function handleClick(n) {
@@ -234,6 +267,29 @@ onUnmounted(() => {
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 700;
+}
+.notif-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary, #22c55e);
+  color: #fff;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  transition: all 0.15s;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.subscribe-btn:hover {
+  opacity: 0.9;
 }
 .mark-read-btn {
   background: none;

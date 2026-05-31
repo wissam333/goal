@@ -1,18 +1,28 @@
-import { createClient } from '@supabase/supabase-js'
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { endpoint } = body
   if (!endpoint) {
-    throw createError({ statusCode: 400, message: 'Missing endpoint' })
+    throw createError({ statusCode: 400, statusMessage: 'Missing endpoint' })
   }
 
   const config = useRuntimeConfig()
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseKey
-  )
+  const supabaseUrl = config.public.supabaseUrl
+  const serviceKey = config.supabaseServiceKey || config.public.supabaseKey
+  if (!supabaseUrl || !serviceKey) {
+    throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
+  }
 
-  await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint)
+  const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`, {
+    method: 'DELETE',
+    headers: {
+      apikey: config.public.supabaseKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw createError({ statusCode: 500, statusMessage: `Unsubscribe failed: ${res.status}` })
+  }
+
   return { ok: true }
 })

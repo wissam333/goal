@@ -6,23 +6,29 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const { createClient } = await import('@supabase/supabase-js')
-  const supabase = createClient(
-    config.public.supabaseUrl,
-    config.supabaseServiceKey || config.public.supabaseKey
-  )
+  const supabaseUrl = config.public.supabaseUrl
+  const serviceKey = config.supabaseServiceKey || config.public.supabaseKey
+  if (!supabaseUrl || !serviceKey) {
+    throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
+  }
 
-  const { error } = await supabase.from('push_subscriptions').upsert(
-    {
+  const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: config.public.supabaseKey,
+      Authorization: `Bearer ${serviceKey}`,
+      Prefer: 'resolution=merge-duplicates',
+    },
+    body: JSON.stringify({
       endpoint: subscription.endpoint,
       keys: subscription.keys || {},
       user_agent: getHeader(event, 'user-agent') || null,
-    },
-    { onConflict: 'endpoint' }
-  )
+    }),
+  })
 
-  if (error) {
-    throw createError({ statusCode: 500, statusMessage: error.message })
+  if (!res.ok) {
+    throw createError({ statusCode: 500, statusMessage: `Subscribe failed: ${res.status}` })
   }
 
   return { ok: true }
