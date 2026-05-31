@@ -51,9 +51,42 @@ export const useNotificationCenter = () => {
     save()
   }
 
+  async function fetchFromSW() {
+    if (!import.meta.client || !('serviceWorker' in navigator)) return
+    try {
+      const reg = await navigator.serviceWorker.ready
+      const channel = new MessageChannel()
+      const promise = new Promise((resolve) => {
+        channel.port1.onmessage = (event) => {
+          if (event.data?.type === 'PUSH_NOTIFICATIONS') {
+            resolve(event.data.notifications || [])
+          }
+        }
+      })
+      reg.active?.postMessage({ type: 'GET_PUSH_NOTIFICATIONS' }, [channel.port2])
+      const swNotifs = await promise
+      const existingIds = new Set(notifications.value.map(n => n.url + n.body))
+      let added = 0
+      for (const n of swNotifs) {
+        const key = (n.url || '') + (n.body || '')
+        if (!existingIds.has(key)) {
+          add({ ...n, fromSW: true })
+          existingIds.add(key)
+          added++
+        }
+      }
+      if (added > 0) save()
+    } catch {
+      // SW not available
+    }
+  }
+
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
 
-  if (import.meta.client) load()
+  if (import.meta.client) {
+    load()
+    fetchFromSW()
+  }
 
-  return { notifications, unreadCount, add, markAsRead, markAllRead, remove, clear }
+  return { notifications, unreadCount, add, markAsRead, markAllRead, remove, clear, fetchFromSW }
 }

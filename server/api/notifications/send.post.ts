@@ -1,65 +1,59 @@
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
-    const vapidPublic = config.public.vapidPublicKey
-    const vapidPrivate = config.vapidPrivateKey
-
-    if (!vapidPublic || !vapidPrivate) {
-      throw createError({ statusCode: 500, statusMessage: 'VAPID keys not configured in .env' })
-    }
-
     const body = await readBody(event)
     const { title, body: messageBody, url, icon } = body
     if (!title) {
       throw createError({ statusCode: 400, statusMessage: 'Missing title' })
     }
 
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(
-      config.public.supabaseUrl,
-      config.supabaseServiceKey || config.public.supabaseKey
-    )
+    const supabaseUrl = config.public.supabaseUrl
+    const serviceKey = config.supabaseServiceKey
+    if (!supabaseUrl || !serviceKey) {
+      throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
+    }
 
-    let subscriptions
-    try {
-      const res = await supabase.from('push_subscriptions').select('endpoint, keys')
-      if (res.error) throw res.error
-      subscriptions = res.data
-    } catch (dbErr) {
+    const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?select=endpoint,keys`, {
+      headers: {
+        apikey: config.public.supabaseKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+    })
+
+    if (!res.ok) {
       throw createError({
         statusCode: 500,
-        statusMessage: `Failed to query push_subscriptions table. Run the SQL migration first. ${dbErr.message || dbErr}`,
+        statusMessage: `Failed to query push_subscriptions: ${res.status}. Run SQL migration first.`,
       })
     }
 
+    const subscriptions = await res.json()
     if (!subscriptions?.length) {
       return { ok: true, sent: 0, message: 'No subscribers. Open the site and allow notifications.' }
     }
 
-    const webpush = await import('web-push')
-    webpush.default.setVapidDetails('mailto:league@example.com', vapidPublic, vapidPrivate)
-
-    const payload = JSON.stringify({
+    const payload = {
       title,
       body: messageBody || '',
       icon: icon || '/logo.png',
       badge: '/favicon.svg',
       data: { url: url || '/' },
-    })
+    }
 
     let sent = 0
     await Promise.allSettled(
       subscriptions.map(async (sub) => {
-        try {
-          await webpush.default.sendNotification(
-            { endpoint: sub.endpoint, keys: sub.keys },
-            payload
-          )
+        const result = await sendPush(sub, payload)
+        if (result.ok) {
           sent++
-        } catch (pushErr) {
-          if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
-            await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
-          }
+        } else if (result.status === 410 || result.status === 404) {
+          await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
+            method: 'DELETE',
+            headers: {
+              apikey: config.public.supabaseKey,
+              Authorization: `Bearer ${serviceKey}`,
+            },
+          })
         }
       })
     )

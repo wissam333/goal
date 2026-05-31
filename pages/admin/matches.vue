@@ -318,7 +318,6 @@ function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
 }
 
 async function sendPushNotification(title, body, url) {
-  if (!push.subscribed.value) return
   try {
     await $fetch('/api/notifications/send', {
       method: 'POST',

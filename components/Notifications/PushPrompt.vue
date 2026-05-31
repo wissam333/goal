@@ -1,37 +1,36 @@
 <template>
-  <div v-if="showBanner" class="push-prompt">
-    <p class="push-prompt-text">{{ $t('notifications.pushPrompt') }}</p>
-    <div class="push-prompt-actions">
-      <button class="push-btn allow" @click="enable">
-        {{ $t('notifications.allow') }}
-      </button>
-      <button class="push-btn later" @click="dismiss">
-        {{ $t('notifications.later') }}
-      </button>
-    </div>
-    
+  <div v-if="visible" class="push-prompt" :class="{ denied: isDenied }">
+    <p class="push-prompt-text">
+      {{ isDenied ? '🔕 تم رفض الإشعارات. فعّلها من إعدادات المتصفح لتحصل على التحديثات الفورية.' : $t('notifications.pushPrompt') }}
+    </p>
   </div>
 </template>
 
 <script setup>
 const push = usePushNotifications()
 const dismissed = ref(false)
+const hasAutoAsked = ref(false)
 
-const showBanner = computed(() =>
-  push.supported && push.permission === 'default' && !dismissed.value
-)
+const isDenied = computed(() => push.supported && push.permission === 'denied')
 
-async function enable() {
+const visible = computed(() => {
+  if (!push.supported || dismissed.value) return false
+  if (push.permission === 'denied') return true
+  return push.permission === 'default' && !hasAutoAsked.value
+})
+
+async function tryAutoSubscribe() {
+  if (!push.supported || push.permission !== 'default' || hasAutoAsked.value) return
+  hasAutoAsked.value = true
   const result = await push.requestPermission()
   if (result === 'granted') {
     await push.subscribe()
   }
-  dismissed.value = true
 }
 
-function dismiss() {
-  dismissed.value = true
-}
+onMounted(() => {
+  setTimeout(tryAutoSubscribe, 1000)
+})
 </script>
 
 <style scoped>
@@ -43,35 +42,17 @@ function dismiss() {
   border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
+}
+.push-prompt.denied {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 .push-prompt-text {
   margin: 0;
   font-size: 0.875rem;
   color: var(--text-primary);
   flex: 1;
-}
-.push-prompt-actions {
-  display: flex;
-  gap: 8px;
-}
-.push-btn {
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: none;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  font-weight: 500;
-}
-.push-btn.allow {
-  background: var(--primary, #22c55e);
-  color: #fff;
-}
-.push-btn.later {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color, #e2e8f0);
+  text-align: center;
 }
 </style>
