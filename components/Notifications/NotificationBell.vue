@@ -165,7 +165,11 @@ async function runDiagnostic() {
     diag.swReady = true
     if (!window.__VAPID_KEY) { diag.subResult = '❌ VAPID key مفقودة'; return }
     const sub = await reg.pushManager.getSubscription()
-    if (sub) { diag.subResult = '✅ مشترك بالفعل'; return }
+    if (sub) {
+      const res = await fetch('/api/notifications/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub.toJSON() }) })
+      if (res.ok) { diag.subResult = '✅ مشترك بالفعل - تم تحديث السيرفر' } else { diag.subResult = `⚠️ مشترك في المتصفح فقط! فشل حفظ الخادم (${res.status}): ${await res.text().catch(() => '')}` }
+      return
+    }
     const permission = await Notification.requestPermission()
     diag.permission = permission
     if (permission !== 'granted') { diag.subResult = '❌ لم يتم منح الإذن'; return }
