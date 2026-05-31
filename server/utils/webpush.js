@@ -1,4 +1,4 @@
-export async function sendPush(subscription, payloadText) {
+export async function sendPush(subscription, payloadText, vapidAuth) {
   const { endpoint, keys } = subscription
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
     throw new Error('Invalid subscription')
@@ -45,17 +45,79 @@ export async function sendPush(subscription, payloadText) {
   body.set(ephemPub, 21)
   body.set(encrypted, 86)
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    body,
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      'Content-Encoding': 'aes128gcm',
-      TTL: '86400',
-    },
-  })
+  const headers = {
+    'Content-Type': 'application/octet-stream',
+    'Content-Encoding': 'aes128gcm',
+    TTL: '86400',
+  }
+  if (vapidAuth) {
+    headers['Authorization'] = vapidAuth.authorization
+    headers['Crypto-Key'] = vapidAuth.cryptoKey
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 5000)
+
+  let response
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      body,
+      headers,
+      signal: controller.signal,
+    })
+  } catch (e) {
+    clearTimeout(timeout)
+    return { ok: false, status: 0, error: e?.message || String(e) }
+  }
+  clearTimeout(timeout)
 
   return { ok: response.ok, status: response.status }
+}
+
+export async function createVapidAuth(vapidPrivateKeyB64, vapidPublicKeyB64, audience) {
+  const privateKeyBytes = urlBase64ToUint8Array(vapidPrivateKeyB64)
+  const publicKeyBytes = urlBase64ToUint8Array(vapidPublicKeyB64)
+
+  const x = uint8ArrayToBase64Url(publicKeyBytes.slice(1, 33))
+  const y = uint8ArrayToBase64Url(publicKeyBytes.slice(33, 65))
+  const d = uint8ArrayToBase64Url(privateKeyBytes)
+
+  const jwk = { kty: 'EC', crv: 'P-256', x, y, d }
+
+  const privateKey = await crypto.subtle.importKey(
+    'jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' },
+    false, ['sign']
+  )
+
+  const header = { typ: 'JWT', alg: 'ES256' }
+  const payload = {
+    aud: audience,
+    exp: Math.floor(Date.now() / 1000) + 86400,
+    sub: 'mailto:admin@example.com',
+  }
+
+  const headerB64 = uint8ArrayToBase64Url(new TextEncoder().encode(JSON.stringify(header)))
+  const payloadB64 = uint8ArrayToBase64Url(new TextEncoder().encode(JSON.stringify(payload)))
+
+  const toSign = new TextEncoder().encode(`${headerB64}.${payloadB64}`)
+  const signature = new Uint8Array(await crypto.subtle.sign(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    privateKey,
+    toSign
+  ))
+
+  const sigB64 = uint8ArrayToBase64Url(signature)
+
+  return {
+    authorization: `WebPush ${headerB64}.${payloadB64}.${sigB64}`,
+    cryptoKey: `p256ecdsa=${vapidPublicKeyB64}`,
+  }
+}
+
+function uint8ArrayToBase64Url(arr) {
+  const binary = Array.from(arr).map(b => String.fromCharCode(b)).join('')
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 const textEncoder = new TextEncoder()

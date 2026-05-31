@@ -40,25 +40,41 @@ export default defineEventHandler(async (event) => {
       data: { url: url || '/' },
     }
 
+    // Create VAPID auth once (all FCM endpoints share same origin)
+    const origin = new URL(subscriptions[0].endpoint).origin
+    const vapidAuth = await createVapidAuth(
+      config.vapidPrivateKey,
+      config.public.vapidPublicKey,
+      origin
+    )
+
     let sent = 0
+    const errors = []
     await Promise.allSettled(
       subscriptions.map(async (sub) => {
-        const result = await sendPush(sub, payload)
-        if (result.ok) {
-          sent++
-        } else if (result.status === 410 || result.status === 404) {
-          await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
-            method: 'DELETE',
-            headers: {
-              apikey: config.public.supabaseKey,
-              Authorization: `Bearer ${serviceKey}`,
-            },
-          })
+        const shortEndpoint = (sub.endpoint || '').slice(0, 60)
+        try {
+          const result = await sendPush(sub, payload, vapidAuth)
+          if (result.ok) {
+            sent++
+          } else if (result.status === 410 || result.status === 404) {
+            await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
+              method: 'DELETE',
+              headers: {
+                apikey: config.public.supabaseKey,
+                Authorization: `Bearer ${serviceKey}`,
+              },
+            })
+          } else {
+            errors.push(`ep=${shortEndpoint} status=${result.status}`)
+          }
+        } catch (e) {
+          errors.push(`ep=${shortEndpoint} err=${e?.message || e}`)
         }
       })
     )
 
-    return { ok: true, sent }
+    return { ok: true, sent, total: subscriptions.length, errors: errors.length ? errors : undefined }
   } catch (err) {
     throw createError({
       statusCode: err.statusCode || 500,

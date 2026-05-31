@@ -38,13 +38,6 @@
           </div>
         </div>
 
-        <div class="notif-diag">
-          <button class="diag-btn" @click.stop="runDiagnostic">🔍 تشخيص الإشعارات</button>
-          <div v-if="diag.subResult" class="diag-result" :class="{ error: diag.subResult.startsWith('❌') }">
-            {{ diag.subResult }}
-          </div>
-        </div>
-
         <div v-if="!center.notifications.value.length" class="notif-empty">
           <Icon name="mdi:bell-off-outline" size="24" />
           <p>{{ $t("notifications.empty") }}</p>
@@ -105,13 +98,6 @@
         </button>
       </div>
 
-      <div class="notif-diag">
-        <button class="diag-btn" @click="runDiagnostic">🔍 تشخيص الإشعارات</button>
-        <div v-if="diag.subResult" class="diag-result" :class="{ error: diag.subResult.startsWith('❌') }">
-          {{ diag.subResult }}
-        </div>
-      </div>
-
       <div v-if="!center.notifications.value.length" class="notif-empty">
         <Icon name="mdi:bell-off-outline" size="24" />
         <p>{{ $t("notifications.empty") }}</p>
@@ -146,52 +132,6 @@ const isMobile = ref(false);
 
 const unreadCount = computed(() => center.unreadCount.value);
 const permState = computed(() => push.supported ? push.permission.value : 'denied');
-
-// Diagnostics
-const diag = reactive({
-  swReady: false,
-  vapidKey: !!window.__VAPID_KEY,
-  keyLength: (window.__VAPID_KEY || '').length,
-  permission: Notification.permission,
-  subResult: '',
-  subError: '',
-})
-async function runDiagnostic() {
-  diag.subResult = 'جاري...'
-  diag.subError = ''
-  try {
-    if (!('serviceWorker' in navigator)) { diag.subResult = '❌ لا يدعم Service Worker'; return }
-    const reg = await navigator.serviceWorker.ready
-    diag.swReady = true
-    if (!window.__VAPID_KEY) { diag.subResult = '❌ VAPID key مفقودة'; return }
-    const sub = await reg.pushManager.getSubscription()
-    if (sub) {
-      // Save to Supabase via subscribe endpoint
-      const res = await fetch('/api/notifications/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub.toJSON() }) })
-      const saveOk = res.ok
-      if (!saveOk) { diag.subResult = `⚠️ مشترك في المتصفح فقط! فشل حفظ الخادم (${res.status}): ${await res.text().catch(() => '')}`; return }
-      // Verify by checking the table directly
-      const check = await fetch('/api/notifications/check-subs')
-      const checkData = await check.json().catch(() => ({}))
-      const count = checkData.subscriptions?.length ?? '?'
-      diag.subResult = `✅ مشترك - جدول Supabase يحتوي على ${count} اشتراك`
-      if (count === 0 || count === '?') {
-        diag.subResult += ` (تحذير: الخادم يرى 0 اشتراك! البيانات: ${JSON.stringify(checkData).slice(0, 200)})`
-      }
-      return
-    }
-    const permission = await Notification.requestPermission()
-    diag.permission = permission
-    if (permission !== 'granted') { diag.subResult = '❌ لم يتم منح الإذن'; return }
-    const b = (s) => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))) }
-    const newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b(window.__VAPID_KEY) })
-    const res = await fetch('/api/notifications/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: newSub.toJSON() }) })
-    if (res.ok) { diag.subResult = '✅ تم الاشتراك بنجاح' } else { diag.subResult = `❌ فشل الخادم (${res.status}): ${await res.text().catch(() => '')}` }
-  } catch (err) {
-    diag.subError = err instanceof Error ? err.message : String(err)
-    diag.subResult = `❌ خطأ: ${diag.subError}`
-  }
-}
 
 function toggleOpen() {
   open.value = !open.value;
@@ -448,37 +388,6 @@ onUnmounted(() => {
   font-size: 0.7rem;
   color: var(--text-muted);
 }
-
-.notif-diag {
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-.diag-btn {
-  background: var(--primary-soft);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
-  text-align: center;
-  transition: all 0.15s;
-}
-.diag-btn:hover {
-  background: var(--primary-mid);
-}
-.diag-result {
-  margin-top: 6px;
-  font-size: 0.75rem;
-  color: var(--text-primary);
-  direction: ltr;
-  word-break: break-all;
-}
-.diag-result.error {
-  color: #ef4444;
-}
-
 .notif-dropdown-enter-active {
   transition: all 0.2s ease-out;
 }
