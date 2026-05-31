@@ -20,6 +20,14 @@
         <div class="notif-header">
           <h4>{{ $t("notifications.title") }}</h4>
           <button
+            v-if="pushSupported && !pushSubscribed"
+            class="subscribe-btn"
+            @click.stop="handleSubscribe"
+          >
+            <Icon name="mdi:bell-plus-outline" size="14" />
+            {{ $t('notifications.allow') }}
+          </button>
+          <button
             v-if="unreadCount > 0"
             class="mark-read-btn"
             @click="center.markAllRead()"
@@ -65,6 +73,14 @@
     >
       <div class="notif-header-mobile">
         <button
+          v-if="pushSupported && !pushSubscribed"
+          class="subscribe-btn"
+          @click="handleSubscribe"
+        >
+          <Icon name="mdi:bell-plus-outline" size="16" />
+          {{ $t('notifications.allow') }}
+        </button>
+        <button
           v-if="unreadCount > 0"
           class="mark-read-btn"
           @click="center.markAllRead()"
@@ -107,14 +123,24 @@
 
 <script setup>
 const center = useNotificationCenter();
+const push = usePushNotifications();
 const open = ref(false);
 const wrapperRef = ref(null);
 const isMobile = ref(false);
 
 const unreadCount = computed(() => center.unreadCount.value);
+const pushSupported = computed(() => push.supported);
+const pushSubscribed = computed(() => push.subscribed.value);
 
 function toggleOpen() {
   open.value = !open.value;
+}
+
+async function handleSubscribe() {
+  const result = await push.requestPermission();
+  if (result === 'granted') {
+    await push.subscribe();
+  }
 }
 
 function handleClick(n) {
@@ -249,11 +275,31 @@ onUnmounted(() => {
   background: var(--primary-soft);
 }
 
+.subscribe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary, #22c55e);
+  color: #fff;
+  border: none;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+.subscribe-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}
+
 .notif-header-mobile {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 .notif-header-mobile .mark-read-btn {
   font-size: 0.85rem;

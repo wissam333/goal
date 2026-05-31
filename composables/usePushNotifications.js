@@ -31,12 +31,13 @@ export const usePushNotifications = () => {
 
   async function subscribe() {
     if (!supported || permission.value !== 'granted') return null
-    const config = useRuntimeConfig()
+    const key = window.__VAPID_KEY
+    if (!key) return null
     const reg = await getReg()
     if (!reg) return null
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(config.public.vapidPublicKey || ''),
+      applicationServerKey: urlBase64ToUint8Array(key),
     })
     await $fetch('/api/notifications/subscribe', {
       method: 'POST',

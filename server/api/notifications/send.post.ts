@@ -1,6 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-import webpush from 'web-push'
-
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
@@ -11,14 +8,13 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 500, statusMessage: 'VAPID keys not configured in .env' })
     }
 
-    webpush.setVapidDetails('mailto:league@example.com', vapidPublic, vapidPrivate)
-
     const body = await readBody(event)
     const { title, body: messageBody, url, icon } = body
     if (!title) {
       throw createError({ statusCode: 400, statusMessage: 'Missing title' })
     }
 
+    const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(
       config.public.supabaseUrl,
       config.supabaseServiceKey || config.public.supabaseKey
@@ -32,13 +28,16 @@ export default defineEventHandler(async (event) => {
     } catch (dbErr) {
       throw createError({
         statusCode: 500,
-        statusMessage: `Failed to query push_subscriptions table. Run supabase-migration.sql first. ${dbErr.message || dbErr}`,
+        statusMessage: `Failed to query push_subscriptions table. Run the SQL migration first. ${dbErr.message || dbErr}`,
       })
     }
 
     if (!subscriptions?.length) {
-      return { ok: true, sent: 0, message: 'No subscribers' }
+      return { ok: true, sent: 0, message: 'No subscribers. Open the site and allow notifications.' }
     }
+
+    const webpush = await import('web-push')
+    webpush.default.setVapidDetails('mailto:league@example.com', vapidPublic, vapidPrivate)
 
     const payload = JSON.stringify({
       title,
@@ -52,13 +51,12 @@ export default defineEventHandler(async (event) => {
     await Promise.allSettled(
       subscriptions.map(async (sub) => {
         try {
-          await webpush.sendNotification(
+          await webpush.default.sendNotification(
             { endpoint: sub.endpoint, keys: sub.keys },
             payload
           )
           sent++
         } catch (pushErr) {
-          // Stale subscription — clean it up
           if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
             await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
           }

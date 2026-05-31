@@ -1,13 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { subscription } = body
   if (!subscription?.endpoint) {
-    throw createError({ statusCode: 400, message: 'Missing subscription' })
+    throw createError({ statusCode: 400, statusMessage: 'Missing subscription' })
   }
 
   const config = useRuntimeConfig()
+  const { createClient } = await import('@supabase/supabase-js')
   const supabase = createClient(
     config.public.supabaseUrl,
     config.supabaseServiceKey || config.public.supabaseKey
@@ -23,7 +22,7 @@ export default defineEventHandler(async (event) => {
   )
 
   if (error) {
-    throw createError({ statusCode: 500, message: error.message })
+    throw createError({ statusCode: 500, statusMessage: error.message })
   }
 
   return { ok: true }
