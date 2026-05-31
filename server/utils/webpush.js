@@ -38,12 +38,12 @@ export async function sendPush(subscription, payloadText) {
 
   const ephemPub = new Uint8Array(await crypto.subtle.exportKey('raw', ephemeral.publicKey))
 
-  const body = new Uint8Array(16 + 4 + 2 + 65 + encrypted.length)
+  const body = new Uint8Array(16 + 4 + 1 + 65 + encrypted.length)
   body.set(salt, 0)
   body.set([0, 0, 16, 0], 16)
-  body.set([0, 65], 20)
-  body.set(ephemPub, 22)
-  body.set(encrypted, 87)
+  body.set([65], 20)
+  body.set(ephemPub, 21)
+  body.set(encrypted, 86)
 
   const response = await fetch(endpoint, {
     method: 'POST',

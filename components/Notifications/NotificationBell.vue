@@ -166,8 +166,18 @@ async function runDiagnostic() {
     if (!window.__VAPID_KEY) { diag.subResult = '❌ VAPID key مفقودة'; return }
     const sub = await reg.pushManager.getSubscription()
     if (sub) {
+      // Save to Supabase via subscribe endpoint
       const res = await fetch('/api/notifications/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub.toJSON() }) })
-      if (res.ok) { diag.subResult = '✅ مشترك بالفعل - تم تحديث السيرفر' } else { diag.subResult = `⚠️ مشترك في المتصفح فقط! فشل حفظ الخادم (${res.status}): ${await res.text().catch(() => '')}` }
+      const saveOk = res.ok
+      if (!saveOk) { diag.subResult = `⚠️ مشترك في المتصفح فقط! فشل حفظ الخادم (${res.status}): ${await res.text().catch(() => '')}`; return }
+      // Verify by checking the table directly
+      const check = await fetch('/api/notifications/check-subs')
+      const checkData = await check.json().catch(() => ({}))
+      const count = checkData.subscriptions?.length ?? '?'
+      diag.subResult = `✅ مشترك - جدول Supabase يحتوي على ${count} اشتراك`
+      if (count === 0 || count === '?') {
+        diag.subResult += ` (تحذير: الخادم يرى 0 اشتراك! البيانات: ${JSON.stringify(checkData).slice(0, 200)})`
+      }
       return
     }
     const permission = await Notification.requestPermission()
