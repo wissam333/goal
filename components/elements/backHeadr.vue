@@ -42,7 +42,7 @@ const {
 const loaded = ref(false);
 
 const activeVPlaceLoad = (e) => {
-  console.log("error loading image");
+  void("error loading image");
   loaded.value = false;
 };
 

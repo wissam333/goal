@@ -20,7 +20,7 @@
   },
 
 });
-// console.log(value);
+
 
 
 </script>

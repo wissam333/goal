@@ -86,7 +86,7 @@ export const useAdminData = () => {
     if (parts.length < 2) return
     const path = parts[1]
     const { error } = await bucket.remove([path])
-    if (error) console.error("Failed to delete photo from storage:", error)
+    if (error) void(error)
   }
 
   return {

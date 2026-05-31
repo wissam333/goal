@@ -414,14 +414,15 @@ const formatMatchDate = (dateStr) => {
 
 const confettiStyle = (i) => {
   const colors = ['#f59e0b','#22c55e','#ef4444','#3b82f6','#a855f7','#ec4899','#14b8a6'];
+  const s = (n) => { const x = Math.sin(n) * 10000; return x - Math.floor(x); };
   return {
-    left: `${Math.random() * 100}%`,
-    animationDelay: `${Math.random() * 3}s`,
-    animationDuration: `${2 + Math.random() * 3}s`,
+    left: `${s(i * 1) * 100}%`,
+    animationDelay: `${s(i * 7) * 3}s`,
+    animationDuration: `${2 + s(i * 13) * 3}s`,
     backgroundColor: colors[i % colors.length],
-    width: `${6 + Math.random() * 8}px`,
-    height: `${6 + Math.random() * 8}px`,
-    borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+    width: `${6 + s(i * 5) * 8}px`,
+    height: `${6 + s(i * 11) * 8}px`,
+    borderRadius: s(i * 3) > 0.5 ? '50%' : '2px',
   };
 };
 

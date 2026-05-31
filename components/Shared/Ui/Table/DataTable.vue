@@ -368,7 +368,7 @@ const emit = defineEmits([
   "sort-change",
 ]);
 
-const { locale } = useI18n();
+const { locale, t } = useI18n();
 const slots = useSlots();
 
 // Mobile detection
@@ -502,19 +502,20 @@ const getStatusBadgeClass = (status) => {
 };
 
 const getStatusText = (status) => {
-  const statusMap = {
-    Paid: "مدفوع",
-    Accepted: "مقبول",
-    Confirmed: "مؤكد",
-    Pending: "معلق",
-    Overdue: "متأخر",
-    Cancelled: "ملغي",
-    Canceled: "ملغي",
-    Rejected: "مرفوض",
-    Completed: "مكتمل",
+  const keyMap = {
+    Paid: "status.paid",
+    Accepted: "status.accepted",
+    Confirmed: "status.confirmed",
+    Pending: "status.pending",
+    Overdue: "status.overdue",
+    Cancelled: "status.cancelled",
+    Canceled: "status.cancelled",
+    Rejected: "status.rejected",
+    Completed: "status.completed",
   };
 
-  return statusMap[status] || status;
+  const key = keyMap[status];
+  return key ? t(key) : status;
 };
 
 const getSortIcon = (columnKey) => {

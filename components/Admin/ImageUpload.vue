@@ -80,7 +80,7 @@ const handleFile = async (file) => {
       emit("update:modelValue", base64)
     }
   } catch (e) {
-    console.error("Image processing failed", e)
+    void(e)
   } finally {
     uploading.value = false
   }

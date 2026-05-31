@@ -285,6 +285,50 @@ const isPastMatch = (dateStr) => {
   return computeStatus(dateStr) === 'played'
 }
 
+const notifCenter = useNotificationCenter()
+const push = usePushNotifications()
+
+function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
+  const homeTitle = teams.value.find(t => t.slug === matchObj.homeTeam)?.title || matchObj.homeTeam
+  const awayTitle = teams.value.find(t => t.slug === matchObj.awayTeam)?.title || matchObj.awayTeam
+  const matchTitle = `${homeTitle} vs ${awayTitle}`
+  let notifTitle = ''
+  let notifBody = ''
+  let notifUrl = `/matches/${matchObj.slug}`
+
+  if (!oldMatch) {
+    notifTitle = '⚽ مباراة جديدة'
+    notifBody = `تمت إضافة ${matchTitle}`
+  } else if (oldMatch.status !== 'live' && newStatus === 'live') {
+    notifTitle = '🔴 المباراة بدأت'
+    notifBody = `انطلقت مباراة ${matchTitle}`
+  } else if (oldMatch.status !== 'played' && newStatus === 'played') {
+    notifTitle = '✅ انتهت المباراة'
+    notifBody = `${matchTitle} (${matchObj.homeScore} - ${matchObj.awayScore})`
+  } else if (oldMatch.status === 'played' && newStatus === 'played' &&
+    (oldMatch.homeScore !== matchObj.homeScore || oldMatch.awayScore !== matchObj.awayScore)) {
+    notifTitle = '🔄 تم تحديث النتيجة'
+    notifBody = `تحديث نتيجة ${matchTitle}: ${matchObj.homeScore} - ${matchObj.awayScore}`
+  }
+
+  if (!notifTitle) return
+
+  notifCenter.add({ title: notifTitle, body: notifBody, url: notifUrl })
+  sendPushNotification(notifTitle, notifBody, notifUrl)
+}
+
+async function sendPushNotification(title, body, url) {
+  if (!push.subscribed.value) return
+  try {
+    await $fetch('/api/notifications/send', {
+      method: 'POST',
+      body: { title, body, url },
+    })
+  } catch {
+    // silent — push may not be configured
+  }
+}
+
 const form = reactive({
   date: '',
   group: '',
@@ -750,7 +794,9 @@ const handleSave = async () => {
     }))
 
   try {
+    const oldMatch = editingMatch.value
     await admin.saveMatch(matchObj)
+    triggerMatchNotifications(oldMatch, matchObj, matchStatus)
     // Auto-update player goal stats from all matches
     await syncPlayerGoals()
     modalOpen.value = false

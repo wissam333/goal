@@ -35,6 +35,10 @@
       </NuxtLink>
     </nav>
 
+    <ClientOnly>
+      <NotificationsPushPrompt />
+    </ClientOnly>
+
     <!-- Page content -->
     <main class="admin-main">
       <div class="container">

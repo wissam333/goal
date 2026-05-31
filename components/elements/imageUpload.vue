@@ -115,7 +115,7 @@ const processFile = (file) => {
       );
     };
     reader.onerror = (error) => {
-      console.error("Error reading file:", error);
+      void(error);
       showError(
         locale.value === "ar"
           ? "خطأ في قراءة الملف. يُرجى المحاولة مرة أخرى."

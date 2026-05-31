@@ -141,14 +141,14 @@
           <div class="section-header">
             <h2 class="section-title">
               <Icon name="mdi:card-bulleted-outline" size="20" />
-              البطاقات
+              {{ $t('stats.cards') }}
             </h2>
           </div>
           <div class="card-leader-grid">
             <div v-if="cardLeaders.yellows.length" class="card-leader-col">
               <h4 class="card-leader-title">
                 <Icon name="mdi:square-rounded-outline" size="16" class="card-yellow-icon" />
-                الأكثر صفراء
+                {{ $t('stats.mostYellow') }}
               </h4>
               <div class="rank-list compact">
                 <div
@@ -183,7 +183,7 @@
             <div v-if="cardLeaders.reds.length" class="card-leader-col">
               <h4 class="card-leader-title">
                 <Icon name="mdi:square-rounded" size="16" class="card-red-icon" />
-                الأكثر حمراء
+                {{ $t('stats.mostRed') }}
               </h4>
               <div class="rank-list compact">
                 <div

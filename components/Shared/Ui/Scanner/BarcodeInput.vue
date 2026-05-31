@@ -269,7 +269,7 @@ async function openCamera() {
     cameraWarmup.value = false;
     cameraOpen.value = false;
     scanError.value = e && e.message ? e.message : "Camera error";
-    console.error("[BarcodeInput] openCamera error", e);
+    void(e);
   } finally {
     scanLoading.value = false;
   }

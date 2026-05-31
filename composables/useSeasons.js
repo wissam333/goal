@@ -110,7 +110,7 @@ export const useSeasons = () => {
         await supabase.storage.from(bucket).remove(paths)
       }
     } catch (e) {
-      console.warn(`Failed to clear bucket ${bucket}:`, e)
+      void(e)
     }
   }
 

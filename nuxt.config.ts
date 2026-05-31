@@ -37,28 +37,18 @@ export default defineNuxtConfig({
       installPrompt: true,
       periodicSyncForUpdates: 3600,
     },
-    workbox: {
+    strategies: "injectManifest",
+    srcDir: "sw",
+    filename: "sw.js",
+    injectManifest: {
       globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
-      navigateFallback: null,
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-          handler: "NetworkFirst",
-          options: {
-            cacheName: "supabase-data",
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24,
-            },
-            cacheableResponse: {
-              statuses: [0, 200],
-            },
-          },
-        },
-      ],
+      rollupFormat: "iife",
+      rollupOptions: {
+        treeshake: false,
+      },
     },
     devOptions: {
-      enabled: true,
+      enabled: false,
       type: "module",
       suppressWarnings: true,
     },
@@ -161,9 +151,12 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || "",
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || "",
     public: {
       supabaseUrl: process.env.SUPABASE_URL || "",
       supabaseKey: process.env.SUPABASE_ANON_KEY || "",
+      vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
       leagueName: "دوري القرية السنوي",
       season: "2026",
     },

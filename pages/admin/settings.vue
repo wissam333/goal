@@ -148,6 +148,37 @@
         </SharedUiButtonBase>
       </div>
     </div>
+
+    <div class="settings-card">
+      <h3 class="form-section-title">إشعار فوري</h3>
+      <p class="form-desc">أرسل إشعارًا فوريًا لجميع المشتركين</p>
+      <SharedUiFormBaseInput
+        v-model="notifForm.title"
+        label="العنوان"
+        placeholder="مثلا: مباراة جديدة"
+        required
+      />
+      <SharedUiFormBaseInput
+        v-model="notifForm.body"
+        label="النص"
+        placeholder="مثلا: تمت إضافة مباراة الأهلي والاتحاد"
+      />
+      <SharedUiFormBaseInput
+        v-model="notifForm.url"
+        label="الرابط (اختياري)"
+        placeholder="/fixtures"
+      />
+      <div class="form-actions">
+        <SharedUiButtonBase
+          variant="primary"
+          :loading="sendingNotif"
+          :disabled="sendingNotif || !notifForm.title"
+          @click="handleSendNotification"
+        >
+          إرسال الإشعار
+        </SharedUiButtonBase>
+      </div>
+    </div>
     </template>
 
   </div>
@@ -256,6 +287,36 @@ const handleSaveAd = async () => {
     showAlert('error', '❌ خطأ', 'فشل حفظ الإعلان')
   } finally {
     savingAd.value = false
+  }
+}
+
+const notifForm = reactive({
+  title: "",
+  body: "",
+  url: "/",
+})
+const sendingNotif = ref(false)
+
+const handleSendNotification = async () => {
+  if (!notifForm.title.trim()) return
+  sendingNotif.value = true
+  try {
+    const res = await $fetch('/api/notifications/send', {
+      method: 'POST',
+      body: {
+        title: notifForm.title.trim(),
+        body: notifForm.body.trim(),
+        url: notifForm.url.trim() || '/',
+      },
+    })
+    showAlert('success', '✅ تم الإرسال', `تم إرسال الإشعار إلى ${res.sent} مشترك`)
+    notifForm.title = ""
+    notifForm.body = ""
+    notifForm.url = "/"
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل إرسال الإشعار')
+  } finally {
+    sendingNotif.value = false
   }
 }
 

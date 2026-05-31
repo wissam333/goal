@@ -31,6 +31,22 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 - **Nitro**: `compressPublicAssets: true`, `prerender.failOnError: false`
 - **Cloudflare Pages**: build `npm run build`, publish dir `.output/public/`, no `NITRO_PRESET` env var
 
+## Push Notification System
+- **Custom SW** (`public/sw.js`): injectManifest strategy with push/notificationclick handlers
+- **VAPID keys** in `.env` (generated via `web-push`), exposed via `runtimeConfig`
+- **Nitro API routes**:
+  - `POST /api/notifications/subscribe` — save push subscription
+  - `POST /api/notifications/unsubscribe` — remove push subscription
+  - `POST /api/notifications/send` — send push to all subscribers (uses `web-push`, cleans stale subs)
+- **`usePushNotifications` composable** — request permission, subscribe/unsubscribe, detect SW ready
+- **`useNotificationCenter` composable** — in-app notification history stored in localStorage (max 50)
+- **`NotificationsPushPrompt`** — banner asking users to enable push notifications
+- **`NotificationsNotificationBell`** — bell icon with unread badge + dropdown list in Navbar
+- **Admin auto-trigger**: match created → "new match", status→live → "match started", status→played → "match ended", score updated → "result updated"
+- **Supabase table**: `push_subscriptions` (endpoint, keys, user_agent) with RLS allowing anon insert/delete
+- **Translation keys** (`ar.json`, `en.json`): `notifications.*` (title, empty, markAllRead, clearAll, pushPrompt, allow, later)
+- **Requires `SUPABASE_SERVICE_KEY`** in `.env` for server-side subscription reads (get from Supabase Dashboard → Settings → API → service_role key)
+
 ## Completed Work
 - Initial project setup (Nuxt 3, content, modules)
 - Green theme with RTL/Arabic-first i18n
@@ -55,6 +71,7 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 - Removed `nuxt-beastcss`/`nuxt-vitalizer` (conflicted with dark mode CSS)
 - **PWA setup** with `@vite-pwa/nuxt`: SVG icons, manifest, service worker, Supabase data cache
 - **Groups management**: Settings page now has groups editor (add/remove groups A, B, C...), team form reads groups from settings (no SF/F), match form shows settings groups + knockout stages (QF, SF, F), match team dropdowns filter by selected group during group stage
+- **Push notification system**: Web Push via `@vite-pwa/nuxt` injectManifest strategy, custom SW (`sw/sw.js`) with push/notificationclick handlers, VAPID keys, Nitro API routes (subscribe/unsubscribe/send), `usePushNotifications` + `useNotificationCenter` composables, `NotificationsPushPrompt` + `NotificationsNotificationBell` UI components, auto-trigger in admin match saves (new/live/played/score update), `push_subscriptions` table migration, i18n keys. Fixed injectManifest build: `rollupFormat: "iife"` + `rollupOptions: { treeshake: false }` to prevent Vite removing `self.__WB_MANIFEST`.
 
 ## Known Issues
 - Cloudflare Pages SSR: Supabase queries return empty (no errors) — likely runtime issue with `@supabase/supabase-js` in Workers environment. Vercel SSR works fine.
@@ -66,7 +83,9 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer (no Nuxt Studio),
 
 ## Next Steps
 1. Fix Cloudflare Pages SSR data issue (Supabase queries empty on Workers)
-2. Run `supabase-migration.sql` in Supabase SQL Editor to create tables
-3. Create remaining team SVG logos (`alnasr.svg`, `alqadsia.svg`)
-4. Optionally set up Supabase Storage bucket `team-images` for image uploads
-5. Add sample match photos for Fancybox testing
+2. Create remaining team SVG logos (`alnasr.svg`, `alqadsia.svg`)
+3. Optionally set up Supabase Storage bucket `team-images` for image uploads
+4. Add sample match photos for Fancybox testing
+5. Run SQL migration to create `push_subscriptions` table
+6. Add `SUPABASE_SERVICE_KEY` from Supabase Dashboard → Settings → API
+7. Test push notifications in production: admin saves a match → push received on all subscribed browsers

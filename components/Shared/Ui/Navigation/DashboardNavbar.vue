@@ -409,7 +409,7 @@ const openLogoutConfirm = () => {
 const handleLogout = async () => {
   isLoggingOut.value = true;
   try {
-    console.log("logging out.....");
+    void("logging out.....");
     await logout(); // clears session + Preferences + navigates to /auth/login
   } finally {
     isLoggingOut.value = false;

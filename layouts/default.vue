@@ -5,6 +5,9 @@
   >
     <SharedNavbar />
     <div class="navbar-spacer" />
+    <ClientOnly>
+      <NotificationsPushPrompt />
+    </ClientOnly>
     <SharedAdsBanner />
     <slot />
     <ClientOnly>

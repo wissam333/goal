@@ -159,7 +159,10 @@
     "cleanSheets": "Clean Sheets",
     "matchStats": "Match Stats",
     "mostGoals": "Most Goals",
-    "album": "Season Album"
+    "album": "Season Album",
+    "cards": "Cards",
+    "mostYellow": "Most Yellow",
+    "mostRed": "Most Red"
   },
   "bracket": {
     "groupStage": "Group Stage",
@@ -197,6 +200,16 @@
     "builtWith": "Built with",
     "builtBy": "built by wissam najjom"
   },
+  "status": {
+    "paid": "Paid",
+    "accepted": "Accepted",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "overdue": "Overdue",
+    "cancelled": "Cancelled",
+    "rejected": "Rejected",
+    "completed": "Completed"
+  },
   "error": {
     "noData": "Sorry, no data available at the moment"
   },
@@ -221,5 +234,14 @@
     "ios_hint_after": "then Add to Home Screen",
     "android_hint": "Install for faster access without the browser",
     "android_manual_hint": "Open browser menu → Add to Home Screen"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "pushPrompt": "Enable notifications to get alerts when matches start and end",
+    "allow": "Enable",
+    "later": "Later"
   }
 }

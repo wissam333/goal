@@ -31,9 +31,13 @@
 
       <!-- Right controls -->
       <div class="navbar-controls">
-        <!-- Dark/light toggle -->
+        <ClientOnly>
+          <NotificationsNotificationBell />
+        </ClientOnly>
+
+        <!-- Dark/light toggle (hidden on mobile, inside dropdown) -->
         <button
-          class="ctrl-btn"
+          class="ctrl-btn theme-btn"
           :aria-label="theme.isDark.value ? $t('lightMode') : $t('darkMode')"
           @click="theme.toggleMode()"
         >
@@ -95,6 +99,18 @@
               aria-hidden="true"
             />
           </NuxtLink>
+
+          <div class="mobile-nav-divider" />
+
+          <button class="mobile-nav-item mobile-nav-btn" @click="theme.toggleMode(); mobileOpen = false">
+            <Icon :name="theme.isDark.value ? 'mdi:white-balance-sunny' : 'mdi:moon-waning-crescent'" size="18" aria-hidden="true" />
+            <span>{{ theme.isDark.value ? $t('lightMode') : $t('darkMode') }}</span>
+          </button>
+
+          <button class="mobile-nav-item mobile-nav-btn" @click="toggleLang(); mobileOpen = false">
+            <Icon name="mdi:translate" size="18" aria-hidden="true" />
+            <span>{{ locale === 'ar' ? 'English' : 'العربية' }}</span>
+          </button>
         </div>
       </div>
     </Transition>
@@ -326,6 +342,12 @@ onMounted(() => {
   letter-spacing: 0.03em;
 }
 
+.theme-btn {
+  @media (max-width: 991.98px) {
+    display: none;
+  }
+}
+
 .mobile-menu-btn {
   @media (min-width: 992px) {
     display: none;
@@ -387,6 +409,24 @@ onMounted(() => {
     color: var(--primary);
     font-weight: 600;
   }
+}
+
+.mobile-nav-btn {
+  width: 100%;
+  text-align: start;
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-sub);
+  cursor: pointer;
+  background: none;
+}
+
+.mobile-nav-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 14px;
 }
 
 // ── Transitions ───────────────────────────────────────────────────────────────

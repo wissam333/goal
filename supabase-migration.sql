@@ -366,6 +366,29 @@ INSERT INTO matches (slug, title, date, "group", venue, status, "homeTeam", "awa
 ('gd-altaawoun-vs-alriyadh', 'التعاون vs الرياض',    '2026-03-01T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'altaawoun', 'alriyadh',  0, 0, '[]'),
 ('gd-alkhaleej-vs-alriyadh', 'الخليج vs الرياض',     '2026-03-02T20:00:00Z', 'D', 'الملعب الرئيسي', 'played', 'alkhaleej', 'alriyadh', 1, 0, '[{"player":"fahd-abdullah","team":"alkhaleej","minute":53}]');
 
+-- ═══════════════════════════════════════════════════════════════
+-- PUSH NOTIFICATIONS
+-- ═══════════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id SERIAL PRIMARY KEY,
+  endpoint TEXT NOT NULL UNIQUE,
+  keys JSONB NOT NULL DEFAULT '{}'::jsonb,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "anon_insert_push_subscriptions" ON push_subscriptions;
+DROP POLICY IF EXISTS "anon_delete_push_subscriptions" ON push_subscriptions;
+
+CREATE POLICY "anon_insert_push_subscriptions" ON push_subscriptions
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_delete_push_subscriptions" ON push_subscriptions
+  FOR DELETE USING (true);
+
 -- ── SUPABASE STORAGE: match-photos bucket ─────────────────
 -- Create bucket via Supabase Dashboard: Storage → Create bucket → name "match-photos", public
 -- Then run these RLS policies in the SQL Editor:

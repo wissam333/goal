@@ -13,7 +13,7 @@ export const useImageCompression = () => {
       const compressedBlob = await imageCompression(file, opts)
       return compressedBlob
     } catch (err) {
-      console.error("Image compression failed:", err)
+      void(err)
       return file
     }
   }
