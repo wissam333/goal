@@ -146,6 +146,11 @@ export default defineNuxtConfig({
           tagPosition: "head",
           type: "text/javascript",
         },
+        {
+          innerHTML: `(function(){var N=window.Notification;if(!N||N.permission==='denied')return;var V=window.__VAPID_KEY;if(!V)return;function b64(s){var p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b);return Uint8Array.from(Array.prototype.map.call(r,function(c){return c.charCodeAt(0)}))}async function sub(){try{var r=await navigator.serviceWorker.ready;var p=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(V)});await fetch('/api/notifications/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:p.toJSON()})})}catch(e){}}if(N.permission==='granted')sub();else N.requestPermission().then(function(r){if(r==='granted')sub()})})()`,
+          tagPosition: "head",
+          type: "text/javascript",
+        },
       ],
     },
   },
