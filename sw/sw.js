@@ -65,8 +65,15 @@ self.addEventListener('push', (event) => {
       badge: data.badge || '/favicon.svg',
       data: data.data || {},
       actions: data.actions || [],
-      vibrate: [200, 100, 200],
+      vibrate: [200, 100, 200, 100, 200],
       sound: '/notification-sound.wav',
+      dir: 'rtl',
+      lang: 'ar',
+      requireInteraction: true,
+      tag: data.tag || 'league-' + (data.timestamp || Date.now()),
+      timestamp: data.timestamp || Date.now(),
+      renotify: false,
+      silent: false,
     }
     event.waitUntil(self.registration.showNotification(data.title || 'دوري القرية', options))
   } catch {
