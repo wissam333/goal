@@ -28,10 +28,7 @@
 
     <template v-else>
       <!-- ① Scoreboard Hero -->
-      <div
-        class="scoreboard-hero"
-        :class="`status-${liveStatus}`"
-      >
+      <div class="scoreboard-hero" :class="`status-${liveStatus}`">
         <div class="pitch-center-line" aria-hidden="true" />
 
         <!-- Status badge -->
@@ -41,7 +38,8 @@
           </span>
           <span v-else-if="liveStatus === 'played'" class="badge-ft">FT</span>
           <span v-else class="badge-upcoming">
-            {{ $t('match.upcoming') }} · {{ formatMatchDate(match.date) }}
+            {{ $t("match.upcoming") }} ·
+            {{ showTime ? formatMatchDate(match.date) : "" }}
           </span>
         </div>
 
@@ -56,30 +54,43 @@
         <!-- Teams + Score -->
         <div class="hero-teams">
           <!-- Home -->
-          <div class="hero-team home" @click="navigateTo(`/teams/${match.homeTeam}`)">
+          <div
+            class="hero-team home"
+            @click="navigateTo(`/teams/${match.homeTeam}`)"
+          >
             <div class="hero-logo">
               <NuxtImg
                 v-if="homeTeam?.logo"
                 :src="homeTeam.logo"
                 :alt="homeTeam.title"
-                width="64" height="64"
-                format="webp" loading="lazy"
+                width="64"
+                height="64"
+                format="webp"
+                loading="lazy"
               />
-              <span v-else class="hero-initial">{{ homeTeam?.title?.charAt(0) }}</span>
+              <span v-else class="hero-initial">{{
+                homeTeam?.title?.charAt(0)
+              }}</span>
             </div>
             <span class="hero-team-name">{{ homeTeam?.title }}</span>
-            <span class="hero-team-label">{{ $t('match.home') }}</span>
+            <span class="hero-team-label">{{ $t("match.home") }}</span>
           </div>
 
           <!-- Score -->
           <div class="hero-score">
             <template v-if="liveStatus !== 'upcoming'">
               <div class="score-circle">
-                <span class="score-num" :class="{ winner: match.homeScore > match.awayScore }">
+                <span
+                  class="score-num"
+                  :class="{ winner: match.homeScore > match.awayScore }"
+                >
                   {{ match.homeScore ?? 0 }}
                 </span>
                 <span class="score-dash">–</span>
-                <span class="score-num" :class="{ winner: match.awayScore > match.homeScore }">
+                <span
+                  class="score-num"
+                  :class="{ winner: match.awayScore > match.homeScore }"
+                >
                   {{ match.awayScore ?? 0 }}
                 </span>
               </div>
@@ -88,427 +99,534 @@
               <div class="countdown">
                 <div class="countdown-unit">
                   <span class="countdown-num">{{ countdown.hours }}</span>
-                  <span class="countdown-label">{{ $t('match.hours') }}</span>
+                  <span class="countdown-label">{{ $t("match.hours") }}</span>
                 </div>
                 <span class="countdown-sep">:</span>
                 <div class="countdown-unit">
                   <span class="countdown-num">{{ countdown.minutes }}</span>
-                  <span class="countdown-label">{{ $t('match.minutes') }}</span>
+                  <span class="countdown-label">{{ $t("match.minutes") }}</span>
                 </div>
                 <span class="countdown-sep">:</span>
                 <div class="countdown-unit">
                   <span class="countdown-num">{{ countdown.seconds }}</span>
-                  <span class="countdown-label">{{ $t('match.seconds') }}</span>
+                  <span class="countdown-label">{{ $t("match.seconds") }}</span>
                 </div>
               </div>
             </template>
           </div>
 
           <!-- Away -->
-          <div class="hero-team away" @click="navigateTo(`/teams/${match.awayTeam}`)">
+          <div
+            class="hero-team away"
+            @click="navigateTo(`/teams/${match.awayTeam}`)"
+          >
             <div class="hero-logo">
               <NuxtImg
                 v-if="awayTeam?.logo"
                 :src="awayTeam.logo"
                 :alt="awayTeam.title"
-                width="64" height="64"
-                format="webp" loading="lazy"
+                width="64"
+                height="64"
+                format="webp"
+                loading="lazy"
               />
-              <span v-else class="hero-initial">{{ awayTeam?.title?.charAt(0) }}</span>
+              <span v-else class="hero-initial">{{
+                awayTeam?.title?.charAt(0)
+              }}</span>
             </div>
             <span class="hero-team-name">{{ awayTeam?.title }}</span>
-            <span class="hero-team-label">{{ $t('match.away') }}</span>
+            <span class="hero-team-label">{{ $t("match.away") }}</span>
           </div>
         </div>
       </div>
 
       <div class="container">
-
-      <!-- ② Goal Scorers -->
-      <div v-if="match.goalScorers?.length" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:soccer" size="18" />
-          {{ $t('match.goals') }}
-        </h3>
-        <div class="goals-grid">
-          <!-- Home goals -->
-          <div class="goals-col goals-home">
-            <div
-              v-for="goal in homeGoals"
-              :key="`${goal.player}-${goal.minute}`"
-              class="goal-item"
-            >
-              <span class="goal-player">{{ getPlayerName(goal.player) }}</span>
-              <span class="goal-minute">{{ goal.minute }}'</span>
-              <Icon name="mdi:soccer" size="14" class="goal-icon" />
-            </div>
-          </div>
-          <!-- Divider -->
-          <div class="goals-divider" />
-          <!-- Away goals -->
-          <div class="goals-col goals-away">
-            <div
-              v-for="goal in awayGoals"
-              :key="`${goal.player}-${goal.minute}`"
-              class="goal-item away"
-            >
-              <Icon name="mdi:soccer" size="14" class="goal-icon" />
-              <span class="goal-minute">{{ goal.minute }}'</span>
-              <span class="goal-player">{{ getPlayerName(goal.player) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ③ Cards -->
-      <div v-if="match.cards?.length" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:card-bulleted-outline" size="18" />
-          {{ $t('match.cards') }}
-        </h3>
-        <div class="goals-grid">
-          <div class="goals-col goals-home">
-            <div v-for="card in homeCards" :key="`${card.player}-${card.minute}`" class="goal-item">
-              <span class="goal-player">{{ getPlayerName(card.player) }}</span>
-              <span class="goal-minute">{{ card.minute }}'</span>
-              <Icon :name="card.type === 'red' ? 'mdi:square-rounded' : 'mdi:square-rounded-outline'" size="16" :class="card.type === 'red' ? 'card-red' : 'card-yellow'" />
-            </div>
-          </div>
-          <div class="goals-divider" />
-          <div class="goals-col goals-away">
-            <div v-for="card in awayCards" :key="`${card.player}-${card.minute}`" class="goal-item away">
-              <Icon :name="card.type === 'red' ? 'mdi:square-rounded' : 'mdi:square-rounded-outline'" size="16" :class="card.type === 'red' ? 'card-red' : 'card-yellow'" />
-              <span class="goal-minute">{{ card.minute }}'</span>
-              <span class="goal-player">{{ getPlayerName(card.player) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ④ Prediction Vote (upcoming matches only) -->
-      <div v-if="liveStatus === 'upcoming'" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:chart-line" size="18" />
-          {{ $t('match.predictTitle') }}
-        </h3>
-
-        <p v-if="!alreadyPredicted" class="vote-prompt">{{ $t('match.predictPrompt') }}</p>
-        <p v-else class="vote-done-msg">
-          <Icon name="mdi:check-circle" size="16" />
-          {{ $t('match.predicted') }}
-        </p>
-
-        <div
-          class="predict-candidates"
-          :class="{ 'predict-candidates--with-draw': drawAllowed }"
-        >
-          <!-- Home -->
-          <div
-            class="predict-card"
-            :class="{ voted: alreadyPredicted && predictedTeam === match.homeTeam }"
-            @click="castPrediction(match.homeTeam)"
-          >
-            <div class="predict-logo">
-              <span class="predict-initial">{{ homeTeam?.title?.charAt(0) }}</span>
-            </div>
-            <span class="predict-team-name">{{ homeTeam?.title }}</span>
-            <template v-if="alreadyPredicted">
-              <SharedUiIndicatorsProgress
-                :value="getPredictionPercent(match.homeTeam)"
-                color="primary"
-                class="mt-2"
-              />
-              <span class="predict-pct">{{ getPredictionPercent(match.homeTeam) }}%</span>
-            </template>
-            <SharedUiButtonBase
-              v-else
-              variant="outline"
-              size="sm"
-              icon-left="mdi:thumb-up-outline"
-              :loading="predictingTeam === match.homeTeam"
-            >
-              {{ $t('match.predict') }}
-            </SharedUiButtonBase>
-          </div>
-
-          <!-- Draw (only for group matches) -->
-          <template v-if="drawAllowed">
-            <div
-              class="predict-card predict-card--draw"
-              :class="{ voted: alreadyPredicted && predictedTeam === DRAW_SLUG }"
-              @click="castPrediction(DRAW_SLUG)"
-            >
-              <div class="predict-logo predict-logo--draw">
-                <Icon name="mdi:swap-horizontal-bold" size="24" class="draw-icon" />
+        <!-- ② Goal Scorers -->
+        <div v-if="match.goalScorers?.length" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:soccer" size="18" />
+            {{ $t("match.goals") }}
+          </h3>
+          <div class="goals-grid">
+            <!-- Home goals -->
+            <div class="goals-col goals-home">
+              <div
+                v-for="goal in homeGoals"
+                :key="`${goal.player}-${goal.minute}`"
+                class="goal-item"
+              >
+                <span class="goal-player">{{
+                  getPlayerName(goal.player)
+                }}</span>
+                <span class="goal-minute">{{ goal.minute }}'</span>
+                <Icon name="mdi:soccer" size="14" class="goal-icon" />
               </div>
-              <span class="predict-team-name">{{ $t('match.predictDraw') }}</span>
+            </div>
+            <!-- Divider -->
+            <div class="goals-divider" />
+            <!-- Away goals -->
+            <div class="goals-col goals-away">
+              <div
+                v-for="goal in awayGoals"
+                :key="`${goal.player}-${goal.minute}`"
+                class="goal-item away"
+              >
+                <Icon name="mdi:soccer" size="14" class="goal-icon" />
+                <span class="goal-minute">{{ goal.minute }}'</span>
+                <span class="goal-player">{{
+                  getPlayerName(goal.player)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ③ Cards -->
+        <div v-if="match.cards?.length" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:card-bulleted-outline" size="18" />
+            {{ $t("match.cards") }}
+          </h3>
+          <div class="goals-grid">
+            <div class="goals-col goals-home">
+              <div
+                v-for="card in homeCards"
+                :key="`${card.player}-${card.minute}`"
+                class="goal-item"
+              >
+                <span class="goal-player">{{
+                  getPlayerName(card.player)
+                }}</span>
+                <span class="goal-minute">{{ card.minute }}'</span>
+                <Icon
+                  :name="
+                    card.type === 'red'
+                      ? 'mdi:square-rounded'
+                      : 'mdi:square-rounded-outline'
+                  "
+                  size="16"
+                  :class="card.type === 'red' ? 'card-red' : 'card-yellow'"
+                />
+              </div>
+            </div>
+            <div class="goals-divider" />
+            <div class="goals-col goals-away">
+              <div
+                v-for="card in awayCards"
+                :key="`${card.player}-${card.minute}`"
+                class="goal-item away"
+              >
+                <Icon
+                  :name="
+                    card.type === 'red'
+                      ? 'mdi:square-rounded'
+                      : 'mdi:square-rounded-outline'
+                  "
+                  size="16"
+                  :class="card.type === 'red' ? 'card-red' : 'card-yellow'"
+                />
+                <span class="goal-minute">{{ card.minute }}'</span>
+                <span class="goal-player">{{
+                  getPlayerName(card.player)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ④ Prediction Vote (upcoming matches only) -->
+        <div v-if="liveStatus === 'upcoming'" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:chart-line" size="18" />
+            {{ $t("match.predictTitle") }}
+          </h3>
+
+          <p v-if="!alreadyPredicted" class="vote-prompt">
+            {{ $t("match.predictPrompt") }}
+          </p>
+          <p v-else class="vote-done-msg">
+            <Icon name="mdi:check-circle" size="16" />
+            {{ $t("match.predicted") }}
+          </p>
+
+          <div
+            class="predict-candidates"
+            :class="{ 'predict-candidates--with-draw': drawAllowed }"
+          >
+            <!-- Home -->
+            <div
+              class="predict-card"
+              :class="{
+                voted: alreadyPredicted && predictedTeam === match.homeTeam,
+              }"
+              @click="castPrediction(match.homeTeam)"
+            >
+              <div class="predict-logo">
+                <span class="predict-initial">{{
+                  homeTeam?.title?.charAt(0)
+                }}</span>
+              </div>
+              <span class="predict-team-name">{{ homeTeam?.title }}</span>
               <template v-if="alreadyPredicted">
                 <SharedUiIndicatorsProgress
-                  :value="getPredictionPercent(DRAW_SLUG)"
+                  :value="getPredictionPercent(match.homeTeam)"
                   color="primary"
                   class="mt-2"
                 />
-                <span class="predict-pct">{{ getPredictionPercent(DRAW_SLUG) }}%</span>
+                <span class="predict-pct"
+                  >{{ getPredictionPercent(match.homeTeam) }}%</span
+                >
               </template>
               <SharedUiButtonBase
                 v-else
                 variant="outline"
                 size="sm"
                 icon-left="mdi:thumb-up-outline"
-                :loading="predictingTeam === DRAW_SLUG"
+                :loading="predictingTeam === match.homeTeam"
               >
-                {{ $t('match.predict') }}
+                {{ $t("match.predict") }}
               </SharedUiButtonBase>
             </div>
-          </template>
 
-          <!-- VS separator (no-draw mode) -->
-          <div v-else class="predict-vs">{{ $t('match.predictVs') }}</div>
-
-          <!-- Away -->
-          <div
-            class="predict-card"
-            :class="{ voted: alreadyPredicted && predictedTeam === match.awayTeam }"
-            @click="castPrediction(match.awayTeam)"
-          >
-            <div class="predict-logo">
-              <span class="predict-initial">{{ awayTeam?.title?.charAt(0) }}</span>
-            </div>
-            <span class="predict-team-name">{{ awayTeam?.title }}</span>
-            <template v-if="alreadyPredicted">
-              <SharedUiIndicatorsProgress
-                :value="getPredictionPercent(match.awayTeam)"
-                color="primary"
-                class="mt-2"
-              />
-              <span class="predict-pct">{{ getPredictionPercent(match.awayTeam) }}%</span>
+            <!-- Draw (only for group matches) -->
+            <template v-if="drawAllowed">
+              <div
+                class="predict-card predict-card--draw"
+                :class="{
+                  voted: alreadyPredicted && predictedTeam === DRAW_SLUG,
+                }"
+                @click="castPrediction(DRAW_SLUG)"
+              >
+                <div class="predict-logo predict-logo--draw">
+                  <Icon
+                    name="mdi:swap-horizontal-bold"
+                    size="24"
+                    class="draw-icon"
+                  />
+                </div>
+                <span class="predict-team-name">{{
+                  $t("match.predictDraw")
+                }}</span>
+                <template v-if="alreadyPredicted">
+                  <SharedUiIndicatorsProgress
+                    :value="getPredictionPercent(DRAW_SLUG)"
+                    color="primary"
+                    class="mt-2"
+                  />
+                  <span class="predict-pct"
+                    >{{ getPredictionPercent(DRAW_SLUG) }}%</span
+                  >
+                </template>
+                <SharedUiButtonBase
+                  v-else
+                  variant="outline"
+                  size="sm"
+                  icon-left="mdi:thumb-up-outline"
+                  :loading="predictingTeam === DRAW_SLUG"
+                >
+                  {{ $t("match.predict") }}
+                </SharedUiButtonBase>
+              </div>
             </template>
-            <SharedUiButtonBase
-              v-else
-              variant="outline"
-              size="sm"
-              icon-left="mdi:thumb-up-outline"
-              :loading="predictingTeam === match.awayTeam"
-            >
-              {{ $t('match.predict') }}
-            </SharedUiButtonBase>
-          </div>
-        </div>
-      </div>
 
-      <!-- ④ Man of the Match — Vote (during or after match only) -->
-      <div v-if="liveStatus === 'played' || liveStatus === 'live'" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:star-outline" size="18" />
-          {{ $t('match.motm') }}
-        </h3>
+            <!-- VS separator (no-draw mode) -->
+            <div v-else class="predict-vs">{{ $t("match.predictVs") }}</div>
 
-        <!-- Winner banner (admin-set only) -->
-        <div v-if="motmWinnerResolved" class="motm-winner">
-          <div class="winner-glow" />
-          <div class="winner-avatar">
-            <img
-              v-if="getPlayerPhoto(motmWinnerResolved)"
-              :src="getPlayerPhoto(motmWinnerResolved)"
-              :alt="getPlayerName(motmWinnerResolved)"
-              width="80" height="80"
-              loading="lazy"
-              @error="onImgError"
-            />
-            <span v-else class="winner-initial">{{ getPlayerName(motmWinnerResolved)?.charAt(0) }}</span>
-          </div>
-          <Icon name="mdi:star" size="24" class="winner-star" />
-          <span class="winner-name">{{ getPlayerName(motmWinnerResolved) }}</span>
-          <span class="winner-label">{{ $t('match.motm') }}</span>
-        </div>
-
-        <!-- Active voting (hidden when admin sets a MOTM winner) -->
-        <div v-if="!motmWinnerResolved">
-          <p v-if="!alreadyVoted" class="vote-prompt">{{ $t('match.votePrompt') }}</p>
-          <p v-else class="vote-done-msg">
-            <Icon name="mdi:check-circle" size="16" />
-            {{ $t('match.voted') }}
-          </p>
-
-          <div class="motm-teams">
-            <!-- Home team -->
-            <div class="motm-team-col">
-              <div class="motm-team-header">
-                <span class="motm-team-initial">{{ homeTeam?.title?.charAt(0) }}</span>
-                <span class="motm-team-label">{{ homeTeam?.title }}</span>
-              </div>
-              <div
-                v-for="player in homePlayers"
-                :key="player.slug"
-                class="motm-player-row"
-                :class="{ voted: alreadyVoted && votedFor === player.slug }"
-                @click="castVote(player.slug)"
-              >
-                <span class="motm-player-num">{{ player.number }}</span>
-                <span class="motm-player-name">{{ player.title }}</span>
-                <Icon
-                  v-if="alreadyVoted && votedFor === player.slug"
-                  name="mdi:check-circle"
-                  size="16"
-                  class="motm-check"
-                />
-                <SharedUiButtonBase
-                  v-else-if="!alreadyVoted"
-                  variant="outline"
-                  size="xs"
-                  :loading="votingFor === player.slug"
-                  icon-left="mdi:thumb-up-outline"
-                  class="motm-vote-btn"
-                  @click.stop="castVote(player.slug)"
-                >
-                  {{ $t('match.vote') }}
-                </SharedUiButtonBase>
-              </div>
-            </div>
-
-            <!-- Away team -->
-            <div class="motm-team-col">
-              <div class="motm-team-header">
-                <span class="motm-team-initial">{{ awayTeam?.title?.charAt(0) }}</span>
-                <span class="motm-team-label">{{ awayTeam?.title }}</span>
-              </div>
-              <div
-                v-for="player in awayPlayers"
-                :key="player.slug"
-                class="motm-player-row"
-                :class="{ voted: alreadyVoted && votedFor === player.slug }"
-                @click="castVote(player.slug)"
-              >
-                <span class="motm-player-num">{{ player.number }}</span>
-                <span class="motm-player-name">{{ player.title }}</span>
-                <Icon
-                  v-if="alreadyVoted && votedFor === player.slug"
-                  name="mdi:check-circle"
-                  size="16"
-                  class="motm-check"
-                />
-                <SharedUiButtonBase
-                  v-else-if="!alreadyVoted"
-                  variant="outline"
-                  size="xs"
-                  :loading="votingFor === player.slug"
-                  icon-left="mdi:thumb-up-outline"
-                  class="motm-vote-btn"
-                  @click.stop="castVote(player.slug)"
-                >
-                  {{ $t('match.vote') }}
-                </SharedUiButtonBase>
-              </div>
-            </div>
-          </div>
-
-          <!-- Results (always visible when votes exist) -->
-          <div v-if="Object.keys(voteResults).length" class="motm-results-after">
+            <!-- Away -->
             <div
-              v-for="candidate in sortedCandidates"
-              :key="candidate.slug"
-              class="vote-result-row"
+              class="predict-card"
+              :class="{
+                voted: alreadyPredicted && predictedTeam === match.awayTeam,
+              }"
+              @click="castPrediction(match.awayTeam)"
             >
-              <span class="vr-name">{{ getPlayerName(candidate.slug) }}</span>
-              <span class="vr-team">{{ candidate.teamTitle }}</span>
-              <SharedUiIndicatorsProgress
-                :value="candidate.pct"
-                color="primary"
-                class="vr-bar"
-              />
-              <span class="vr-pct">{{ candidate.pct }}%</span>
+              <div class="predict-logo">
+                <span class="predict-initial">{{
+                  awayTeam?.title?.charAt(0)
+                }}</span>
+              </div>
+              <span class="predict-team-name">{{ awayTeam?.title }}</span>
+              <template v-if="alreadyPredicted">
+                <SharedUiIndicatorsProgress
+                  :value="getPredictionPercent(match.awayTeam)"
+                  color="primary"
+                  class="mt-2"
+                />
+                <span class="predict-pct"
+                  >{{ getPredictionPercent(match.awayTeam) }}%</span
+                >
+              </template>
+              <SharedUiButtonBase
+                v-else
+                variant="outline"
+                size="sm"
+                icon-left="mdi:thumb-up-outline"
+                :loading="predictingTeam === match.awayTeam"
+              >
+                {{ $t("match.predict") }}
+              </SharedUiButtonBase>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ⑤ Photo Album -->
-      <div v-if="match.photos?.length" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:image-multiple-outline" size="18" />
-          {{ $t('match.album') }}
-        </h3>
-        <ElementsAlbum :images="match.photos" :columns="3" />
-      </div>
-      <div v-else-if="liveStatus === 'played'" class="section-card empty-album">
-        <Icon name="mdi:camera-off-outline" size="32" class="empty-icon" />
-        <span>{{ $t('match.noPhotos') }}</span>
-      </div>
+        <!-- ④ Man of the Match — Vote (during or after match only) -->
+        <div
+          v-if="liveStatus === 'played' || liveStatus === 'live'"
+          class="section-card"
+        >
+          <h3 class="section-title">
+            <Icon name="mdi:star-outline" size="18" />
+            {{ $t("match.motm") }}
+          </h3>
 
-      <!-- ⑥ Video -->
-      <div v-if="match.videoUrl" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:play-circle-outline" size="18" />
-          {{ $t('match.video') }}
-        </h3>
-        <div class="video-wrap">
-          <iframe
-            :src="embedUrl(match.videoUrl)"
-            allowfullscreen
-            loading="lazy"
-            frameborder="0"
-          ></iframe>
-        </div>
-      </div>
-
-      <!-- ⑦ Head to Head -->
-      <div v-if="h2h.total > 0" class="section-card">
-        <h3 class="section-title">
-          <Icon name="mdi:history" size="18" />
-          {{ $t('match.h2h') }}
-        </h3>
-        <div class="h2h-row">
-          <div class="h2h-stat">
-            <span class="h2h-num">{{ h2h.homeWins }}</span>
-            <span class="h2h-label">{{ homeTeam?.title }}</span>
+          <!-- Winner banner (admin-set only) -->
+          <div v-if="motmWinnerResolved" class="motm-winner">
+            <div class="winner-glow" />
+            <div class="winner-avatar">
+              <img
+                v-if="getPlayerPhoto(motmWinnerResolved)"
+                :src="getPlayerPhoto(motmWinnerResolved)"
+                :alt="getPlayerName(motmWinnerResolved)"
+                width="80"
+                height="80"
+                loading="lazy"
+                @error="onImgError"
+              />
+              <span v-else class="winner-initial">{{
+                getPlayerName(motmWinnerResolved)?.charAt(0)
+              }}</span>
+            </div>
+            <Icon name="mdi:star" size="24" class="winner-star" />
+            <span class="winner-name">{{
+              getPlayerName(motmWinnerResolved)
+            }}</span>
+            <span class="winner-label">{{ $t("match.motm") }}</span>
           </div>
-          <div class="h2h-stat center">
-            <span class="h2h-num draws">{{ h2h.draws }}</span>
-            <span class="h2h-label">{{ $t('standings.drawn') }}</span>
-          </div>
-          <div class="h2h-stat">
-            <span class="h2h-num">{{ h2h.awayWins }}</span>
-            <span class="h2h-label">{{ awayTeam?.title }}</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- ⑧ Share -->
-      <div class="share-section">
-        <div class="share-label">{{ $t('match.share') }}</div>
-        <div class="share-row">
-          <button v-if="supportsShare" class="share-btn native" title="Share" @click="nativeShare">
-            <Icon name="mdi:share-variant" size="20" />
-          </button>
-          <button class="share-btn whatsapp" title="WhatsApp" @click="sharePlatform('whatsapp')">
-            <Icon name="mdi:whatsapp" size="20" />
-          </button>
-          <button class="share-btn messenger" title="Messenger" @click="sharePlatform('messenger')">
-            <Icon name="mdi:facebook-messenger" size="20" />
-          </button>
-          <button class="share-btn facebook" title="Facebook" @click="sharePlatform('facebook')">
-            <Icon name="mdi:facebook" size="20" />
-          </button>
-          <button class="share-btn telegram" title="Telegram" @click="sharePlatform('telegram')">
-            <Icon name="mdi:telegram" size="20" />
-          </button>
-          <button class="share-btn twitter" title="Twitter" @click="sharePlatform('twitter')">
-            <Icon name="mdi:twitter" size="20" />
-          </button>
-          <button class="share-btn copy" title="Copy link" @click="copyLink">
-            <Icon name="mdi:link-variant" size="20" />
-          </button>
+          <!-- Active voting (hidden when admin sets a MOTM winner) -->
+          <div v-if="!motmWinnerResolved">
+            <p v-if="!alreadyVoted" class="vote-prompt">
+              {{ $t("match.votePrompt") }}
+            </p>
+            <p v-else class="vote-done-msg">
+              <Icon name="mdi:check-circle" size="16" />
+              {{ $t("match.voted") }}
+            </p>
+
+            <div class="motm-teams">
+              <!-- Home team -->
+              <div class="motm-team-col">
+                <div class="motm-team-header">
+                  <span class="motm-team-initial">{{
+                    homeTeam?.title?.charAt(0)
+                  }}</span>
+                  <span class="motm-team-label">{{ homeTeam?.title }}</span>
+                </div>
+                <div
+                  v-for="player in homePlayers"
+                  :key="player.slug"
+                  class="motm-player-row"
+                  :class="{ voted: alreadyVoted && votedFor === player.slug }"
+                  @click="castVote(player.slug)"
+                >
+                  <span class="motm-player-num">{{ player.number }}</span>
+                  <span class="motm-player-name">{{ player.title }}</span>
+                  <Icon
+                    v-if="alreadyVoted && votedFor === player.slug"
+                    name="mdi:check-circle"
+                    size="16"
+                    class="motm-check"
+                  />
+                  <SharedUiButtonBase
+                    v-else-if="!alreadyVoted"
+                    variant="outline"
+                    size="xs"
+                    :loading="votingFor === player.slug"
+                    icon-left="mdi:thumb-up-outline"
+                    class="motm-vote-btn"
+                    @click.stop="castVote(player.slug)"
+                  >
+                    {{ $t("match.vote") }}
+                  </SharedUiButtonBase>
+                </div>
+              </div>
+
+              <!-- Away team -->
+              <div class="motm-team-col">
+                <div class="motm-team-header">
+                  <span class="motm-team-initial">{{
+                    awayTeam?.title?.charAt(0)
+                  }}</span>
+                  <span class="motm-team-label">{{ awayTeam?.title }}</span>
+                </div>
+                <div
+                  v-for="player in awayPlayers"
+                  :key="player.slug"
+                  class="motm-player-row"
+                  :class="{ voted: alreadyVoted && votedFor === player.slug }"
+                  @click="castVote(player.slug)"
+                >
+                  <span class="motm-player-num">{{ player.number }}</span>
+                  <span class="motm-player-name">{{ player.title }}</span>
+                  <Icon
+                    v-if="alreadyVoted && votedFor === player.slug"
+                    name="mdi:check-circle"
+                    size="16"
+                    class="motm-check"
+                  />
+                  <SharedUiButtonBase
+                    v-else-if="!alreadyVoted"
+                    variant="outline"
+                    size="xs"
+                    :loading="votingFor === player.slug"
+                    icon-left="mdi:thumb-up-outline"
+                    class="motm-vote-btn"
+                    @click.stop="castVote(player.slug)"
+                  >
+                    {{ $t("match.vote") }}
+                  </SharedUiButtonBase>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results (always visible when votes exist) -->
+            <div
+              v-if="Object.keys(voteResults).length"
+              class="motm-results-after"
+            >
+              <div
+                v-for="candidate in sortedCandidates"
+                :key="candidate.slug"
+                class="vote-result-row"
+              >
+                <span class="vr-name">{{ getPlayerName(candidate.slug) }}</span>
+                <span class="vr-team">{{ candidate.teamTitle }}</span>
+                <SharedUiIndicatorsProgress
+                  :value="candidate.pct"
+                  color="primary"
+                  class="vr-bar"
+                />
+                <span class="vr-pct">{{ candidate.pct }}%</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- ⑤ Photo Album -->
+        <div v-if="match.photos?.length" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:image-multiple-outline" size="18" />
+            {{ $t("match.album") }}
+          </h3>
+          <ElementsAlbum :images="match.photos" :columns="3" />
+        </div>
+        <div
+          v-else-if="liveStatus === 'played'"
+          class="section-card empty-album"
+        >
+          <Icon name="mdi:camera-off-outline" size="32" class="empty-icon" />
+          <span>{{ $t("match.noPhotos") }}</span>
+        </div>
+
+        <!-- ⑥ Video -->
+        <div v-if="match.videoUrl" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:play-circle-outline" size="18" />
+            {{ $t("match.video") }}
+          </h3>
+          <div class="video-wrap">
+            <iframe
+              :src="embedUrl(match.videoUrl)"
+              allowfullscreen
+              loading="lazy"
+              frameborder="0"
+            ></iframe>
+          </div>
+        </div>
+
+        <!-- ⑦ Head to Head -->
+        <div v-if="h2h.total > 0" class="section-card">
+          <h3 class="section-title">
+            <Icon name="mdi:history" size="18" />
+            {{ $t("match.h2h") }}
+          </h3>
+          <div class="h2h-row">
+            <div class="h2h-stat">
+              <span class="h2h-num">{{ h2h.homeWins }}</span>
+              <span class="h2h-label">{{ homeTeam?.title }}</span>
+            </div>
+            <div class="h2h-stat center">
+              <span class="h2h-num draws">{{ h2h.draws }}</span>
+              <span class="h2h-label">{{ $t("standings.drawn") }}</span>
+            </div>
+            <div class="h2h-stat">
+              <span class="h2h-num">{{ h2h.awayWins }}</span>
+              <span class="h2h-label">{{ awayTeam?.title }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑧ Share -->
+        <div class="share-section">
+          <div class="share-label">{{ $t("match.share") }}</div>
+          <div class="share-row">
+            <button
+              v-if="supportsShare"
+              class="share-btn native"
+              title="Share"
+              @click="nativeShare"
+            >
+              <Icon name="mdi:share-variant" size="20" />
+            </button>
+            <button
+              class="share-btn whatsapp"
+              title="WhatsApp"
+              @click="sharePlatform('whatsapp')"
+            >
+              <Icon name="mdi:whatsapp" size="20" />
+            </button>
+            <button
+              class="share-btn messenger"
+              title="Messenger"
+              @click="sharePlatform('messenger')"
+            >
+              <Icon name="mdi:facebook-messenger" size="20" />
+            </button>
+            <button
+              class="share-btn facebook"
+              title="Facebook"
+              @click="sharePlatform('facebook')"
+            >
+              <Icon name="mdi:facebook" size="20" />
+            </button>
+            <button
+              class="share-btn telegram"
+              title="Telegram"
+              @click="sharePlatform('telegram')"
+            >
+              <Icon name="mdi:telegram" size="20" />
+            </button>
+            <button
+              class="share-btn twitter"
+              title="Twitter"
+              @click="sharePlatform('twitter')"
+            >
+              <Icon name="mdi:twitter" size="20" />
+            </button>
+            <button class="share-btn copy" title="Copy link" @click="copyLink">
+              <Icon name="mdi:link-variant" size="20" />
+            </button>
+          </div>
+        </div>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { format, parseISO, differenceInSeconds } from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import { syrianAr } from '~/utils/syrianAr';
+import { format, parseISO, differenceInSeconds } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { syrianAr } from "~/utils/syrianAr";
 
 const route = useRoute();
 const { locale, t } = useI18n();
@@ -517,12 +635,16 @@ const slug = computed(() => route.params.slug);
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 // Phase 1: match + teams (teams is tiny, both needed immediately)
-const { data: match, pending: pending1, error: error1 } = await useAsyncData(
-  `match-${slug.value}`, () => fetchMatch(slug.value),
-);
-const { data: teamsData, pending: pending2, error: error2 } = await useAsyncData(
-  `match-teams-${slug.value}`, () => fetchTeams(),
-);
+const {
+  data: match,
+  pending: pending1,
+  error: error1,
+} = await useAsyncData(`match-${slug.value}`, () => fetchMatch(slug.value));
+const {
+  data: teamsData,
+  pending: pending2,
+  error: error2,
+} = await useAsyncData(`match-teams-${slug.value}`, () => fetchTeams());
 
 const pending = computed(() => pending1.value || pending2.value);
 const error = computed(() => error1.value || error2.value);
@@ -534,15 +656,16 @@ const at = match.value?.awayTeam;
 
 const { data: playersData } = await useAsyncData(
   `match-players-${slug.value}`,
-  () => Promise.all([
-    ht ? fetchPlayers({ team: ht }) : [],
-    at ? fetchPlayers({ team: at }) : [],
-  ]).then(([h, a]) => [...h, ...a]),
+  () =>
+    Promise.all([
+      ht ? fetchPlayers({ team: ht }) : [],
+      at ? fetchPlayers({ team: at }) : [],
+    ]).then(([h, a]) => [...h, ...a]),
 );
 
 const { data: allMatchesData } = await useAsyncData(
   `match-h2h-${slug.value}`,
-  () => ht ? fetchMatches({ status: "played", team: ht }) : [],
+  () => (ht ? fetchMatches({ status: "played", team: ht }) : []),
 );
 
 const players = computed(() => playersData.value || []);
@@ -550,49 +673,55 @@ const allMatches = computed(() => allMatchesData.value || []);
 
 // ── Live status (computed from date, overrides DB) ──────────────────────────────
 const liveStatus = computed(() => {
-  if (!match.value?.date) return 'upcoming';
-  const syriaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Damascus' });
+  if (!match.value?.date) return "upcoming";
+  const syriaTime = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Damascus",
+  });
   const now = new Date(syriaTime);
   const matchDate = parseISO(match.value.date);
   const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000);
-  if (now > matchEnd) return 'played';
-  if (now >= matchDate) return 'live';
-  return 'upcoming';
+  if (now > matchEnd) return "played";
+  if (now >= matchDate) return "live";
+  return "upcoming";
 });
 
 // ── Team helpers ───────────────────────────────────────────────────────────────
 const teamMap = computed(() => {
   const m = {};
-  teams.value.forEach(t => { m[t.slug] = t; });
+  teams.value.forEach((t) => {
+    m[t.slug] = t;
+  });
   return m;
 });
 const homeTeam = computed(() => teamMap.value[match.value?.homeTeam]);
 const awayTeam = computed(() => teamMap.value[match.value?.awayTeam]);
 
-const DRAW_SLUG = '__draw__';
+const DRAW_SLUG = "__draw__";
 const drawAllowed = computed(() => {
   const g = match.value?.group;
-  return g === 'A' || g === 'B';
+  return g === "A" || g === "B";
 });
 
 // ── Player helpers ─────────────────────────────────────────────────────────────
 const playerMap = computed(() => {
   const m = {};
-  players.value.forEach(p => { m[p.slug] = p; });
+  players.value.forEach((p) => {
+    m[p.slug] = p;
+  });
   return m;
 });
 const getPlayerName = (slug) => playerMap.value[slug]?.title || slug;
 const getPlayerPhoto = (slug) => playerMap.value[slug]?.photo || null;
 const getPlayerTeamName = (slug) => {
   const teamSlug = playerMap.value[slug]?.team;
-  return teamMap.value[teamSlug]?.title || '';
+  return teamMap.value[teamSlug]?.title || "";
 };
 
 const homePlayers = computed(() =>
-  players.value.filter(p => p.team === match.value?.homeTeam)
+  players.value.filter((p) => p.team === match.value?.homeTeam),
 );
 const awayPlayers = computed(() =>
-  players.value.filter(p => p.team === match.value?.awayTeam)
+  players.value.filter((p) => p.team === match.value?.awayTeam),
 );
 
 const motmWinnerResolved = computed(() => {
@@ -601,45 +730,49 @@ const motmWinnerResolved = computed(() => {
 
 const sortedCandidates = computed(() => {
   const allPlayers = [...homePlayers.value, ...awayPlayers.value];
-  const withVotes = allPlayers.map(p => ({
+  const withVotes = allPlayers.map((p) => ({
     slug: p.slug,
     teamTitle: getPlayerTeamName(p.slug),
     votes: voteResults.value[p.slug] || 0,
     pct: getVotePercent(p.slug),
   }));
-  return withVotes.sort((a, b) => b.votes - a.votes || a.slug.localeCompare(b.slug));
+  return withVotes.sort(
+    (a, b) => b.votes - a.votes || a.slug.localeCompare(b.slug),
+  );
 });
 
 // ── Goals ──────────────────────────────────────────────────────────────────────
 const homeGoals = computed(() =>
-  (match.value?.goalScorers || []).filter(g => g.team === match.value?.homeTeam)
-    .sort((a, b) => a.minute - b.minute)
+  (match.value?.goalScorers || [])
+    .filter((g) => g.team === match.value?.homeTeam)
+    .sort((a, b) => a.minute - b.minute),
 );
 const awayGoals = computed(() =>
-  (match.value?.goalScorers || []).filter(g => g.team === match.value?.awayTeam)
-    .sort((a, b) => a.minute - b.minute)
+  (match.value?.goalScorers || [])
+    .filter((g) => g.team === match.value?.awayTeam)
+    .sort((a, b) => a.minute - b.minute),
 );
 
 const homeCards = computed(() =>
-  (match.value?.cards || []).filter(c => c.team === match.value?.homeTeam)
+  (match.value?.cards || []).filter((c) => c.team === match.value?.homeTeam),
 );
 const awayCards = computed(() =>
-  (match.value?.cards || []).filter(c => c.team === match.value?.awayTeam)
+  (match.value?.cards || []).filter((c) => c.team === match.value?.awayTeam),
 );
 
 // ── Countdown ──────────────────────────────────────────────────────────────────
-const countdown = ref({ hours: '00', minutes: '00', seconds: '00' });
+const countdown = ref({ hours: "00", minutes: "00", seconds: "00" });
 let countdownInterval = null;
 
 const updateCountdown = () => {
-  if (!match.value?.date || liveStatus.value !== 'upcoming') {
+  if (!match.value?.date || liveStatus.value !== "upcoming") {
     clearInterval(countdownInterval);
     countdownInterval = null;
     return;
   }
   const diff = differenceInSeconds(parseISO(match.value.date), new Date());
   if (diff <= 0) {
-    countdown.value = { hours: '00', minutes: '00', seconds: '00' };
+    countdown.value = { hours: "00", minutes: "00", seconds: "00" };
     clearInterval(countdownInterval);
     countdownInterval = null;
     return;
@@ -648,9 +781,9 @@ const updateCountdown = () => {
   const m = Math.floor((diff % 3600) / 60);
   const s = diff % 60;
   countdown.value = {
-    hours: String(h).padStart(2, '0'),
-    minutes: String(m).padStart(2, '0'),
-    seconds: String(s).padStart(2, '0'),
+    hours: String(h).padStart(2, "0"),
+    minutes: String(m).padStart(2, "0"),
+    seconds: String(s).padStart(2, "0"),
   };
 };
 
@@ -670,18 +803,22 @@ const votingFor = ref(null);
 onMounted(async () => {
   if (match.value?.slug) {
     alreadyVoted.value = await hasVoted(match.value.slug);
-    votedFor.value = process.client ? localStorage.getItem(`vote_${match.value.slug}`) : null;
+    votedFor.value = process.client
+      ? localStorage.getItem(`vote_${match.value.slug}`)
+      : null;
     voteResults.value = await getVotes(match.value.slug);
   }
 });
 
 const totalVotes = computed(() =>
-  Object.values(voteResults.value).reduce((sum, v) => sum + v, 0)
+  Object.values(voteResults.value).reduce((sum, v) => sum + v, 0),
 );
 
 const getVotePercent = (playerSlug) => {
   if (!totalVotes.value) return 0;
-  return Math.round(((voteResults.value[playerSlug] || 0) / totalVotes.value) * 100);
+  return Math.round(
+    ((voteResults.value[playerSlug] || 0) / totalVotes.value) * 100,
+  );
 };
 
 const castVote = async (playerSlug) => {
@@ -697,19 +834,22 @@ const castVote = async (playerSlug) => {
 };
 
 // ── Prediction Voting ──────────────────────────────────────────────────────────
-const { submitPrediction, getPredictions, hasPredicted, getPredictedTeam } = useMatchPredictions();
+const { submitPrediction, getPredictions, hasPredicted, getPredictedTeam } =
+  useMatchPredictions();
 const predictionResults = ref({});
 const alreadyPredicted = ref(false);
 const predictedTeam = ref(null);
 const predictingTeam = ref(null);
 
 const totalPredictions = computed(() =>
-  Object.values(predictionResults.value).reduce((sum, v) => sum + v, 0)
+  Object.values(predictionResults.value).reduce((sum, v) => sum + v, 0),
 );
 
 const getPredictionPercent = (teamSlug) => {
   if (!totalPredictions.value) return 0;
-  return Math.round(((predictionResults.value[teamSlug] || 0) / totalPredictions.value) * 100);
+  return Math.round(
+    ((predictionResults.value[teamSlug] || 0) / totalPredictions.value) * 100,
+  );
 };
 
 const castPrediction = async (teamSlug) => {
@@ -725,7 +865,7 @@ const castPrediction = async (teamSlug) => {
 };
 
 onMounted(async () => {
-  if (match.value?.slug && match.value?.status === 'upcoming') {
+  if (match.value?.slug && match.value?.status === "upcoming") {
     alreadyPredicted.value = await hasPredicted(match.value.slug);
     predictedTeam.value = getPredictedTeam(match.value.slug);
     predictionResults.value = await getPredictions(match.value.slug);
@@ -737,12 +877,15 @@ const h2h = computed(() => {
   if (!match.value) return { total: 0, homeWins: 0, draws: 0, awayWins: 0 };
   const ht = match.value.homeTeam;
   const at = match.value.awayTeam;
-  const meetings = allMatches.value.filter(m =>
-    (m.homeTeam === ht && m.awayTeam === at) ||
-    (m.homeTeam === at && m.awayTeam === ht)
+  const meetings = allMatches.value.filter(
+    (m) =>
+      (m.homeTeam === ht && m.awayTeam === at) ||
+      (m.homeTeam === at && m.awayTeam === ht),
   );
-  let homeWins = 0, draws = 0, awayWins = 0;
-  meetings.forEach(m => {
+  let homeWins = 0,
+    draws = 0,
+    awayWins = 0;
+  meetings.forEach((m) => {
     const hs = m.homeTeam === ht ? m.homeScore : m.awayScore;
     const as = m.homeTeam === ht ? m.awayScore : m.homeScore;
     if (hs > as) homeWins++;
@@ -753,16 +896,26 @@ const h2h = computed(() => {
 });
 
 // ── Date formatting ────────────────────────────────────────────────────────────
-const dateFnsLocale = computed(() => locale.value === 'ar' ? syrianAr : enUS);
+const dateFnsLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
+const showTime = ref(false);
+onMounted(() => {
+  showTime.value = true;
+});
+
 const formatMatchDate = (dateStr) => {
-  if (!dateStr) return '';
-  try { return format(parseISO(dateStr), 'EEEE، d MMMM yyyy', { locale: dateFnsLocale.value }); }
-  catch { return dateStr; }
+  if (!dateStr) return "";
+  try {
+    return format(parseISO(dateStr), "EEEE، d MMMM yyyy", {
+      locale: dateFnsLocale.value,
+    });
+  } catch {
+    return dateStr;
+  }
 };
 
 // ── Video embed ────────────────────────────────────────────────────────────────
 const embedUrl = (url) => {
-  if (!url) return '';
+  if (!url) return "";
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
   return url;
@@ -770,21 +923,27 @@ const embedUrl = (url) => {
 
 // ── Share ──────────────────────────────────────────────────────────────────────
 const shareText = () => {
-  if (!match.value) return '';
+  if (!match.value) return "";
   const hs = match.value.homeScore ?? 0;
   const as = match.value.awayScore ?? 0;
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
-  return locale.value === 'ar'
+  return locale.value === "ar"
     ? `${ht} ${hs}–${as} ${at} 🏆 | دوري القرية`
     : `${ht} ${hs}–${as} ${at} 🏆 | Village League`;
 };
 
-const supportsShare = computed(() => typeof navigator !== 'undefined' && !!navigator.share);
+const supportsShare = computed(
+  () => typeof navigator !== "undefined" && !!navigator.share,
+);
 
 const nativeShare = async () => {
   try {
-    await navigator.share({ title: document.title, text: shareText(), url: window.location.href });
+    await navigator.share({
+      title: document.title,
+      text: shareText(),
+      url: window.location.href,
+    });
   } catch {}
 };
 
@@ -793,37 +952,38 @@ const sharePlatform = (platform) => {
   const url = window.location.href;
   const urls = {
     messenger: `https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=291494419107518`,
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`,
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(text + "\n" + url)}`,
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`,
     telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + '\n' + url)}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + "\n" + url)}`,
   };
-  window.open(urls[platform], '_blank', 'width=600,height=500');
+  window.open(urls[platform], "_blank", "width=600,height=500");
 };
 
 const copyLink = async () => {
   try {
     await navigator.clipboard.writeText(window.location.href);
   } catch {
-    const ta = document.createElement('textarea');
+    const ta = document.createElement("textarea");
     ta.value = window.location.href;
     document.body.appendChild(ta);
     ta.select();
-    document.execCommand('copy');
+    document.execCommand("copy");
     document.body.removeChild(ta);
   }
 };
 
 const onImgError = (e) => {
-  e.target.src = '/default-avatar.jpg'
-  e.target.onerror = null
-}
+  e.target.src = "/default-avatar.jpg";
+  e.target.onerror = null;
+};
 
 // ── SEO ────────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => match.value
-    ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | دوري القرية`
-    : 'Match Details',
+  title: () =>
+    match.value
+      ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | دوري القرية`
+      : "Match Details",
 });
 </script>
 
@@ -849,7 +1009,9 @@ useSeoMeta({
   font-weight: 500;
   padding: 6px 0;
   transition: color 0.15s;
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 }
 
 // ── Skeleton ───────────────────────────────────────────────────────────────────
@@ -857,7 +1019,12 @@ useSeoMeta({
   margin: 20px;
   height: 220px;
   border-radius: 20px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 }
@@ -866,15 +1033,28 @@ useSeoMeta({
   height: 120px;
   border-radius: 14px;
   margin-bottom: 16px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 
-  &.tall { height: 200px; }
-  &.short { height: 80px; }
+  &.tall {
+    height: 200px;
+  }
+  &.short {
+    height: 80px;
+  }
 }
 
-@keyframes sh { to { background-position: -200% 0; } }
+@keyframes sh {
+  to {
+    background-position: -200% 0;
+  }
+}
 
 // ── Scoreboard hero ────────────────────────────────────────────────────────────
 .scoreboard-hero {
@@ -888,22 +1068,26 @@ useSeoMeta({
 
   :root.dark & {
     background: linear-gradient(145deg, #0a1628 0%, #111827 60%, #0d1f0d 100%);
-    border: 1px solid rgba(34,197,94,0.15);
+    border: 1px solid rgba(34, 197, 94, 0.15);
   }
 
   &.status-live {
-    box-shadow: 0 0 30px rgba(34,197,94,0.12);
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.12);
   }
 }
 
 .pitch-center-line {
   position: absolute;
-  top: 0; bottom: 0;
-  left: 50%; width: 1px;
-  background: rgba(0,80,0,0.08);
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(0, 80, 0, 0.08);
   pointer-events: none;
 
-  :root.dark & { background: rgba(255,255,255,0.06); }
+  :root.dark & {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 
 // Status
@@ -912,33 +1096,59 @@ useSeoMeta({
   margin-bottom: 20px;
 }
 .badge-live {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--primary-soft); color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-soft);
+  color: var(--primary);
   border: 1px solid var(--primary-mid);
-  border-radius: 8px; padding: 5px 12px;
-  font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 .live-dot {
-  width: 7px; height: 7px; border-radius: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   background: var(--primary);
   animation: pulse-g 1.5s infinite;
 }
 @keyframes pulse-g {
-  0%,100% { opacity:1; transform: scale(1); }
-  50% { opacity:.4; transform: scale(.6); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.6);
+  }
 }
 .badge-ft {
-  display: inline-flex; align-items: center;
-  background: var(--primary-soft); color: var(--primary);
-  border-radius: 8px; padding: 5px 12px;
-  font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
 
-  :root.dark & { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+  :root.dark & {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.5);
+  }
 }
 .badge-upcoming {
-  color: var(--text-muted); font-size: 0.8rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 
-  :root.dark & { color: rgba(255,255,255,0.6); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.6);
+  }
 }
 
 // Teams + score
@@ -955,32 +1165,53 @@ useSeoMeta({
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  &:hover .hero-logo { transform: scale(1.05); }
+  &:hover .hero-logo {
+    transform: scale(1.05);
+  }
 }
 
 .hero-logo {
-  width: 64px; height: 64px;
+  width: 64px;
+  height: 64px;
   border-radius: 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   transition: transform 0.2s;
-  img { width: 100%; height: 100%; object-fit: contain; }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
-.hero-initial { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+.hero-initial {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary);
+}
 
 .hero-team-name {
-  font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
   text-align: center;
 
-  :root.dark & { color: #fff; }
+  :root.dark & {
+    color: #fff;
+  }
 }
 .hero-team-label {
-  font-size: 0.65rem; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
-  :root.dark & { color: rgba(255,255,255,0.4); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.4);
+  }
 }
 
 .hero-venue {
@@ -989,9 +1220,13 @@ useSeoMeta({
   font-size: 0.82rem;
   color: var(--text-muted);
 
-  :root.dark & { color: rgba(255,255,255,0.4); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.4);
+  }
 
-  .iconify { margin-inline-end: 4px; }
+  .iconify {
+    margin-inline-end: 4px;
+  }
 }
 
 .hero-score {
@@ -1005,41 +1240,71 @@ useSeoMeta({
   align-items: center;
   justify-content: center;
   gap: 24px;
-  width: 180px; height: 180px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  border: 2px solid rgba(0,80,0,0.12);
+  border: 2px solid rgba(0, 80, 0, 0.12);
 
-  :root.dark & { border-color: rgba(255,255,255,0.1); }
+  :root.dark & {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .score-num {
-  font-size: 3.4rem; font-weight: 900; color: var(--text-primary);
+  font-size: 3.4rem;
+  font-weight: 900;
+  color: var(--text-primary);
   line-height: 1;
 
-  :root.dark & { color: rgba(255,255,255,0.85); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.85);
+  }
 
-  &.winner { color: var(--primary); }
+  &.winner {
+    color: var(--primary);
+  }
 }
-.score-dash { font-size: 2rem; color: var(--border-color); line-height: 1; }
+.score-dash {
+  font-size: 2rem;
+  color: var(--border-color);
+  line-height: 1;
+}
 
 // Countdown
 .countdown {
-  display: flex; align-items: center; gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .countdown-unit {
-  display: flex; flex-direction: column; align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .countdown-num {
-  font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
 }
 .countdown-label {
-  font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
 
-  :root.dark & { color: rgba(255,255,255,0.35); }
+  :root.dark & {
+    color: rgba(255, 255, 255, 0.35);
+  }
 }
-.countdown-sep { font-size: 1.5rem; color: var(--border-color); margin-bottom: 12px; }
+.countdown-sep {
+  font-size: 1.5rem;
+  color: var(--border-color);
+  margin-bottom: 12px;
+}
 
-  :root.dark .countdown-sep { color: rgba(255,255,255,0.3); }
+:root.dark .countdown-sep {
+  color: rgba(255, 255, 255, 0.3);
+}
 
 // ── Section cards ──────────────────────────────────────────────────────────────
 .section-card {
@@ -1068,56 +1333,144 @@ useSeoMeta({
   grid-template-columns: 1fr 2px 1fr;
   gap: 12px;
 }
-.goals-divider { background: var(--border-color); }
-.goals-col { display: flex; flex-direction: column; gap: 8px; }
-.goal-item {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 0.85rem;
-  &.away { flex-direction: row-reverse; }
+.goals-divider {
+  background: var(--border-color);
 }
-.goal-player { font-weight: 600; color: var(--text-primary); }
-.goal-minute { font-size: 0.75rem; color: var(--text-muted); }
-.goal-icon { color: var(--primary); flex-shrink: 0; }
-.card-yellow { color: #eab308; }
-.card-red { color: #ef4444; }
+.goals-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.goal-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  &.away {
+    flex-direction: row-reverse;
+  }
+}
+.goal-player {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.goal-minute {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.goal-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.card-yellow {
+  color: #eab308;
+}
+.card-red {
+  color: #ef4444;
+}
 
 // ── MOTM Winner ───────────────────────────────────────────────────────────────
 .motm-winner {
-  position: relative; text-align: center; padding: 20px 0 16px;
+  position: relative;
+  text-align: center;
+  padding: 20px 0 16px;
 }
 .winner-glow {
-  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
-  width: 120px; height: 120px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(234,179,8,0.2) 0%, transparent 70%);
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(234, 179, 8, 0.2) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 .winner-avatar {
-  width: 80px; height: 80px; border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
   border: 3px solid #ca8a04;
   background: var(--bg-elevated);
   margin: 0 auto 10px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  img { width: 100%; height: 100%; object-fit: cover; }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
-.winner-initial { font-size: 1.5rem; font-weight: 800; color: #ca8a04; }
-.winner-star { color: #ca8a04; margin-bottom: 4px; }
-.winner-name { display: block; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
-.winner-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.winner-initial {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ca8a04;
+}
+.winner-star {
+  color: #ca8a04;
+  margin-bottom: 4px;
+}
+.winner-name {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.winner-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
 
-.vote-results { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
-.vote-result-row {
-  display: flex; align-items: center; gap: 10px;
+.vote-results {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.vr-name { font-size: 0.8rem; font-weight: 600; min-width: 90px; color: var(--text-primary); }
-.vr-bar { flex: 1; }
-.vr-pct { font-size: 0.78rem; font-weight: 700; color: var(--primary); min-width: 35px; text-align: end; }
+.vote-result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vr-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 90px;
+  color: var(--text-primary);
+}
+.vr-bar {
+  flex: 1;
+}
+.vr-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 35px;
+  text-align: end;
+}
 
 // ── Voting ─────────────────────────────────────────────────────────────────────
-.vote-prompt { color: var(--text-muted); font-size: 0.85rem; margin: 0 0 16px; }
+.vote-prompt {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+}
 .vote-done-msg {
-  display: flex; align-items: center; gap: 6px;
-  color: var(--primary); font-size: 0.85rem; font-weight: 600; margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 16px;
 }
 
 .motm-teams {
@@ -1139,14 +1492,22 @@ useSeoMeta({
   background: var(--bg-elevated);
 }
 .motm-team-initial {
-  width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; font-weight: 800;
-  background: var(--primary); color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: var(--primary);
+  color: #fff;
   flex-shrink: 0;
 }
 .motm-team-label {
-  font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 .motm-player-row {
   display: flex;
@@ -1160,33 +1521,62 @@ useSeoMeta({
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 
-  &:hover { border-color: var(--primary); background: var(--primary-soft); }
-  &:active { transform: scale(0.98); }
-  &.voted { border-color: var(--primary); background: var(--primary-soft); }
+  &:hover {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+  &.voted {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
 }
 .motm-player-num {
-  width: 24px; height: 24px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.72rem; font-weight: 700;
-  background: var(--bg-elevated); color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 .motm-player-name {
   flex: 1;
-  font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
-.motm-check { color: var(--primary); flex-shrink: 0; }
-.motm-vote-btn { flex-shrink: 0; }
+.motm-check {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.motm-vote-btn {
+  flex-shrink: 0;
+}
 .motm-results-after {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.vr-team { font-size: 0.7rem; color: var(--text-muted); min-width: 60px; }
+.vr-team {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  min-width: 60px;
+}
 
-.mt-2 { margin-top: 6px; }
+.mt-2 {
+  margin-top: 6px;
+}
 
 // ── Prediction ─────────────────────────────────────────────────────────────────
 .predict-candidates {
@@ -1204,7 +1594,10 @@ useSeoMeta({
   border-radius: 14px;
   padding: 14px 10px;
   text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   transition: all 0.2s;
   cursor: pointer;
 
@@ -1214,14 +1607,32 @@ useSeoMeta({
   }
 }
 .predict-logo {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--bg-elevated); border: 2px solid var(--border-color);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden; margin-bottom: 4px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 4px;
 }
-.predict-initial { font-size: 1.1rem; font-weight: 800; color: var(--primary); }
-.predict-team-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); }
-.predict-pct { font-size: 0.8rem; font-weight: 700; color: var(--primary); }
+.predict-initial {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.predict-team-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.predict-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+}
 .predict-vs {
   font-size: 0.85rem;
   font-weight: 800;
@@ -1236,39 +1647,64 @@ useSeoMeta({
   background: var(--primary-soft);
   border-color: var(--primary-mid);
 }
-.draw-icon { color: var(--primary); }
+.draw-icon {
+  color: var(--primary);
+}
 
 // ── Empty album ────────────────────────────────────────────────────────────────
 .empty-album {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 8px; color: var(--text-muted); padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  padding: 32px;
 }
-.empty-icon { color: var(--text-muted); opacity: 0.4; }
+.empty-icon {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
 
 // ── Video ──────────────────────────────────────────────────────────────────────
 .video-wrap {
-  border-radius: 12px; overflow: hidden;
-  position: relative; padding-top: 56.25%;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  padding-top: 56.25%;
   background: #000;
   iframe {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; border: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
   }
 }
 
 // ── H2H ───────────────────────────────────────────────────────────────────────
 .h2h-row {
-  display: flex; align-items: center; justify-content: space-around;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
   gap: 12px;
 }
 .h2h-stat {
   text-align: center;
-  &.center .h2h-num { color: var(--text-muted); }
+  &.center .h2h-num {
+    color: var(--text-muted);
+  }
 }
 .h2h-num {
-  display: block; font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1;
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
 }
-.h2h-label { font-size: 0.75rem; color: var(--text-muted); }
+.h2h-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
 
 // ── Share ──────────────────────────────────────────────────────────────────────
 .share-section {
@@ -1306,51 +1742,174 @@ useSeoMeta({
   transition: all 0.15s;
   color: #fff;
 
-  &:hover { transform: translateY(-2px); }
-  &:active { transform: scale(0.95); }
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
 
-  &.native    { background: var(--primary); &:hover { background: color-mix(in srgb, var(--primary) 85%, #000); } }
-  &.messenger { background: #006AFF; &:hover { background: #0052cc; } }
-  &.whatsapp  { background: #25D366; &:hover { background: #1da851; } }
-  &.facebook  { background: #1877F2; &:hover { background: #166fe5; } }
-  &.telegram  { background: #0088cc; &:hover { background: #0077b5; } }
-  &.twitter   { background: #1DA1F2; &:hover { background: #1a8cd8; } }
-  &.copy      { background: var(--text-muted); &:hover { background: var(--text-sub); } }
+  &.native {
+    background: var(--primary);
+    &:hover {
+      background: color-mix(in srgb, var(--primary) 85%, #000);
+    }
+  }
+  &.messenger {
+    background: #006aff;
+    &:hover {
+      background: #0052cc;
+    }
+  }
+  &.whatsapp {
+    background: #25d366;
+    &:hover {
+      background: #1da851;
+    }
+  }
+  &.facebook {
+    background: #1877f2;
+    &:hover {
+      background: #166fe5;
+    }
+  }
+  &.telegram {
+    background: #0088cc;
+    &:hover {
+      background: #0077b5;
+    }
+  }
+  &.twitter {
+    background: #1da1f2;
+    &:hover {
+      background: #1a8cd8;
+    }
+  }
+  &.copy {
+    background: var(--text-muted);
+    &:hover {
+      background: var(--text-sub);
+    }
+  }
 }
 
 // ── Mobile ─────────────────────────────────────────────────────────────────────
 @media (max-width: 600px) {
-  .scoreboard-hero { margin: 12px 14px 0; padding: 20px 14px 18px; }
-  .section-card { margin: 12px 14px 0; padding: 16px; }
-  .share-section { margin: 12px 14px 0; }
-  .back-row { padding: 12px 14px 0; }
+  .scoreboard-hero {
+    margin: 12px 14px 0;
+    padding: 20px 14px 18px;
+  }
+  .section-card {
+    margin: 12px 0px 0;
+    padding: 12px 8px;
+  }
+  .share-section {
+    margin: 12px 14px 0;
+  }
+  .back-row {
+    padding: 12px 14px 0;
+  }
 
-  .hero-logo { width: 52px; height: 52px; border-radius: 10px; }
-  .hero-team-name { font-size: 0.82rem; }
-  .score-circle { width: 140px; height: 140px; gap: 16px; }
-  .score-num { font-size: 2.6rem; }
-  .score-dash { font-size: 1.4rem; }
+  .hero-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+  }
+  .hero-team-name {
+    font-size: 0.82rem;
+  }
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    gap: 16px;
+  }
+  .score-num {
+    font-size: 2.6rem;
+  }
+  .score-dash {
+    font-size: 1.4rem;
+  }
 
-  .motm-teams { gap: 6px; }
-  .motm-team-col { min-width: 0; overflow: hidden; }
-  .motm-player-row { padding: 8px 6px; gap: 4px; border-radius: 10px; min-height: 40px; }
-  .motm-player-num { width: 20px; height: 20px; font-size: 0.6rem; }
-  .motm-player-name { font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .motm-vote-btn { display: none; }
-  .motm-player-name { font-size: 0.88rem; }
-  .motm-player-num { width: 28px; height: 28px; font-size: 0.75rem; border-radius: 8px; }
-  .motm-team-header { padding: 10px 14px; border-radius: 14px; }
-  .motm-team-initial { width: 32px; height: 32px; font-size: 0.85rem; }
-  .motm-team-label { font-size: 0.9rem; }
-  .motm-check { transform: scale(1.2); }
-  .motm-vote-btn { min-width: 52px; justify-content: center; }
-  .vote-result-row { gap: 8px; }
-  .vr-name { min-width: 70px; font-size: 0.75rem; }
-  .predict-card { padding: 10px 6px; }
-  .predict-logo { width: 44px; height: 44px; }
-  .predict-team-name { font-size: 0.72rem; }
-  .predict-candidates { gap: 8px; }
-  .predict-candidates--with-draw { gap: 6px; }
-  .draw-icon { font-size: 20px !important; }
+  .motm-teams {
+    gap: 6px;
+  }
+  .motm-team-col {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .motm-player-row {
+    padding: 8px 6px;
+    gap: 4px;
+    border-radius: 10px;
+    min-height: 40px;
+  }
+  .motm-player-num {
+    width: 20px;
+    height: 20px;
+    font-size: 0.6rem;
+  }
+  .motm-player-name {
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .motm-vote-btn {
+    display: none;
+  }
+  .motm-player-name {
+    font-size: 0.88rem;
+  }
+  .motm-player-num {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+  .motm-team-header {
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+  .motm-team-initial {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+  .motm-team-label {
+    font-size: 0.9rem;
+  }
+  .motm-check {
+    transform: scale(1.2);
+  }
+  .motm-vote-btn {
+    min-width: 52px;
+    justify-content: center;
+  }
+  .vote-result-row {
+    gap: 8px;
+  }
+  .vr-name {
+    min-width: 70px;
+    font-size: 0.75rem;
+  }
+  .predict-card {
+    padding: 10px 6px;
+  }
+  .predict-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .predict-team-name {
+    font-size: 0.72rem;
+  }
+  .predict-candidates {
+    gap: 8px;
+  }
+  .predict-candidates--with-draw {
+    gap: 6px;
+  }
+  .draw-icon {
+    font-size: 20px !important;
+  }
 }
 </style>

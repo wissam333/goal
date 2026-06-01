@@ -86,6 +86,14 @@ export const useNotificationCenter = () => {
   if (import.meta.client) {
     load()
     fetchFromSW()
+    // Listen for live push notifications from Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'NEW_PUSH_NOTIFICATION') {
+          add(event.data.notification)
+        }
+      })
+    }
   }
 
   return { notifications, unreadCount, add, markAsRead, markAllRead, remove, clear, fetchFromSW }

@@ -56,31 +56,45 @@ async function getStoredNotifications() {
 
 self.addEventListener('push', (event) => {
   if (!event.data) return
-  try {
-    const data = event.data.json()
-    storeNotification(data)
-    const options = {
-      body: data.body || '',
-      icon: data.icon || '/logo.png',
-      badge: data.badge || '/favicon.svg',
-      data: data.data || {},
-      actions: data.actions || [],
-      vibrate: [200, 100, 200, 100, 200],
-      sound: '/notification-sound.wav',
-      dir: 'rtl',
-      lang: 'ar',
-      requireInteraction: true,
-      tag: data.tag || 'league-' + (data.timestamp || Date.now()),
-      timestamp: data.timestamp || Date.now(),
-      renotify: false,
-      silent: false,
+  event.waitUntil((async () => {
+    try {
+      const data = event.data.json()
+      await storeNotification(data)
+      const options = {
+        body: data.body || '',
+        icon: data.icon || '/logo.png',
+        badge: data.badge || '/favicon.svg',
+        data: data.data || {},
+        actions: data.actions || [],
+        vibrate: [200, 100, 200, 100, 200],
+        sound: '/notification-sound.wav',
+        dir: 'rtl',
+        lang: 'ar',
+        requireInteraction: true,
+        tag: data.tag || 'league-' + (data.timestamp || Date.now()),
+        timestamp: data.timestamp || Date.now(),
+        renotify: false,
+        silent: false,
+      }
+      await self.registration.showNotification(data.title || 'دوري القرية', options)
+      // Notify all open clients so the in-app bell updates without refresh
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      for (const client of clients) {
+        client.postMessage({
+          type: 'NEW_PUSH_NOTIFICATION',
+          notification: {
+            title: data.title || 'دوري القرية',
+            body: data.body || '',
+            url: data.data?.url || '/',
+            timestamp: Date.now(),
+            read: false,
+          }
+        })
+      }
+    } catch {
+      await self.registration.showNotification(event.data.text(), { icon: '/logo.png' })
     }
-    event.waitUntil(self.registration.showNotification(data.title || 'دوري القرية', options))
-  } catch {
-    event.waitUntil(
-      self.registration.showNotification(event.data.text(), { icon: '/logo.png' })
-    )
-  }
+  })())
 })
 
 self.addEventListener('notificationclick', (event) => {

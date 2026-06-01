@@ -93,7 +93,7 @@
             :options="filteredTeamOptions"
             placeholder="اختر الفريق"
           />
-          <template v-if="form.date && isPastMatch(form.date)">
+          <template v-if="form.date && computeStatus(form.date) !== 'upcoming'">
             <SharedUiFormBaseInput
               v-model="form.homeScore"
               label="نتيجة المضيف"
@@ -121,7 +121,7 @@
           </template>
         </div>
 
-          <div v-if="form.date && isPastMatch(form.date) && goalScorers.length" class="goal-scorers-section">
+          <div v-if="form.date && computeStatus(form.date) !== 'upcoming' && goalScorers.length" class="goal-scorers-section">
           <div class="goal-scorers-header">
             <span class="goal-title">مسجلو الأهداف</span>
             <span class="goal-hint">اختياري</span>
@@ -147,7 +147,7 @@
           </div>
         </div>
 
-        <div v-if="form.date && isPastMatch(form.date)" class="goal-scorers-section">
+        <div v-if="form.date && computeStatus(form.date) !== 'upcoming'" class="goal-scorers-section">
           <div class="goal-scorers-header">
             <span class="goal-title">البطاقات</span>
             <span class="goal-hint">اختياري</span>
@@ -188,6 +188,35 @@
       </form>
 
       <template #actions>
+        <div class="notif-actions" v-if="editingMatch">
+          <SharedUiButtonBase
+            variant="outline"
+            size="sm"
+            icon-left="mdi:bell-ring"
+            :disabled="sendingNotif"
+            @click="sendNotif('started')"
+          >
+            🔴 بدأت المباراة
+          </SharedUiButtonBase>
+          <SharedUiButtonBase
+            variant="outline"
+            size="sm"
+            icon-left="mdi:bell-check"
+            :disabled="sendingNotif"
+            @click="sendNotif('result')"
+          >
+            📊 إشعار النتيجة
+          </SharedUiButtonBase>
+          <SharedUiButtonBase
+            variant="outline"
+            size="sm"
+            icon-left="mdi:stop-circle-outline"
+            :disabled="sendingNotif"
+            @click="sendNotif('ended')"
+          >
+            ✅ انتهت المباراة
+          </SharedUiButtonBase>
+        </div>
         <SharedUiButtonBase
           variant="outline"
           @click="modalOpen = false"
@@ -287,6 +316,145 @@ const isPastMatch = (dateStr) => {
 
 const notifCenter = useNotificationCenter()
 const push = usePushNotifications()
+const sendingNotif = ref(false)
+
+async function sendNotif(type) {
+  if (!editingMatch.value) return
+  const homeTitle = teams.value.find(t => t.slug === editingMatch.value.homeTeam)?.title || editingMatch.value.homeTeam
+  const awayTitle = teams.value.find(t => t.slug === editingMatch.value.awayTeam)?.title || editingMatch.value.awayTeam
+  const matchUrl = `/matches/${editingMatch.value.slug}`
+
+  if (type === 'started') {
+    const title = '🔴 المباراة بدأت'
+    const body = `انطلقت مباراة ${homeTitle} vs ${awayTitle}`
+    sendingNotif.value = true
+    notifCenter.add({ title, body, url: matchUrl })
+    try {
+      await $fetch('/api/notifications/send', { method: 'POST', body: { title, body, url: matchUrl } })
+      showAlert('success', 'تم الإرسال', `تم إرسال إشعار "${title}"`)
+    } catch {
+      showAlert('error', 'خطأ', 'فشل إرسال الإشعار')
+    } finally {
+      sendingNotif.value = false
+    }
+    return
+  }
+
+  if (type === 'ended') {
+    if (!form.homeTeam || !form.awayTeam) {
+      showAlert('error', 'خطأ', 'يرجى اختيار الفريق المضيف والفريق الضيف')
+      return
+    }
+    if (form.homeTeam === form.awayTeam) {
+      showAlert('error', 'خطأ', 'يجب أن يختلف الفريق المضيف عن الفريق الضيف')
+      return
+    }
+
+    sendingNotif.value = true
+    const matchDate = form.date ? new Date(form.date).toISOString() : null
+    const matchObj = {
+      slug: editingMatch.value?.slug || generateSlug(),
+      title: generateTitle(),
+      date: matchDate,
+      group: form.group || 'A',
+      venue: form.venue || 'الملعب الرئيسي',
+      status: 'played',
+      homeTeam: form.homeTeam,
+      awayTeam: form.awayTeam,
+      homeScore: Number(form.homeScore) || 0,
+      awayScore: Number(form.awayScore) || 0,
+      goalScorers: goalScorers.value.map(g => ({
+        player: g.player,
+        team: g.team,
+        minute: g.minute ? Number(g.minute) : null,
+      })),
+      cards: cards.value.filter(c => c.player).map(c => ({
+        player: c.player,
+        team: c.team,
+        type: c.type,
+        minute: c.minute ? Number(c.minute) : null,
+      })),
+      motmWinner: form.motmWinner || null,
+      photos: editingMatch.value?.photos || [],
+    }
+
+    try {
+      await admin.saveMatch(matchObj)
+      await syncPlayerGoals()
+
+      const title = '✅ انتهت المباراة'
+      const body = `انتهت مباراة ${homeTitle} ${matchObj.homeScore} - ${matchObj.awayScore} ${awayTitle}`
+      notifCenter.add({ title, body, url: matchUrl })
+      await $fetch('/api/notifications/send', { method: 'POST', body: { title, body, url: matchUrl } })
+
+      modalOpen.value = false
+      await loadData()
+      showAlert('success', 'تم الحفظ والإرسال', `تم حفظ المباراة وإرسال إشعار "${title}"`)
+    } catch {
+      showAlert('error', 'خطأ', 'فشل حفظ المباراة أو إرسال الإشعار')
+    } finally {
+      sendingNotif.value = false
+    }
+    return
+  }
+
+  // result
+  if (!form.homeTeam || !form.awayTeam) {
+    showAlert('error', 'خطأ', 'يرجى اختيار الفريق المضيف والفريق الضيف')
+    return
+  }
+  if (form.homeTeam === form.awayTeam) {
+    showAlert('error', 'خطأ', 'يجب أن يختلف الفريق المضيف عن الفريق الضيف')
+    return
+  }
+
+  sendingNotif.value = true
+  const matchDate = form.date ? new Date(form.date).toISOString() : null
+  const matchStatus = computeStatus(matchDate)
+  const matchObj = {
+    slug: editingMatch.value?.slug || generateSlug(),
+    title: generateTitle(),
+    date: matchDate,
+    group: form.group || 'A',
+    venue: form.venue || 'الملعب الرئيسي',
+    status: matchStatus,
+    homeTeam: form.homeTeam,
+    awayTeam: form.awayTeam,
+    homeScore: matchStatus !== 'upcoming' ? Number(form.homeScore) : null,
+    awayScore: matchStatus !== 'upcoming' ? Number(form.awayScore) : null,
+    goalScorers: goalScorers.value.map(g => ({
+      player: g.player,
+      team: g.team,
+      minute: g.minute ? Number(g.minute) : null,
+    })),
+    cards: cards.value.filter(c => c.player).map(c => ({
+      player: c.player,
+      team: c.team,
+      type: c.type,
+      minute: c.minute ? Number(c.minute) : null,
+    })),
+    motmWinner: form.motmWinner || null,
+    photos: editingMatch.value?.photos || [],
+  }
+
+  try {
+    await admin.saveMatch(matchObj)
+    await syncPlayerGoals()
+
+    const title = '✅ نتيجة المباراة'
+    const body = `${homeTitle} ${matchObj.homeScore ?? 0} - ${matchObj.awayScore ?? 0} ${awayTitle}`
+    notifCenter.add({ title, body, url: matchUrl })
+    await $fetch('/api/notifications/send', { method: 'POST', body: { title, body, url: matchUrl } })
+
+    modalOpen.value = false
+    await loadData()
+    showAlert('success', 'تم الحفظ والإرسال', `تم حفظ المباراة وإرسال إشعار "${title}"`)
+  } catch {
+    showAlert('error', 'خطأ', 'فشل حفظ المباراة أو إرسال الإشعار')
+  } finally {
+    sendingNotif.value = false
+  }
+}
 
 function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
   const homeTitle = teams.value.find(t => t.slug === matchObj.homeTeam)?.title || matchObj.homeTeam
@@ -984,6 +1152,11 @@ const handleDelete = async (match) => {
 .album-actions-row {
   display: flex;
   gap: 10px;
+}
+
+.notif-actions {
+  display: flex;
+  gap: 6px;
 }
 
 .goal-scorers-section {

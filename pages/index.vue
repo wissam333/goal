@@ -54,14 +54,9 @@
 
       <!-- ── Next Match ─────────────────────────────────── -->
       <div v-else-if="nextMatch?.slug" class="hero-card">
-        <div class="hero-badge" :class="{ 'hero-badge-live': nextMatch.status === 'live' }">
-          <template v-if="nextMatch.status === 'live'">
-            <span class="live-dot-sm" /> {{ $t('match.live') }}
-          </template>
-          <template v-else>
-            <Icon name="mdi:clock-outline" size="14" />
-            {{ $t("home.nextMatch") }}
-          </template>
+        <div v-if="!nextMatchIsLive" class="hero-badge">
+          <Icon name="mdi:clock-outline" size="14" />
+          {{ $t("home.nextMatch") }}
         </div>
 
         <div class="hero-teams">
@@ -93,14 +88,14 @@
           </div>
 
           <div class="hero-center">
-            <template v-if="nextMatch.status === 'live'">
+            <template v-if="nextMatchIsLive">
               <span class="hero-live">
                 <span class="live-dot" /> {{ $t('match.live') }}
               </span>
             </template>
             <template v-else>
-              <span class="hero-time">{{ formatMatchTime(nextMatch.date) }}</span>
-              <span class="hero-date">{{ formatMatchDate(nextMatch.date) }}</span>
+              <span class="hero-time">{{ showTime ? formatMatchTime(nextMatch.date) : '--:--' }}</span>
+              <span class="hero-date">{{ showTime ? formatMatchDate(nextMatch.date) : '' }}</span>
             </template>
             <span v-if="nextMatch.venue" class="hero-venue">
               <Icon name="mdi:map-marker-outline" size="12" />
@@ -347,14 +342,15 @@ import { syrianAr } from "~/utils/syrianAr";
 
 const { locale } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
+const notifCenter = useNotificationCenter()
 const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const [
-  { data: nextMatch, pending: nextPending },
-  { data: lastMatch, pending: lastPending },
-  { data: allMatches, pending: matchesPending },
-  { data: teams, pending: teamsPending },
-  { data: finalMatch, pending: finalPending },
+  { data: nextMatch, pending: nextPending, refresh: refreshNext },
+  { data: lastMatch, pending: lastPending, refresh: refreshLast },
+  { data: allMatches, pending: matchesPending, refresh: refreshAll },
+  { data: teams, pending: teamsPending, refresh: refreshTeams },
+  { data: finalMatch, pending: finalPending, refresh: refreshFinal },
 ] = await Promise.all([
   useAsyncData("home-next", () =>
     fetchMatches({
@@ -377,7 +373,37 @@ const [
   ),
 ]);
 
-const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value);
+// ── Skeleton guard: show skeleton until client confirms fresh data ──
+const pageReady = ref(false)
+let refreshTimer = null
+onMounted(async () => {
+  showTime.value = true
+  // Force fresh data on every page load to avoid stale SSR content
+  await Promise.allSettled([
+    refreshNext(), refreshLast(), refreshAll(), refreshTeams(), refreshFinal(),
+  ])
+  pageReady.value = true
+  // Reactive timer for auto-live status
+  refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
+})
+onUnmounted(() => {
+  if (matchWatcher) clearInterval(matchWatcher)
+  if (refreshTimer) clearInterval(refreshTimer)
+})
+
+const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);
+
+// ── Reactive time-based status ──
+const now = ref(Date.now())
+const computeStatus = (dateStr) => {
+  if (!dateStr) return 'upcoming'
+  const matchDate = new Date(dateStr)
+  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000)
+  if (now.value > matchEnd) return 'played'
+  if (now.value >= matchDate) return 'live'
+  return 'upcoming'
+}
+const nextMatchIsLive = computed(() => nextMatch.value ? computeStatus(nextMatch.value.date) === 'live' : false)
 
 const champion = computed(() => {
   if (!finalMatch.value || finalMatch.value.status !== "played") return null;
@@ -397,6 +423,8 @@ const teamMap = computed(() => {
 const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
 const getTeamLogo = (slug) => (slug ? teamMap.value[slug]?.logo || null : null);
 const getTeamColor = (slug) => teamMap.value[slug]?.color || "#22c55e";
+
+const showTime = ref(false)
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";

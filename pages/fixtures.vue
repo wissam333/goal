@@ -93,7 +93,7 @@
                 <span class="bm-score" :class="{ win: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : match.status === 'upcoming' ? '' : '–' }}</span>
               </div>
               <div class="bm-meta">
-                <span v-if="match.status === 'upcoming'" class="bm-time">{{ formatMatchTime(match.date) }}</span>
+                <span v-if="match.status === 'upcoming'" class="bm-time">{{ showTime ? formatMatchTime(match.date) : '--:--' }}</span>
                 <span v-else-if="match.status === 'live'" class="bm-live">
                   <span class="live-dot" /> LIVE
                 </span>
@@ -126,7 +126,19 @@ const [
   useAsyncData("fixtures-teams", () => fetchTeams()),
 ]);
 
-const matches = computed(() => matchesData.value || []);
+const now = ref(Date.now())
+const computeStatus = (dateStr) => {
+  if (!dateStr) return 'upcoming'
+  const matchDate = new Date(dateStr)
+  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000)
+  if (now.value > matchEnd) return 'played'
+  if (now.value >= matchDate) return 'live'
+  return 'upcoming'
+}
+const matches = computed(() => (matchesData.value || []).map(m => ({
+  ...m,
+  status: m.status === 'played' ? 'played' : computeStatus(m.date),
+})));
 const teams = computed(() => teamsData.value || []);
 
 // Team helpers
@@ -203,6 +215,16 @@ const knockoutStage = computed(() => {
 
 // Date formatting
 const dateFnsLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
+
+const showTime = ref(false)
+let refreshTimer = null
+onMounted(() => {
+  showTime.value = true
+  refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
+})
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return "";
