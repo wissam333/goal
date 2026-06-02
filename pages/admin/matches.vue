@@ -936,19 +936,15 @@ const handleSave = async () => {
     awayTeam: form.awayTeam,
     homeScore: matchStatus === 'played' ? Number(form.homeScore) : null,
     awayScore: matchStatus === 'played' ? Number(form.awayScore) : null,
-    goalScorers: editingMatch.value?.goalScorers || [],
     motmWinner: form.motmWinner || null,
     photos: editingMatch.value?.photos || [],
   }
 
-  // Override with edited goal scorers
-  if (goalScorers.value.length) {
-    matchObj.goalScorers = goalScorers.value.map(g => ({
-      player: g.player,
-      team: g.team,
-      minute: g.minute ? Number(g.minute) : null,
-    }))
-  }
+  matchObj.goalScorers = goalScorers.value.map(g => ({
+    player: g.player,
+    team: g.team,
+    minute: g.minute ? Number(g.minute) : null,
+  }))
 
   // Save cards
   matchObj.cards = cards.value

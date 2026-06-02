@@ -387,7 +387,6 @@ onMounted(async () => {
   refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
 })
 onUnmounted(() => {
-  if (matchWatcher) clearInterval(matchWatcher)
   if (refreshTimer) clearInterval(refreshTimer)
 })
 

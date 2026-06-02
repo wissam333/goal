@@ -1,4 +1,17 @@
 const STORAGE_KEY = 'league-notifications'
+const DELETED_KEY = 'league-deleted-notifications'
+
+function getDeletedKeys() {
+  try { return JSON.parse(localStorage.getItem(DELETED_KEY) || '[]') } catch { return [] }
+}
+
+function markDeleted(key) {
+  const list = getDeletedKeys()
+  if (!list.includes(key)) {
+    list.push(key)
+    try { localStorage.setItem(DELETED_KEY, JSON.stringify(list)) } catch {}
+  }
+}
 
 export const useNotificationCenter = () => {
   const notifications = ref([])
@@ -18,7 +31,13 @@ export const useNotificationCenter = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications.value))
   }
 
+  function makeKey(n) {
+    return (n.url || '') + (n.body || '') + (n.title || '')
+  }
+
   function add(notif) {
+    const key = makeKey(notif)
+    if (getDeletedKeys().includes(key)) return
     notifications.value.unshift({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       read: false,
@@ -42,11 +61,14 @@ export const useNotificationCenter = () => {
   }
 
   function remove(id) {
+    const removed = notifications.value.find(n => n.id === id)
+    if (removed) markDeleted(makeKey(removed))
     notifications.value = notifications.value.filter(n => n.id !== id)
     save()
   }
 
   function clear() {
+    notifications.value.forEach(n => markDeleted(makeKey(n)))
     notifications.value = []
     save()
   }
@@ -69,11 +91,11 @@ export const useNotificationCenter = () => {
       let added = 0
       for (const n of swNotifs) {
         const key = (n.url || '') + (n.body || '')
-        if (!existingIds.has(key)) {
-          add({ ...n, fromSW: true })
-          existingIds.add(key)
-          added++
-        }
+        if (existingIds.has(key)) continue
+        if (getDeletedKeys().includes(key)) continue
+        add({ ...n, fromSW: true })
+        existingIds.add(key)
+        added++
       }
       if (added > 0) save()
     } catch {

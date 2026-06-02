@@ -57,6 +57,9 @@
               <p v-if="n.body" class="notif-body">{{ n.body }}</p>
               <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
             </div>
+            <button class="notif-remove" @click.stop="center.remove(n.id)" title="حذف">
+              <Icon name="mdi:close" size="14" />
+            </button>
           </div>
         </div>
 
@@ -117,6 +120,9 @@
             <p v-if="n.body" class="notif-body">{{ n.body }}</p>
             <span class="notif-time">{{ timeAgo(n.createdAt) }}</span>
           </div>
+          <button class="notif-remove" @click.stop="center.remove(n.id)" title="حذف">
+            <Icon name="mdi:close" size="14" />
+          </button>
         </div>
       </div>
     </SharedUiDialogBottomSheet>
@@ -369,6 +375,32 @@ onUnmounted(() => {
 .notif-item:hover {
   background: var(--bg-elevated);
   padding-inline-start: 20px;
+}
+.notif-remove {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.notif-item:hover .notif-remove {
+  opacity: 1;
+}
+.notif-remove:hover {
+  background: var(--bg-elevated);
+  color: #ef4444;
 }
 .notif-item.unread {
   background: var(--primary-soft, rgba(34, 197, 94, 0.05));
