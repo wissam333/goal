@@ -401,8 +401,13 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
   background: var(--bg-surface);
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 24px;
+
+  @media (max-width: 576px) {
+    border-radius: 0;
+    border-inline: none;
+  }
 }
 .standings-table {
   width: 100%;
@@ -419,6 +424,15 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
   }
   th.th-team {
     text-align: right;
+    min-width: 130px;
+
+    @media (max-width: 576px) {
+      position: sticky;
+      inset-inline-start: 0;
+      z-index: 2;
+      background: var(--bg-surface);
+      min-width: 120px;
+    }
   }
   th.th-pts {
     color: var(--primary);
@@ -436,7 +450,15 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
   }
   td.td-team {
     text-align: right;
-    min-width: 140px;
+    min-width: 130px;
+
+    @media (max-width: 576px) {
+      position: sticky;
+      inset-inline-start: 0;
+      z-index: 1;
+      background: var(--bg-surface);
+      min-width: 120px;
+    }
   }
   .td-team-inner {
     display: flex;
@@ -449,6 +471,11 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
     height: 22px;
     border-radius: 50%;
     flex-shrink: 0;
+
+    @media (max-width: 576px) {
+      width: 18px;
+      height: 18px;
+    }
   }
   .td-logo-init {
     display: flex;
@@ -461,21 +488,48 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
   .td-name {
     font-weight: 600;
     color: var(--text-primary);
+
+    @media (max-width: 576px) {
+      font-size: 0.8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 80px;
+    }
   }
   .td-num {
     font-variant-numeric: tabular-nums;
     color: var(--text-primary);
+
+    @media (max-width: 576px) {
+      font-size: 0.78rem;
+      padding: 8px 4px;
+    }
   }
   td.td-pts {
     font-weight: 800;
     color: var(--primary);
     font-size: 0.95rem;
+
+    @media (max-width: 576px) {
+      font-size: 0.88rem;
+    }
   }
   tbody tr:last-child td {
     border-bottom: none;
   }
   tbody tr:hover {
     background: var(--bg-hover);
+  }
+
+  @media (max-width: 576px) {
+    td, th {
+      padding: 8px 4px;
+    }
+    td.td-rank {
+      width: 22px;
+      font-size: 0.78rem;
+    }
   }
 }
 .gd-pos {

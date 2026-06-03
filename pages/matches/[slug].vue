@@ -234,19 +234,23 @@
           </div>
         </div>
 
-        <!-- ④ Prediction Vote (upcoming matches only) -->
-        <div v-if="liveStatus === 'upcoming'" class="section-card">
+        <!-- ④ Prediction Vote -->
+        <div v-if="liveStatus === 'upcoming' || totalPredictions" class="section-card">
           <h3 class="section-title">
             <Icon name="mdi:chart-line" size="18" />
             {{ $t("match.predictTitle") }}
           </h3>
 
-          <p v-if="!alreadyPredicted" class="vote-prompt">
+          <p v-if="liveStatus === 'upcoming' && !alreadyPredicted" class="vote-prompt">
             {{ $t("match.predictPrompt") }}
           </p>
-          <p v-else class="vote-done-msg">
+          <p v-else-if="liveStatus === 'upcoming' && alreadyPredicted" class="vote-done-msg">
             <Icon name="mdi:check-circle" size="16" />
             {{ $t("match.predicted") }}
+          </p>
+          <p v-else class="vote-done-msg" style="color: var(--text-muted);">
+            <Icon name="mdi:lock-outline" size="16" />
+            التصويت مغلق
           </p>
 
           <div
@@ -257,9 +261,9 @@
             <div
               class="predict-card"
               :class="{
-                voted: alreadyPredicted && predictedTeam === match.homeTeam,
+                voted: predictedTeam === match.homeTeam,
               }"
-              @click="castPrediction(match.homeTeam)"
+              @click="liveStatus === 'upcoming' && castPrediction(match.homeTeam)"
             >
               <div class="predict-logo">
                 <span class="predict-initial">{{
@@ -267,7 +271,7 @@
                 }}</span>
               </div>
               <span class="predict-team-name">{{ homeTeam?.title }}</span>
-              <template v-if="alreadyPredicted">
+              <template v-if="totalPredictions">
                 <SharedUiIndicatorsProgress
                   :value="getPredictionPercent(match.homeTeam)"
                   color="primary"
@@ -278,7 +282,7 @@
                 >
               </template>
               <SharedUiButtonBase
-                v-else
+                v-if="liveStatus === 'upcoming' && !alreadyPredicted"
                 variant="outline"
                 size="sm"
                 icon-left="mdi:thumb-up-outline"
@@ -293,9 +297,9 @@
               <div
                 class="predict-card predict-card--draw"
                 :class="{
-                  voted: alreadyPredicted && predictedTeam === DRAW_SLUG,
+                  voted: predictedTeam === DRAW_SLUG,
                 }"
-                @click="castPrediction(DRAW_SLUG)"
+                @click="liveStatus === 'upcoming' && castPrediction(DRAW_SLUG)"
               >
                 <div class="predict-logo predict-logo--draw">
                   <Icon
@@ -307,7 +311,7 @@
                 <span class="predict-team-name">{{
                   $t("match.predictDraw")
                 }}</span>
-                <template v-if="alreadyPredicted">
+                <template v-if="totalPredictions">
                   <SharedUiIndicatorsProgress
                     :value="getPredictionPercent(DRAW_SLUG)"
                     color="primary"
@@ -318,7 +322,7 @@
                   >
                 </template>
                 <SharedUiButtonBase
-                  v-else
+                  v-if="liveStatus === 'upcoming' && !alreadyPredicted"
                   variant="outline"
                   size="sm"
                   icon-left="mdi:thumb-up-outline"
@@ -336,9 +340,9 @@
             <div
               class="predict-card"
               :class="{
-                voted: alreadyPredicted && predictedTeam === match.awayTeam,
+                voted: predictedTeam === match.awayTeam,
               }"
-              @click="castPrediction(match.awayTeam)"
+              @click="liveStatus === 'upcoming' && castPrediction(match.awayTeam)"
             >
               <div class="predict-logo">
                 <span class="predict-initial">{{
@@ -346,7 +350,7 @@
                 }}</span>
               </div>
               <span class="predict-team-name">{{ awayTeam?.title }}</span>
-              <template v-if="alreadyPredicted">
+              <template v-if="totalPredictions">
                 <SharedUiIndicatorsProgress
                   :value="getPredictionPercent(match.awayTeam)"
                   color="primary"
@@ -357,7 +361,7 @@
                 >
               </template>
               <SharedUiButtonBase
-                v-else
+                v-if="liveStatus === 'upcoming' && !alreadyPredicted"
                 variant="outline"
                 size="sm"
                 icon-left="mdi:thumb-up-outline"
@@ -673,6 +677,8 @@ const allMatches = computed(() => allMatchesData.value || []);
 
 // ── Live status (computed from date, overrides DB) ──────────────────────────────
 const liveStatus = computed(() => {
+  if (match.value?.status === "played") return "played";
+  if (match.value?.status === "live") return "live";
   if (!match.value?.date) return "upcoming";
   const syriaTime = new Date().toLocaleString("en-US", {
     timeZone: "Asia/Damascus",
@@ -865,10 +871,10 @@ const castPrediction = async (teamSlug) => {
 };
 
 onMounted(async () => {
-  if (match.value?.slug && match.value?.status === "upcoming") {
+  if (match.value?.slug) {
+    predictionResults.value = await getPredictions(match.value.slug);
     alreadyPredicted.value = await hasPredicted(match.value.slug);
     predictedTeam.value = getPredictedTeam(match.value.slug);
-    predictionResults.value = await getPredictions(match.value.slug);
   }
 });
 

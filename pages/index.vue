@@ -92,6 +92,9 @@
               <span class="hero-live">
                 <span class="live-dot" /> {{ $t('match.live') }}
               </span>
+              <span v-if="nextMatch.homeScore != null" class="hero-live-score">
+                {{ nextMatch.homeScore }} - {{ nextMatch.awayScore }}
+              </span>
             </template>
             <template v-else>
               <span class="hero-time">{{ showTime ? formatMatchTime(nextMatch.date) : '--:--' }}</span>
@@ -376,6 +379,7 @@ const [
 // ── Skeleton guard: show skeleton until client confirms fresh data ──
 const pageReady = ref(false)
 let refreshTimer = null
+let resultTimer = null
 onMounted(async () => {
   showTime.value = true
   // Force fresh data on every page load to avoid stale SSR content
@@ -386,9 +390,15 @@ onMounted(async () => {
   // Reactive timer for auto-live status
   now.value = Date.now()
   refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
+  // Auto-refresh match results every 30s
+  resultTimer = setInterval(() => {
+    refreshNext()
+    refreshLast()
+  }, 30000)
 })
 onUnmounted(() => {
   if (refreshTimer) clearInterval(refreshTimer)
+  if (resultTimer) clearInterval(resultTimer)
 })
 
 const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);
@@ -852,6 +862,14 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   border-radius: 50%;
   background: #16a34a;
   animation: pulse-green 1.5s infinite;
+}
+
+.hero-live-score {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+  line-height: 1;
 }
 
 @keyframes pulse-green {

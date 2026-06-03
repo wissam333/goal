@@ -934,8 +934,8 @@ const handleSave = async () => {
     status: matchStatus,
     homeTeam: form.homeTeam,
     awayTeam: form.awayTeam,
-    homeScore: matchStatus === 'played' ? Number(form.homeScore) : null,
-    awayScore: matchStatus === 'played' ? Number(form.awayScore) : null,
+    homeScore: matchStatus !== 'upcoming' ? Number(form.homeScore) : null,
+    awayScore: matchStatus !== 'upcoming' ? Number(form.awayScore) : null,
     motmWinner: form.motmWinner || null,
     photos: editingMatch.value?.photos || [],
   }
@@ -957,9 +957,7 @@ const handleSave = async () => {
     }))
 
   try {
-    const oldMatch = editingMatch.value
     await admin.saveMatch(matchObj)
-    triggerMatchNotifications(oldMatch, matchObj, matchStatus)
     // Auto-update player goal stats from all matches
     await syncPlayerGoals()
     modalOpen.value = false
