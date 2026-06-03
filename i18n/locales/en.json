@@ -233,9 +233,10 @@
     "ios_hint_before": "Tap",
     "ios_hint_after": "then Add to Home Screen",
     "android_hint": "Install for faster access without the browser",
-    "android_manual_hint": "Open browser menu → Add to Home Screen"
-  },
-  "notifications": {
+      "android_manual_hint": "Open browser menu → Add to Home Screen",
+      "inapp": "For a better experience, open this link in your browser via the three dots menu"
+    },
+    "notifications": {
     "title": "Notifications",
     "empty": "No notifications",
     "markAllRead": "Mark all as read",

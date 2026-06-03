@@ -1,7 +1,7 @@
 export const usePushNotifications = () => {
   const supported = import.meta.client && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
 
-  const permission = ref(import.meta.client ? Notification.permission : 'default')
+  const permission = ref(import.meta.client && typeof Notification !== 'undefined' ? Notification.permission : 'default')
   const subscribed = ref(false)
   const swReady = ref(false)
 

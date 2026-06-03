@@ -2,8 +2,18 @@
   <Transition name="pwa-slide">
     <div v-if="visible" class="pwa-notice">
       <div class="pwa-content">
+        <!-- In-app browser (Facebook, Messenger, Instagram, etc.) -->
+        <template v-if="isInApp">
+          <div class="pwa-icon">
+            <Icon name="mdi:open-in-new" size="22" />
+          </div>
+          <div class="pwa-text">
+            <strong>{{ $t("pwa.inapp") }}</strong>
+          </div>
+        </template>
+
         <!-- iOS -->
-        <template v-if="platform === 'ios'">
+        <template v-else-if="platform === 'ios'">
           <div class="pwa-icon">
             <Icon name="mdi:apple" size="24" />
           </div>
@@ -65,6 +75,7 @@ const LS_KEY = "pwa-install-dismissed";
 const visible = ref(false);
 const platform = ref<"ios" | "android" | "desktop">("desktop");
 const installing = ref(false);
+const isInApp = ref(false);
 
 const { isInstallable, install } = usePwaInstall();
 
@@ -77,6 +88,11 @@ const detectPlatform = (): "ios" | "android" | "desktop" => {
   if (/iphone|ipad|ipod/i.test(ua)) return "ios";
   if (/android/i.test(ua)) return "android";
   return "desktop";
+};
+
+const detectInAppBrowser = (): boolean => {
+  const ua = navigator.userAgent;
+  return /FBAN|FBAV|Messenger|FB_IAB|FB4A|Instagram|MicroMessenger|Line/i.test(ua);
 };
 
 const dismiss = () => {
@@ -98,6 +114,15 @@ const handleInstall = async () => {
 
 onMounted(() => {
   if (isStandalone()) return;
+  const inApp = detectInAppBrowser();
+  if (inApp) {
+    isInApp.value = true;
+    try {
+      if (localStorage.getItem(LS_KEY)) return;
+    } catch {}
+    visible.value = true;
+    return
+  }
   try {
     if (localStorage.getItem(LS_KEY)) return;
   } catch {}
