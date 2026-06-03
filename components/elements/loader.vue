@@ -6,7 +6,7 @@
           <div id="preloaders" class="loader-content">
             <!-- Logo with pulse animation -->
             <div class="logo-container">
-              <Icon name="game-icons:soccer-ball" class="logo-pulse" />
+              <img src="/logo.png" class="logo-pulse" alt="Logo" />
             </div>
 
             <!-- Progress indicator -->
@@ -176,13 +176,13 @@ onBeforeUnmount(() => clear);
   }
 
   .logo-pulse {
-    width: 100px;
-    height: 100px;
-    color: var(--primary);
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
 
     @media (max-width: 991px) {
-      width: 48px;
-      height: 48px;
+      width: 120px;
+      height: 120px;
     }
   }
 

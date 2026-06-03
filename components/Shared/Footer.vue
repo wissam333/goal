@@ -5,11 +5,16 @@
         <!-- Brand col -->
         <div class="footer-brand">
           <NuxtLink to="/" class="footer-logo-wrap">
-            <Icon name="game-icons:soccer-ball" size="24" class="footer-icon" />
+            <img
+              src="/logo.png"
+              width="48"
+              height="48"
+              class="footer-icon"
+              alt="Logo"
+            />
             <span class="footer-league-name">{{ $t("leagueName") }}</span>
           </NuxtLink>
           <p class="footer-tagline">{{ $t("footer.tagline") }}</p>
-
         </div>
 
         <!-- Quick links -->
@@ -44,12 +49,19 @@
               <span>{{ $t("footer.teamsCount") }} {{ teamCount }}</span>
             </li>
             <li>
-              <Icon
-                name="mdi:map-marker-outline"
-                size="15"
-                aria-hidden="true"
-              />
-              <span>{{ $t("footer.location") }}</span>
+              <a
+                href="https://www.google.com/maps/place/%D9%85%D9%84%D8%B9%D8%A8+%D8%A7%D9%84%D8%AC%D8%B1%D9%88%D9%8A%D8%A9%E2%80%AD/@34.8514887,36.0881449,314m/data=!3m1!1e3!4m6!3m5!1s0x1523d10384af6bdd:0x1179146945d4b95c!8m2!3d34.8520553!4d36.087112!16s%2Fg%2F11jz9zyqct?entry=ttu&g_ep=EgoyMDI2MDUzMS4wIKXMDSoASAFQAw%3D%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="footer-location-link"
+              >
+                <Icon
+                  name="mdi:map-marker-outline"
+                  size="15"
+                  aria-hidden="true"
+                />
+                <span>{{ $t("footer.location") }}</span>
+              </a>
             </li>
           </ul>
         </div>
@@ -61,7 +73,13 @@
           © {{ currentYear }} {{ $t("leagueName") }}
         </span>
         <span class="footer-built">
-          <a href="https://wa.me/963933446665" target="_blank" rel="noopener noreferrer" class="footer-author-link">{{ $t('footer.builtBy') }}</a>
+          <a
+            href="https://wa.me/963933446665"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer-author-link"
+            >{{ $t("footer.builtBy") }}</a
+          >
         </span>
       </div>
     </div>
@@ -74,11 +92,11 @@ const currentYear = new Date().getFullYear();
 
 const { fetchTeams } = useLeagueData();
 const { data: teamCount } = await useAsyncData(
-  'footer-team-count',
+  "footer-team-count",
   async () => {
     const teams = await fetchTeams();
     return teams?.length || 0;
-  }
+  },
 );
 
 const navItems = [
@@ -135,13 +153,16 @@ const navItems = [
 
 .footer-logo-wrap {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   text-decoration: none;
 }
 
 .footer-icon {
-  color: var(--primary);
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -212,6 +233,19 @@ const navItems = [
     .iconify {
       color: var(--primary);
       flex-shrink: 0;
+    }
+  }
+
+  .footer-location-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-sub);
+    text-decoration: none;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--primary);
     }
   }
 }

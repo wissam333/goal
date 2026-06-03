@@ -2,9 +2,13 @@
   <header class="navbar" :class="{ scrolled: isScrolled }">
     <div class="navbar-inner container">
       <NuxtLink to="/" class="navbar-logo">
-        <span class="brand-icon">
-          <Icon name="game-icons:soccer-ball" size="24" />
-        </span>
+        <img
+          src="/logo.png"
+          class="brand-icon"
+          alt="Logo"
+          width="50"
+          height="50"
+        />
         <div class="brand-text">
           <span class="brand-name">{{ $t("leagueName") }}</span>
           <span class="brand-season">{{ config.public.season }}</span>
@@ -102,14 +106,36 @@
 
           <div class="mobile-nav-divider" />
 
-          <button class="mobile-nav-item mobile-nav-btn" @click="theme.toggleMode(); mobileOpen = false">
-            <Icon :name="theme.isDark.value ? 'mdi:white-balance-sunny' : 'mdi:moon-waning-crescent'" size="18" aria-hidden="true" />
-            <span>{{ theme.isDark.value ? $t('lightMode') : $t('darkMode') }}</span>
+          <button
+            class="mobile-nav-item mobile-nav-btn"
+            @click="
+              theme.toggleMode();
+              mobileOpen = false;
+            "
+          >
+            <Icon
+              :name="
+                theme.isDark.value
+                  ? 'mdi:white-balance-sunny'
+                  : 'mdi:moon-waning-crescent'
+              "
+              size="18"
+              aria-hidden="true"
+            />
+            <span>{{
+              theme.isDark.value ? $t("lightMode") : $t("darkMode")
+            }}</span>
           </button>
 
-          <button class="mobile-nav-item mobile-nav-btn" @click="toggleLang(); mobileOpen = false">
+          <button
+            class="mobile-nav-item mobile-nav-btn"
+            @click="
+              toggleLang();
+              mobileOpen = false;
+            "
+          >
             <Icon name="mdi:translate" size="18" aria-hidden="true" />
-            <span>{{ locale === 'ar' ? 'English' : 'العربية' }}</span>
+            <span>{{ locale === "ar" ? "English" : "العربية" }}</span>
           </button>
         </div>
       </div>
@@ -222,26 +248,24 @@ onMounted(() => {
   gap: 10px;
   text-decoration: none;
   flex-shrink: 0;
-
+  @media (max-width: 991.98px) {
+    gap: 4px;
+  }
   &:hover .brand-name {
     color: var(--primary);
   }
 }
 
 .brand-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-soft);
-  color: var(--primary);
-  border-radius: 10px;
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
   flex-shrink: 0;
+  border-radius: 8px;
 
   @media (max-width: 991.98px) {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
   }
 }
 
