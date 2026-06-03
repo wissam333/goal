@@ -384,6 +384,7 @@ onMounted(async () => {
   ])
   pageReady.value = true
   // Reactive timer for auto-live status
+  now.value = Date.now()
   refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
 })
 onUnmounted(() => {
@@ -393,9 +394,10 @@ onUnmounted(() => {
 const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);
 
 // ── Reactive time-based status ──
-const now = ref(Date.now())
+const now = ref(0)
 const computeStatus = (dateStr) => {
   if (!dateStr) return 'upcoming'
+  if (!now.value) return 'upcoming'
   const matchDate = new Date(dateStr)
   const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000)
   if (now.value > matchEnd) return 'played'

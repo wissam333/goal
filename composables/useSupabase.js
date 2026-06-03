@@ -8,6 +8,12 @@ export const useSupabase = () => {
   const url = config.public.supabaseUrl
   const key = config.public.supabaseKey
   if (!url || !key) return null
-  _client = createClient(url, key)
+  _client = createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  })
   return _client
 }
