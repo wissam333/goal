@@ -7,9 +7,28 @@
         class="error-icon"
       />
       <h1 class="error-code">{{ error.statusCode }}</h1>
-      <p class="error-msg">
-        {{ error.statusCode === 404 ? 'الصفحة غير موجودة' : 'حدث خطأ ما' }}
+      <p class="error-msg" v-if="error.statusCode === 404">
+        الصفحة غير موجودة
       </p>
+      <p class="error-msg" v-else-if="error.statusMessage">
+        {{ error.statusMessage }}
+      </p>
+      <p class="error-msg" v-else>
+        حدث خطأ ما
+      </p>
+      <p class="error-detail" v-if="error.message && error.message !== error.statusMessage">
+        {{ error.message }}
+      </p>
+
+      <details class="error-stack" v-if="error.stack">
+        <summary>تفاصيل التقني</summary>
+        <pre>{{ error.stack }}</pre>
+      </details>
+      <details class="error-stack" v-if="error.description">
+        <summary>تفاصيل إضافية</summary>
+        <pre>{{ error.description }}</pre>
+      </details>
+
       <button class="error-btn" @click="handleClearError">
         <Icon name="mdi:home-outline" size="18" />
         العودة للرئيسية
@@ -45,6 +64,7 @@ useHead({
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  max-width: 600px;
 }
 
 .error-icon {
@@ -64,6 +84,42 @@ useHead({
   font-size: 1.1rem;
   color: var(--text-muted);
   margin: 0;
+}
+
+.error-detail {
+  font-size: 0.85rem;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin: 0;
+  direction: ltr;
+  word-break: break-all;
+}
+
+.error-stack {
+  width: 100%;
+  text-align: start;
+  summary {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  pre {
+    font-size: 0.7rem;
+    background: var(--bg-surface);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    direction: ltr;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text-primary);
+    margin: 8px 0 0;
+  }
 }
 
 .error-btn {
