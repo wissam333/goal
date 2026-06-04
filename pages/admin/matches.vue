@@ -94,18 +94,29 @@
             placeholder="اختر الفريق"
           />
           <template v-if="form.date && computeStatus(form.date) !== 'upcoming'">
-            <SharedUiFormBaseInput
-              v-model="form.homeScore"
-              label="نتيجة المضيف"
-              type="number"
-              placeholder="0"
-            />
-            <SharedUiFormBaseInput
-              v-model="form.awayScore"
-              label="نتيجة الضيف"
-              type="number"
-              placeholder="0"
-            />
+            <div class="scoreboard">
+              <div class="score-team score-home">
+                <span class="score-team-dot" :style="{ background: getTeamColor(form.homeTeam) }"></span>
+                <span class="score-team-name">{{ getTeamTitle(form.homeTeam) }}</span>
+              </div>
+              <div class="score-inputs">
+                <SharedUiFormBaseInput
+                  v-model="form.homeScore"
+                  type="number"
+                  placeholder="0"
+                />
+                <span class="score-dash">–</span>
+                <SharedUiFormBaseInput
+                  v-model="form.awayScore"
+                  type="number"
+                  placeholder="0"
+                />
+              </div>
+              <div class="score-team score-away">
+                <span class="score-team-dot" :style="{ background: getTeamColor(form.awayTeam) }"></span>
+                <span class="score-team-name">{{ getTeamTitle(form.awayTeam) }}</span>
+              </div>
+            </div>
           </template>
           <template v-if="form.homeTeam && form.awayTeam">
             <div class="motm-field-wrap">
@@ -121,70 +132,159 @@
           </template>
         </div>
 
-          <div v-if="form.date && computeStatus(form.date) !== 'upcoming' && goalScorers.length" class="goal-scorers-section">
-          <div class="goal-scorers-header">
-            <span class="goal-title">مسجلو الأهداف</span>
-            <span class="goal-hint">اختياري</span>
-          </div>
-          <div v-for="(gs, i) in goalScorers" :key="i" class="goal-scorer-row">
-            <SharedUiFormBaseSelect
-              v-model="gs.player"
-              :options="goalScorerPlayerOptions"
-              placeholder="اللاعب"
-              searchable
-              size="sm"
-              @change="(val) => onPlayerSelect(i, val)"
-            />
-            <SharedUiFormBaseInput
-              v-model="gs.minute"
-              type="number"
-              placeholder="دقيقة"
-              size="sm"
-            />
-            <button class="goal-remove" type="button" @click="removeGoalScorer(i)" title="إزالة">
-              <Icon name="mdi:close" size="14" />
-            </button>
-          </div>
-        </div>
-
-        <div v-if="form.date && computeStatus(form.date) !== 'upcoming'" class="goal-scorers-section">
-          <div class="goal-scorers-header">
-            <span class="goal-title">البطاقات</span>
-            <span class="goal-hint">اختياري</span>
-          </div>
-          <div v-for="(c, i) in cards" :key="i" class="goal-scorer-row">
-            <SharedUiFormBaseSelect
-              v-model="c.player"
-              :options="goalScorerPlayerOptions"
-              placeholder="اللاعب"
-              searchable
-              size="sm"
-              @change="(val) => { const p = players.find(p2 => p2.slug === val); if (p) c.team = p.team }"
-            />
-            <SharedUiFormBaseSelect
-              v-model="c.type"
-              :options="cardTypeOptions"
-              placeholder="النوع"
-              size="sm"
-              style="width:100px;flex-shrink:0"
-            />
-            <div style="width:90px;flex-shrink:0">
-              <SharedUiFormBaseInput
-                v-model="c.minute"
-                type="number"
-                placeholder="دقيقة"
-                size="sm"
-              />
+        <!-- Goal scorers -->
+        <template v-if="form.date && computeStatus(form.date) !== 'upcoming'">
+          <div class="goals-section">
+            <div class="goals-title">
+              <Icon name="mdi:soccer" size="16" />
+              مسجلو الأهداف
+              <span class="goals-count">{{ goalScorers.length }} / {{ totalGoals }}</span>
             </div>
-            <button class="goal-remove" type="button" @click="removeCard(i)" title="إزالة">
-              <Icon name="mdi:close" size="14" />
-            </button>
+
+            <!-- Home team scorers -->
+            <div class="goals-team-block">
+              <div class="goals-team-header">
+                <span class="goals-team-dot" :style="{ background: getTeamColor(form.homeTeam) }"></span>
+                <span class="goals-team-label">{{ getTeamTitle(form.homeTeam) }}</span>
+              </div>
+              <div v-for="gs in goalScorers.filter(g => g.team === form.homeTeam)" :key="gs._key" class="goals-row">
+                <SharedUiFormBaseSelect
+                  v-model="gs.player"
+                  :options="homeTeamPlayers.map(p => ({ label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`, value: p.slug }))"
+                  placeholder="اختر اللاعب"
+                  searchable
+                  size="sm"
+                  @change="(val) => onPlayerSelect(goalScorers.value.indexOf(gs), val)"
+                />
+                <SharedUiFormBaseInput
+                  v-model="gs.minute"
+                  type="number"
+                  placeholder="دقيقة"
+                  size="sm"
+                />
+                <button class="goal-remove" type="button" @click="removeGoalScorer(gs)" title="إزالة">
+                  <Icon name="mdi:close" size="14" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Away team scorers -->
+            <div class="goals-team-block">
+              <div class="goals-team-header">
+                <span class="goals-team-dot" :style="{ background: getTeamColor(form.awayTeam) }"></span>
+                <span class="goals-team-label">{{ getTeamTitle(form.awayTeam) }}</span>
+              </div>
+              <div v-for="gs in goalScorers.filter(g => g.team === form.awayTeam)" :key="gs._key" class="goals-row">
+                <SharedUiFormBaseSelect
+                  v-model="gs.player"
+                  :options="awayTeamPlayers.map(p => ({ label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`, value: p.slug }))"
+                  placeholder="اختر اللاعب"
+                  searchable
+                  size="sm"
+                  @change="(val) => onPlayerSelect(goalScorers.value.indexOf(gs), val)"
+                />
+                <SharedUiFormBaseInput
+                  v-model="gs.minute"
+                  type="number"
+                  placeholder="دقيقة"
+                  size="sm"
+                />
+                <button class="goal-remove" type="button" @click="removeGoalScorer(gs)" title="إزالة">
+                  <Icon name="mdi:close" size="14" />
+                </button>
+              </div>
+            </div>
           </div>
-          <button class="card-add-btn" type="button" @click="addCard">
-            <Icon name="mdi:plus" size="14" />
-            إضافة بطاقة
-          </button>
-        </div>
+
+          <!-- Cards -->
+          <div class="goals-section">
+            <div class="goals-title">
+              <Icon name="mdi:card" size="16" />
+              البطاقات
+              <span class="goals-count">اختياري</span>
+            </div>
+
+            <!-- Home team cards -->
+            <div class="goals-team-block">
+              <div class="goals-team-header">
+                <span class="goals-team-dot" :style="{ background: getTeamColor(form.homeTeam) }"></span>
+                <span class="goals-team-label">{{ getTeamTitle(form.homeTeam) }}</span>
+              </div>
+              <div v-for="c in cards.filter(c => c.team === form.homeTeam)" :key="c._key" class="goals-row">
+                <SharedUiFormBaseSelect
+                  v-model="c.player"
+                  :options="homeTeamPlayers.map(p => ({ label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`, value: p.slug }))"
+                  placeholder="اختر اللاعب"
+                  searchable
+                  size="sm"
+                  @change="(val) => { if (val) c.team = form.homeTeam }"
+                />
+                <SharedUiFormBaseSelect
+                  v-model="c.type"
+                  :options="cardTypeOptions"
+                  placeholder="النوع"
+                  size="sm"
+                  style="width:100px;flex-shrink:0"
+                />
+                <div style="width:90px;flex-shrink:0">
+                  <SharedUiFormBaseInput
+                    v-model="c.minute"
+                    type="number"
+                    placeholder="دقيقة"
+                    size="sm"
+                  />
+                </div>
+                <button class="goal-remove" type="button" @click="removeCard(c)" title="إزالة">
+                  <Icon name="mdi:close" size="14" />
+                </button>
+              </div>
+              <button class="goals-add-btn" type="button" @click="addCard(form.homeTeam)">
+                <Icon name="mdi:plus" size="14" />
+                إضافة بطاقة {{ getTeamTitle(form.homeTeam) }}
+              </button>
+            </div>
+
+            <!-- Away team cards -->
+            <div class="goals-team-block">
+              <div class="goals-team-header">
+                <span class="goals-team-dot" :style="{ background: getTeamColor(form.awayTeam) }"></span>
+                <span class="goals-team-label">{{ getTeamTitle(form.awayTeam) }}</span>
+              </div>
+              <div v-for="c in cards.filter(c => c.team === form.awayTeam)" :key="c._key" class="goals-row">
+                <SharedUiFormBaseSelect
+                  v-model="c.player"
+                  :options="awayTeamPlayers.map(p => ({ label: `${p.title}${p.number ? ' (' + p.number + ')' : ''}`, value: p.slug }))"
+                  placeholder="اختر اللاعب"
+                  searchable
+                  size="sm"
+                  @change="(val) => { if (val) c.team = form.awayTeam }"
+                />
+                <SharedUiFormBaseSelect
+                  v-model="c.type"
+                  :options="cardTypeOptions"
+                  placeholder="النوع"
+                  size="sm"
+                  style="width:100px;flex-shrink:0"
+                />
+                <div style="width:90px;flex-shrink:0">
+                  <SharedUiFormBaseInput
+                    v-model="c.minute"
+                    type="number"
+                    placeholder="دقيقة"
+                    size="sm"
+                  />
+                </div>
+                <button class="goal-remove" type="button" @click="removeCard(c)" title="إزالة">
+                  <Icon name="mdi:close" size="14" />
+                </button>
+              </div>
+              <button class="goals-add-btn" type="button" @click="addCard(form.awayTeam)">
+                <Icon name="mdi:plus" size="14" />
+                إضافة بطاقة {{ getTeamTitle(form.awayTeam) }}
+              </button>
+            </div>
+          </div>
+        </template>
       </form>
 
       <template #actions>
@@ -540,12 +640,13 @@ const cardTypeOptions = [
   { label: 'حمراء', value: 'red' },
 ]
 
-const addCard = () => {
-  cards.value.push({ player: '', team: '', type: 'yellow', minute: '' })
+const addCard = (team) => {
+  cards.value.push({ player: '', team: team || '', type: 'yellow', minute: '', _key: Date.now() + '-' + Math.random().toString(36).slice(2, 6) })
 }
 
-const removeCard = (index) => {
-  cards.value.splice(index, 1)
+const removeCard = (card) => {
+  const idx = cards.value.indexOf(card)
+  if (idx !== -1) cards.value.splice(idx, 1)
 }
 
 const loadVotes = async (matchSlug) => {
@@ -555,19 +656,31 @@ const loadVotes = async (matchSlug) => {
   votesData.value = data || []
 }
 
-const adjustGoalScorers = () => {
-  const total = (parseInt(form.homeScore) || 0) + (parseInt(form.awayScore) || 0)
-  while (goalScorers.value.length < total) {
-    goalScorers.value.push({ player: '', team: '', minute: '' })
-  }
-  if (goalScorers.value.length > total) {
-    goalScorers.value.splice(total)
-  }
+const removeGoalScorer = (scorer) => {
+  const idx = goalScorers.value.indexOf(scorer)
+  if (idx !== -1) goalScorers.value.splice(idx, 1)
 }
 
-const removeGoalScorer = (index) => {
-  goalScorers.value.splice(index, 1)
+const addGoalScorer = (team) => {
+  goalScorers.value.push({ player: '', team: team || '', minute: '', _key: Date.now() + '-' + Math.random().toString(36).slice(2, 6) })
 }
+
+const totalGoals = computed(() =>
+  (Number(form.homeScore) || 0) + (Number(form.awayScore) || 0)
+)
+
+// Auto-create empty goal scorer rows when score is set
+watch([() => form.homeScore, () => form.awayScore], ([newHome, newAway]) => {
+  if (!form.homeTeam || !form.awayTeam) return
+  const nh = Number(newHome) || 0
+  const na = Number(newAway) || 0
+  while (goalScorers.value.filter(g => g.team === form.homeTeam).length < nh) {
+    goalScorers.value.push({ player: '', team: form.homeTeam, minute: '', _key: Date.now() + '-' + Math.random().toString(36).slice(2, 6) })
+  }
+  while (goalScorers.value.filter(g => g.team === form.awayTeam).length < na) {
+    goalScorers.value.push({ player: '', team: form.awayTeam, minute: '', _key: Date.now() + '-' + Math.random().toString(36).slice(2, 6) })
+  }
+})
 
 const onPlayerSelect = (index, playerSlug) => {
   if (playerSlug) {
@@ -596,8 +709,6 @@ const syncPlayerGoals = async () => {
     await supabase.from("players").upsert(changed, { onConflict: "slug" })
   }
 }
-
-watch([() => form.homeScore, () => form.awayScore], adjustGoalScorers)
 
 const goalScorerPlayerOptions = computed(() => {
   if (!form.homeTeam && !form.awayTeam) return []
@@ -843,6 +954,19 @@ const getTeamTitle = (slug) => {
   return team ? team.title : slug
 }
 
+const getTeamColor = (slug) => {
+  const team = teams.value.find(t => t.slug === slug)
+  return team?.color || '#22c55e'
+}
+
+const homeTeamPlayers = computed(() =>
+  players.value.filter(p => p.team === form.homeTeam)
+)
+
+const awayTeamPlayers = computed(() =>
+  players.value.filter(p => p.team === form.awayTeam)
+)
+
 const statusLabel = (status) => {
   const labels = { upcoming: 'قادمة', played: 'مُقامة', live: 'مباشر' }
   return labels[status] || status
@@ -892,12 +1016,12 @@ const openEditModal = (match) => {
   form.awayScore = match.awayScore
   form.motmWinner = match.motmWinner || ''
   if (match.goalScorers?.length) {
-    goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers))
+    goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers)).map(g => ({ ...g, _key: g._key || Date.now() + '-' + Math.random().toString(36).slice(2, 6) }))
   } else {
     goalScorers.value = []
   }
   if (match.cards?.length) {
-    cards.value = JSON.parse(JSON.stringify(match.cards))
+    cards.value = JSON.parse(JSON.stringify(match.cards)).map(c => ({ ...c, _key: c._key || Date.now() + '-' + Math.random().toString(36).slice(2, 6) }))
   } else {
     cards.value = []
   }
@@ -924,6 +1048,15 @@ const handleSave = async () => {
 
   const matchDate = form.date ? new Date(form.date).toISOString() : null
   const matchStatus = computeStatus(matchDate)
+
+  if (matchStatus !== 'upcoming') {
+    const missingPlayer = goalScorers.value.some(g => g.team && !g.player)
+    if (missingPlayer) {
+      showAlert('error', 'تنبيه', 'يرجى اختيار اللاعب لكل مسجلي الأهداف')
+      return
+    }
+  }
+
   saving.value = true
   const matchObj = {
     slug: editingMatch.value?.slug || generateSlug(),
@@ -1153,45 +1286,6 @@ const handleDelete = async (match) => {
   gap: 6px;
 }
 
-.goal-scorers-section {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.goal-scorers-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.goal-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.goal-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.goal-scorer-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.goal-scorer-row > :first-child {
-  flex: 1;
-}
-
-.goal-scorer-row > :nth-child(2) {
-  width: 90px;
-  flex-shrink: 0;
-}
-
 .goal-remove {
   width: 32px;
   height: 32px;
@@ -1213,21 +1307,149 @@ const handleDelete = async (match) => {
   border-color: #ef4444;
 }
 
-.card-add-btn {
+/* Scoreboard */
+.scoreboard {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.score-team {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.score-home { justify-content: flex-start; }
+.score-away { justify-content: flex-end; }
+
+.score-team-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.score-team-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.score-inputs :deep(input) {
+  width: 56px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.score-dash {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* Goals / Cards sections */
+.goals-section {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.goals-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goals-count {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.goals-team-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.goals-team-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.goals-team-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.goals-team-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goals-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goals-row > :first-child {
+  flex: 1;
+}
+
+.goals-row > :nth-child(2) {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.goals-add-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 5px 10px;
   background: none;
   border: 1px dashed var(--border-color);
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   cursor: pointer;
   align-self: flex-start;
   transition: all 0.15s;
 }
-.card-add-btn:hover {
+.goals-add-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
