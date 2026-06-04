@@ -117,7 +117,7 @@ const { locale, t } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
 
 const [
-  { data: matchesData, pending, error },
+  { data: matchesData, pending, error, refresh: refreshMatches },
   { data: teamsData },
 ] = await Promise.all([
   useAsyncData("fixtures-matches", () =>
@@ -226,6 +226,17 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (refreshTimer) clearInterval(refreshTimer)
+})
+
+// ── Realtime match updates ────────────────────────────────────────────────────
+const { subscribe: subFixturesMatches, unsubscribe: unsubFixturesMatches } = useRealtime('matches', ['INSERT', 'UPDATE', 'DELETE'])
+onMounted(() => {
+  subFixturesMatches(() => {
+    refreshMatches()
+  })
+})
+onUnmounted(() => {
+  unsubFixturesMatches()
 })
 
 const formatMatchDate = (dateStr) => {

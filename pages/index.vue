@@ -346,6 +346,7 @@ import { syrianAr } from "~/utils/syrianAr";
 const { locale } = useI18n();
 const { fetchMatches, fetchTeams } = useLeagueData();
 const notifCenter = useNotificationCenter()
+const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime('matches', ['INSERT', 'UPDATE'])
 const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const [
@@ -390,15 +391,21 @@ onMounted(async () => {
   // Reactive timer for auto-live status
   now.value = Date.now()
   refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
-  // Auto-refresh match results every 30s
+  // Realtime: auto-refresh when matches change
+  subMatches(() => {
+    refreshNext()
+    refreshLast()
+  })
+  // Fallback poll every 60s in case Realtime misses an update
   resultTimer = setInterval(() => {
     refreshNext()
     refreshLast()
-  }, 30000)
+  }, 60000)
 })
 onUnmounted(() => {
   if (refreshTimer) clearInterval(refreshTimer)
   if (resultTimer) clearInterval(resultTimer)
+  unsubMatches()
 })
 
 const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);

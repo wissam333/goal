@@ -79,25 +79,6 @@
           <SharedUiCardsStats :stats="playerStats" :columns="4" />
         </div>
 
-        <!-- Season progress -->
-        <div class="section-card">
-          <h3 class="section-title">
-            <Icon name="mdi:progress-clock" size="18" />
-            {{ $t("player.seasonProgress") }}
-          </h3>
-          <div class="progress-row">
-            <span class="progress-label">
-              {{ playedMatches }} / {{ totalSeasonMatches }}
-              {{ $t("fixtures.matches") }}
-            </span>
-            <SharedUiIndicatorsProgress
-              :value="seasonProgressPct"
-              color="primary"
-            />
-            <span class="progress-pct">{{ seasonProgressPct }}%</span>
-          </div>
-        </div>
-
         <!-- Match history -->
         <div class="section-card">
           <h3 class="section-title">
@@ -178,7 +159,7 @@
             <button class="share-btn messenger" title="Messenger" @click="sharePlatform('messenger')">
               <Icon name="mdi:facebook-messenger" size="20" />
             </button>
-            <button class="share-btn facebook" title="Facebook" @click="sharePlatform('facebook')">
+            <!-- <button class="share-btn facebook" title="Facebook" @click="sharePlatform('facebook')">
               <Icon name="mdi:facebook" size="20" />
             </button>
             <button class="share-btn telegram" title="Telegram" @click="sharePlatform('telegram')">
@@ -186,7 +167,7 @@
             </button>
             <button class="share-btn twitter" title="Twitter" @click="sharePlatform('twitter')">
               <Icon name="mdi:twitter" size="20" />
-            </button>
+            </button> -->
             <button class="share-btn copy" title="Copy link" @click="copyLink">
               <Icon name="mdi:link-variant" size="20" />
             </button>
@@ -260,10 +241,6 @@ const playerMatches = computed(() => {
 });
 
 const playedMatches = computed(() => playerMatches.value.length);
-const totalSeasonMatches = computed(() => allMatches.value.length || 1);
-const seasonProgressPct = computed(() =>
-  Math.round((playedMatches.value / totalSeasonMatches.value) * 100),
-);
 
 // Goals in a specific match
 const getGoalsInMatch = (match) => {

@@ -235,20 +235,29 @@
         </div>
 
         <!-- ④ Prediction Vote -->
-        <div v-if="liveStatus === 'upcoming' || totalPredictions" class="section-card">
+        <div
+          v-if="liveStatus === 'upcoming' || totalPredictions"
+          class="section-card"
+        >
           <h3 class="section-title">
             <Icon name="mdi:chart-line" size="18" />
             {{ $t("match.predictTitle") }}
           </h3>
 
-          <p v-if="liveStatus === 'upcoming' && !alreadyPredicted" class="vote-prompt">
+          <p
+            v-if="liveStatus === 'upcoming' && !alreadyPredicted"
+            class="vote-prompt"
+          >
             {{ $t("match.predictPrompt") }}
           </p>
-          <p v-else-if="liveStatus === 'upcoming' && alreadyPredicted" class="vote-done-msg">
+          <p
+            v-else-if="liveStatus === 'upcoming' && alreadyPredicted"
+            class="vote-done-msg"
+          >
             <Icon name="mdi:check-circle" size="16" />
             {{ $t("match.predicted") }}
           </p>
-          <p v-else class="vote-done-msg" style="color: var(--text-muted);">
+          <p v-else class="vote-done-msg" style="color: var(--text-muted)">
             <Icon name="mdi:lock-outline" size="16" />
             التصويت مغلق
           </p>
@@ -263,7 +272,9 @@
               :class="{
                 voted: predictedTeam === match.homeTeam,
               }"
-              @click="liveStatus === 'upcoming' && castPrediction(match.homeTeam)"
+              @click="
+                liveStatus === 'upcoming' && castPrediction(match.homeTeam)
+              "
             >
               <div class="predict-logo">
                 <span class="predict-initial">{{
@@ -342,7 +353,9 @@
               :class="{
                 voted: predictedTeam === match.awayTeam,
               }"
-              @click="liveStatus === 'upcoming' && castPrediction(match.awayTeam)"
+              @click="
+                liveStatus === 'upcoming' && castPrediction(match.awayTeam)
+              "
             >
               <div class="predict-logo">
                 <span class="predict-initial">{{
@@ -582,7 +595,7 @@
             >
               <Icon name="mdi:share-variant" size="20" />
             </button>
-            <button
+           <button
               class="share-btn whatsapp"
               title="WhatsApp"
               @click="sharePlatform('whatsapp')"
@@ -596,6 +609,7 @@
             >
               <Icon name="mdi:facebook-messenger" size="20" />
             </button>
+              <!--
             <button
               class="share-btn facebook"
               title="Facebook"
@@ -616,10 +630,10 @@
               @click="sharePlatform('twitter')"
             >
               <Icon name="mdi:twitter" size="20" />
-            </button>
+            </button>-->
             <button class="share-btn copy" title="Copy link" @click="copyLink">
               <Icon name="mdi:link-variant" size="20" />
-            </button>
+            </button> 
           </div>
         </div>
       </div>
@@ -643,6 +657,7 @@ const {
   data: match,
   pending: pending1,
   error: error1,
+  refresh: refreshMatch,
 } = await useAsyncData(`match-${slug.value}`, () => fetchMatch(slug.value));
 const {
   data: teamsData,
@@ -706,6 +721,46 @@ const DRAW_SLUG = "__draw__";
 const drawAllowed = computed(() => {
   const g = match.value?.group;
   return g === "A" || g === "B";
+});
+
+// ── Realtime match updates ────────────────────────────────────────────────────
+const { subscribe: subscribeMatch, unsubscribe: unsubscribeMatch } =
+  useRealtime("matches", ["UPDATE"]);
+onMounted(() => {
+  subscribeMatch((payload) => {
+    if (payload.new?.slug === slug.value) {
+      refreshMatch();
+    }
+  });
+});
+onUnmounted(() => {
+  unsubscribeMatch();
+});
+
+// ── Realtime vote updates ────────────────────────────────────────────────────
+const { subscribe: subscribeVotes, unsubscribe: unsubscribeVotes } =
+  useRealtime("votes", ["INSERT"]);
+const { subscribe: subscribePredictions, unsubscribe: unsubscribePredictions } =
+  useRealtime("match_predictions", ["INSERT"]);
+onMounted(() => {
+  subscribeVotes((payload) => {
+    if (payload.new?.match_slug === slug.value) {
+      getVotes(slug.value).then((r) => {
+        voteResults.value = r;
+      });
+    }
+  });
+  subscribePredictions((payload) => {
+    if (payload.new?.match_slug === slug.value) {
+      getPredictions(slug.value).then((r) => {
+        predictionResults.value = r;
+      });
+    }
+  });
+});
+onUnmounted(() => {
+  unsubscribeVotes();
+  unsubscribePredictions();
 });
 
 // ── Player helpers ─────────────────────────────────────────────────────────────
@@ -835,7 +890,6 @@ const castVote = async (playerSlug) => {
   if (!error) {
     alreadyVoted.value = true;
     votedFor.value = playerSlug;
-    voteResults.value = await getVotes(match.value.slug);
   }
 };
 
@@ -866,7 +920,6 @@ const castPrediction = async (teamSlug) => {
   if (!error) {
     alreadyPredicted.value = true;
     predictedTeam.value = teamSlug;
-    predictionResults.value = await getPredictions(match.value.slug);
   }
 };
 
