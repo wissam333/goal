@@ -101,4 +101,12 @@ defineProps({
   background: var(--border-color);
   margin: 3px 0;
 }
+
+  @media (max-width: 520px) {
+    .kmc-wrap { padding: 4px 7px; }
+    .kmc-name { font-size: 0.7rem; }
+    .kmc-chip { min-width: 24px; height: 24px; font-size: 0.72rem; }
+    .kmc-row { padding: 3px 2px; gap: 4px; }
+    .kmc-divider { margin: 1px 0; }
+  }
 </style>

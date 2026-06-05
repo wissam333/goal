@@ -19,6 +19,13 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { name: appName } = useAppTitle();
+
+const defaultTitle = computed(() =>
+  locale.value === "ar" ? "دوري القرية السنوي" : "Village League"
+)
+
+const pageTitle = computed(() => appName.value || defaultTitle.value)
 
 const bottomNavItems = computed(() => [
   { key: "home",      label: "nav.home",      icon: "mdi:home-outline",         to: "/" },
@@ -30,8 +37,8 @@ const bottomNavItems = computed(() => [
 ]);
 
 useSeoMeta({
-  title: () => locale.value === "ar" ? "دوري القرية السنوي" : "Village League",
-  ogTitle: () => locale.value === "ar" ? "دوري القرية السنوي" : "Village League",
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
   description: () =>
     locale.value === "ar"
       ? "تابع نتائج وترتيب وتفاصيل دوري كرة القدم السنوي"

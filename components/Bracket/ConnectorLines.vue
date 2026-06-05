@@ -79,7 +79,8 @@ const lines = computed(() => {
 
 <style lang="scss" scoped>
 .connector-svg {
-  width: 48px;
+  width: 100%;
+  max-width: 48px;
   height: 100%;
   display: block;
 

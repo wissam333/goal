@@ -108,8 +108,8 @@
         <div v-else class="bracket-content">
           <div v-if="hasKnockout" class="knockout-wrapper">
 
-            <!-- ── Desktop: horizontal bracket ── -->
-            <div class="knockout-desktop" :class="{ 'is-rtl': locale === 'ar' }">
+            <!-- ── Knockout bracket ── -->
+            <div class="knockout-bracket" :class="{ 'is-rtl': locale === 'ar' }">
 
               <div v-if="quarterfinals.length" class="kt-stage">
                 <div class="kt-stage-label">{{ $t("bracket.quarterfinal") }}</div>
@@ -166,69 +166,6 @@
               </div>
 
             </div>
-
-            <!-- ── Mobile: vertical stacked rounds ── -->
-            <div class="knockout-mobile">
-
-              <template v-if="quarterfinals.length">
-                <div class="mob-round-header">
-                  <span class="mob-round-pill">{{ $t("bracket.quarterfinal") }}</span>
-                </div>
-                <div class="mob-matches">
-                  <BracketMobileMatchRow
-                    v-for="m in quarterfinals"
-                    :key="m.slug"
-                    :match="m"
-                    :get-team-name="getTeamName"
-                    :is-winner="isWinner"
-                    @click="navigateTo(`/matches/${m.slug}`)"
-                  />
-                </div>
-                <div class="mob-arrow" v-if="semifinals.length || finals.length">
-                  <Icon name="mdi:chevron-double-down" size="20" />
-                </div>
-              </template>
-
-              <template v-if="semifinals.length">
-                <div class="mob-round-header">
-                  <span class="mob-round-pill">{{ $t("bracket.semifinal") }}</span>
-                </div>
-                <div class="mob-matches">
-                  <BracketMobileMatchRow
-                    v-for="m in semifinals"
-                    :key="m.slug"
-                    :match="m"
-                    :get-team-name="getTeamName"
-                    :is-winner="isWinner"
-                    @click="navigateTo(`/matches/${m.slug}`)"
-                  />
-                </div>
-                <div class="mob-arrow" v-if="finals.length">
-                  <Icon name="mdi:chevron-double-down" size="20" />
-                </div>
-              </template>
-
-              <template v-if="finals.length">
-                <div class="mob-round-header">
-                  <span class="mob-round-pill mob-round-pill-final">
-                    <Icon name="mdi:trophy" size="13" />
-                    {{ $t("bracket.final") }}
-                  </span>
-                </div>
-                <div class="mob-matches">
-                  <BracketMobileMatchRow
-                    v-for="m in finals"
-                    :key="m.slug"
-                    :match="m"
-                    :get-team-name="getTeamName"
-                    :is-winner="isWinner"
-                    :final="true"
-                    @click="navigateTo(`/matches/${m.slug}`)"
-                  />
-                </div>
-              </template>
-
-            </div>
           </div>
 
           <SharedUiFeedbackEmptyState
@@ -244,6 +181,7 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
 const activeTab = ref("groups");
 
@@ -253,12 +191,20 @@ const tabs = computed(() => [
 ]);
 
 const [
-  { data: teamsData, pending: teamsPending },
-  { data: matchesData, pending: matchesPending, error },
+  { data: teamsData, pending: teamsPending, refresh: refreshTeams },
+  { data: matchesData, pending: matchesPending, error, refresh: refreshMatches },
 ] = await Promise.all([
   useAsyncData("bracket-teams", () => fetchTeams()),
   useAsyncData("bracket-matches", () => fetchMatches()),
 ]);
+
+// Fallback: on client, re-fetch if SSR returned empty (e.g. Supabase unavailable during SSR)
+onMounted(() => {
+  if (!teamsData.value?.length || !matchesData.value?.length) {
+    refreshTeams()
+    refreshMatches()
+  }
+})
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const teams = computed(() => teamsData.value || []);
@@ -355,10 +301,11 @@ const isWinner = (match, teamSlug) => {
 };
 
 useSeoMeta({
-  title: () =>
-    locale.value === "ar"
-      ? "مخطط الدوري | دوري القرية"
-      : "Bracket | Village League",
+  title: () => {
+    const fallback = locale.value === "ar" ? "دوري القرية" : "Village League"
+    const name = appTitle.value || fallback
+    return locale.value === "ar" ? `مخطط الدوري | ${name}` : `Bracket | ${name}`
+  },
 });
 </script>
 
@@ -512,22 +459,19 @@ useSeoMeta({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// KNOCKOUT — DESKTOP
+// KNOCKOUT BRACKET
 // ══════════════════════════════════════════════════════════════════════════════
-.knockout-wrapper { width: 100%; }
-
-.knockout-desktop {
+.knockout-bracket {
   display: flex;
   align-items: stretch;
   overflow-x: auto;
   padding: 24px 4px;
   -webkit-overflow-scrolling: touch;
   min-height: 320px;
+  scrollbar-width: thin;
 
   // RTL: reverse the bracket flow so QF is on the right, Final on the left
   &.is-rtl { flex-direction: row-reverse; }
-
-  @media (max-width: 640px) { display: none; }
 }
 
 .kt-stage {
@@ -537,6 +481,11 @@ useSeoMeta({
   flex-shrink: 0;
   min-width: 160px;
   max-width: 200px;
+
+  @media (max-width: 520px) {
+    min-width: 130px;
+    max-width: 150px;
+  }
 }
 
 .kt-stage-label {
@@ -550,6 +499,11 @@ useSeoMeta({
   display: flex;
   align-items: center;
   gap: 5px;
+
+  @media (max-width: 520px) {
+    font-size: 0.58rem;
+    margin-bottom: 10px;
+  }
 }
 
 .kt-stage-label-final { color: #ca8a04; font-size: 0.76rem; }
@@ -561,6 +515,8 @@ useSeoMeta({
   flex: 1;
   gap: 16px;
   width: 100%;
+
+  @media (max-width: 520px) { gap: 10px; }
 }
 
 .kt-connector-col {
@@ -570,58 +526,11 @@ useSeoMeta({
   flex-shrink: 0;
   width: 48px;
   padding-top: 36px; // offset for the round label height above
-}
 
-// ══════════════════════════════════════════════════════════════════════════════
-// KNOCKOUT — MOBILE
-// ══════════════════════════════════════════════════════════════════════════════
-.knockout-mobile {
-  display: none;
-  flex-direction: column;
-  padding: 8px 0 24px;
-
-  @media (max-width: 640px) { display: flex; }
-}
-
-.mob-round-header {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.mob-round-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 18px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
-}
-
-.mob-round-pill-final {
-  color: #ca8a04;
-  background: rgba(234, 179, 8, 0.1);
-  border-color: rgba(234, 179, 8, 0.3);
-}
-
-.mob-matches {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mob-arrow {
-  display: flex;
-  justify-content: center;
-  padding: 10px 0;
-  color: var(--primary-mid);
-  margin: 4px 0;
+  @media (max-width: 520px) {
+    width: 28px;
+    padding-top: 28px;
+  }
 }
 </style>
 

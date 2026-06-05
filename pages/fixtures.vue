@@ -114,6 +114,7 @@ import { enUS } from "date-fns/locale";
 import { syrianAr } from "~/utils/syrianAr";
 
 const { locale, t } = useI18n();
+const { name: appTitle } = useAppTitle();
 const { fetchMatches, fetchTeams } = useLeagueData();
 
 const [
@@ -260,10 +261,11 @@ const formatMatchTime = (dateStr) => {
 };
 
 useSeoMeta({
-  title: () =>
-    locale.value === "ar"
-      ? "جدول المباريات | دوري القرية"
-      : "Fixtures | Village League",
+  title: () => {
+    const fallback = locale.value === "ar" ? "دوري القرية" : "Village League"
+    const name = appTitle.value || fallback
+    return locale.value === "ar" ? `جدول المباريات | ${name}` : `Fixtures | ${name}`
+  },
 });
 </script>
 

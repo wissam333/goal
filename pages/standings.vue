@@ -24,6 +24,7 @@
           v-if="groups.length > 1"
           v-model="activeGroup"
           :tabs="groupTabs"
+          scrollable
           class="mb-4"
         />
 
@@ -125,6 +126,7 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
 
 const [
@@ -229,10 +231,11 @@ const posClass = (idx) => {
 
 // SEO
 useSeoMeta({
-  title: () =>
-    locale.value === "ar"
-      ? "جدول الترتيب | دوري القرية"
-      : "Standings | Village League",
+  title: () => {
+    const fallback = locale.value === "ar" ? "دوري القرية" : "Village League"
+    const name = appTitle.value || fallback
+    return locale.value === "ar" ? `جدول الترتيب | ${name}` : `Standings | ${name}`
+  },
 });
 </script>
 

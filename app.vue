@@ -19,6 +19,8 @@ const { locale } = useI18n();
 const theme = useTheme();
 theme.init();
 
+const { name: appName } = useAppTitle();
+
 useHead({
   htmlAttrs: {
     lang: computed(() => locale.value),
@@ -30,7 +32,7 @@ useHead({
 });
 
 useSeoMeta({
-  ogSiteName: "دوري القرية السنوي",
+  ogSiteName: computed(() => appName.value || "دوري القرية السنوي"),
   twitterCard: "summary_large_image",
   ogImage: "/logo/logo-web.png",
 });

@@ -12,7 +12,7 @@
               class="footer-icon"
               alt="Logo"
             />
-            <span class="footer-league-name">{{ $t("leagueName") }}</span>
+            <span class="footer-league-name">{{ appTitle || $t("leagueName") }}</span>
           </NuxtLink>
           <p class="footer-tagline">{{ $t("footer.tagline") }}</p>
         </div>
@@ -38,7 +38,8 @@
           <ul class="footer-info-list">
             <li>
               <Icon name="mdi:trophy-outline" size="15" aria-hidden="true" />
-              <span>{{ $t("leagueName") }} {{ config.public.season }}</span>
+              <span>{{ appTitle || $t("leagueName") }} {{ config.public.season
+}}</span>
             </li>
             <li>
               <Icon
@@ -70,7 +71,7 @@
       <!-- Bottom bar -->
       <div class="footer-bottom">
         <span class="footer-copy">
-          © {{ currentYear }} {{ $t("leagueName") }}
+          © {{ currentYear }} {{ appTitle || $t("leagueName") }}
         </span>
         <span class="footer-built">
           <a
@@ -89,6 +90,7 @@
 <script setup>
 const config = useRuntimeConfig();
 const currentYear = new Date().getFullYear();
+const { name: appTitle } = useAppTitle();
 
 const { fetchTeams } = useLeagueData();
 const { data: teamCount } = await useAsyncData(
@@ -200,11 +202,28 @@ const navItems = [
   font-size: 0.875rem;
   color: var(--text-sub);
   text-decoration: none;
-  transition: color 0.15s;
   padding: 4px 0;
+  position: relative;
+  width: fit-content;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    inset-inline-start: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 1px;
+    transition: width 0.25s ease;
+  }
 
   &:hover {
     color: var(--primary);
+
+    &::after {
+      width: 100%;
+    }
   }
 
   @media (max-width: 768px) {
@@ -242,10 +261,27 @@ const navItems = [
     gap: 8px;
     color: var(--text-sub);
     text-decoration: none;
-    transition: color 0.15s;
+    width: fit-content;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      inset-inline-start: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 1px;
+      transition: width 0.25s ease;
+    }
 
     &:hover {
       color: var(--primary);
+
+      &::after {
+        width: 100%;
+      }
     }
   }
 }

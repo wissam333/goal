@@ -185,6 +185,7 @@ import { syrianAr } from '~/utils/syrianAr';
 
 const route = useRoute();
 const { locale, t } = useI18n();
+const appTitle = useAppTitle();
 const { fetchTeam, fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
@@ -291,7 +292,11 @@ const formatMatchDate = (d) => {
 };
 
 useSeoMeta({
-  title: () => team.value ? `${team.value.title} | دوري القرية` : 'Team',
+  title: () => {
+    const fallback = 'دوري القرية'
+    const name = appTitle.name || fallback
+    return team.value ? `${team.value.title} | ${name}` : 'Team'
+  },
 });
 </script>
 

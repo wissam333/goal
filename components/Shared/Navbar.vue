@@ -10,7 +10,7 @@
           height="50"
         />
         <div class="brand-text">
-          <span class="brand-name">{{ $t("leagueName") }}</span>
+          <span class="brand-name">{{ appTitle || $t("leagueName") }}</span>
           <span class="brand-season">{{ config.public.season }}</span>
         </div>
       </NuxtLink>
@@ -148,6 +148,7 @@ const theme = useTheme();
 const { locale, setLocale } = useI18n();
 const route = useRoute();
 const config = useRuntimeConfig();
+const { name: appTitle } = useAppTitle();
 
 const isScrolled = ref(false);
 const mobileOpen = ref(false);
@@ -245,7 +246,7 @@ onMounted(() => {
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   text-decoration: none;
   flex-shrink: 0;
   @media (max-width: 991.98px) {

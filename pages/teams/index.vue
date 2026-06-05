@@ -111,6 +111,7 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const appTitle = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
 
 const { data: teamsData, pending: teamsPending, error: teamsError } = useAsyncData("teams-list", () => fetchTeams())
@@ -179,7 +180,11 @@ const summaryStats = computed(() => [
 ]);
 
 useSeoMeta({
-  title: () => locale.value === 'ar' ? 'الفرق | دوري القرية' : 'Teams | Village League',
+  title: () => {
+    const fallback = locale.value === 'ar' ? 'دوري القرية' : 'Village League'
+    const name = appTitle.name || fallback
+    return locale.value === 'ar' ? `الفرق | ${name}` : `Teams | ${name}`
+  },
 });
 </script>
 

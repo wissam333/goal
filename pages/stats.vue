@@ -246,6 +246,7 @@
 
 <script setup>
 const { locale } = useI18n();
+const { name: appTitle } = useAppTitle();
 const { fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 
 const [
@@ -381,7 +382,11 @@ const onImgError = (e) => {
 }
 
 useSeoMeta({
-  title: () => locale.value === 'ar' ? 'الإحصائيات | دوري القرية' : 'Stats | Village League',
+  title: () => {
+    const fallback = locale.value === 'ar' ? 'دوري القرية' : 'Village League'
+    const name = appTitle.value || fallback
+    return locale.value === 'ar' ? `الإحصائيات | ${name}` : `Stats | ${name}`
+  },
 });
 </script>
 

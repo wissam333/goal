@@ -92,6 +92,7 @@ const detectPlatform = (): "ios" | "android" | "desktop" => {
 
 const detectInAppBrowser = (): boolean => {
   const ua = navigator.userAgent;
+  if (/WhatsApp/i.test(ua)) return true;
   return /FBAN|FBAV|Messenger|FB_IAB|FB4A|Instagram|MicroMessenger|Line/i.test(ua);
 };
 

@@ -648,6 +648,7 @@ import { syrianAr } from "~/utils/syrianAr";
 
 const route = useRoute();
 const { locale, t } = useI18n();
+const appTitle = useAppTitle();
 const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
@@ -987,9 +988,10 @@ const shareText = () => {
   const as = match.value.awayScore ?? 0;
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
+  const name = appTitle.name || 'دوري القرية'
   return locale.value === "ar"
-    ? `${ht} ${hs}–${as} ${at} 🏆 | دوري القرية`
-    : `${ht} ${hs}–${as} ${at} 🏆 | Village League`;
+    ? `${ht} ${hs}–${as} ${at} 🏆 | ${name}`
+    : `${ht} ${hs}–${as} ${at} 🏆 | ${name}`;
 };
 
 const supportsShare = computed(
@@ -1039,10 +1041,12 @@ const onImgError = (e) => {
 
 // ── SEO ────────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () =>
-    match.value
-      ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | دوري القرية`
-      : "Match Details",
+  title: () => {
+    const name = appTitle.name || 'دوري القرية'
+    return match.value
+      ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | ${name}`
+      : "Match Details"
+  },
 });
 </script>
 
