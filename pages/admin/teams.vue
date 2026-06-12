@@ -9,22 +9,29 @@
       :duration="4000"
     />
 
-    <div class="teams-toolbar">
-      <SharedUiButtonBase
-        variant="primary"
-        icon-left="mdi:shield-plus-outline"
-        @click="openAddModal"
-      >
-        إضافة فريق
-      </SharedUiButtonBase>
-      <SharedUiButtonBase
-        variant="outline"
-        icon-left="mdi:archive-arrow-up-outline"
-        @click="openRestoreModal"
-      >
-        استعادة من الأرشيف
-      </SharedUiButtonBase>
-    </div>
+    <SharedUiHeaderPage
+      title="الفرق"
+      subtitle="إدارة فرق الدوري"
+      icon="mdi:shield-outline"
+      :is-rtl="true"
+    >
+      <template #actions>
+        <SharedUiButtonBase
+          variant="primary"
+          icon-left="mdi:shield-plus-outline"
+          @click="openAddModal"
+        >
+          إضافة فريق
+        </SharedUiButtonBase>
+        <SharedUiButtonBase
+          variant="outline"
+          icon-left="mdi:archive-arrow-up-outline"
+          @click="openRestoreModal"
+        >
+          استعادة من الأرشيف
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiHeaderPage>
 
     <SharedUiTableDataTable
       :columns="teamColumns"

@@ -1,6 +1,77 @@
 -- Run this SQL in your Supabase SQL Editor (https://supabase.com/dashboard/project/unvcleinbpoygnhylvvw/sql/new)
 
 -- ═══════════════════════════════════════════════════════════════
+-- AUTH MIGRATION (run once after enabling Google OAuth in Dashboard)
+-- ═══════════════════════════════════════════════════════════════
+
+-- 1. Profiles table (extends auth.users)
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  display_name TEXT,
+  avatar_url TEXT,
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  prediction_points INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- SECURITY DEFINER function to check admin role without RLS recursion
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP POLICY IF EXISTS "users_read_own_profile" ON profiles;
+CREATE POLICY "users_read_own_profile" ON profiles
+  FOR SELECT USING (auth.uid() = id OR public.is_admin());
+
+DROP POLICY IF EXISTS "users_update_own_profile" ON profiles;
+CREATE POLICY "users_update_own_profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "users_insert_own_profile" ON profiles;
+CREATE POLICY "users_insert_own_profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- 2. Add user_id to votes and match_predictions
+ALTER TABLE votes ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
+ALTER TABLE match_predictions ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id);
+
+-- 3. Update unique constraints for user-based voting
+ALTER TABLE votes DROP CONSTRAINT IF EXISTS votes_match_slug_voter_id_key;
+ALTER TABLE votes ADD CONSTRAINT votes_match_slug_user_id_key UNIQUE(match_slug, user_id);
+
+ALTER TABLE match_predictions DROP CONSTRAINT IF EXISTS match_predictions_match_slug_voter_id_key;
+ALTER TABLE match_predictions ADD CONSTRAINT match_predictions_match_slug_user_id_key UNIQUE(match_slug, user_id);
+
+-- 4. Auto-create profile on user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, display_name, avatar_url, role)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+    NEW.raw_user_meta_data->>'avatar_url',
+    'user'
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 5. Set your admin user's role (REPLACE with your admin email)
+-- UPDATE profiles SET role = 'admin'
+-- WHERE id = (SELECT id FROM auth.users WHERE email = 'your-admin-email@example.com' LIMIT 1);
+
+-- ═══════════════════════════════════════════════════════════════
 -- INCREMENTAL MIGRATIONS (safe to re-run)
 -- ═══════════════════════════════════════════════════════════════
 
@@ -400,3 +471,55 @@ CREATE POLICY "anon_delete_push_subscriptions" ON push_subscriptions
 --   FOR INSERT WITH CHECK (
 --     bucket_id = 'match-photos' AND auth.role() = 'authenticated'
 --   );
+
+-- ═══════════════════════════════════════════════════════════════
+-- PREDICTION POINTS (run after enabling Auth migration above)
+-- ═══════════════════════════════════════════════════════════════
+
+CREATE OR REPLACE FUNCTION increment_prediction_points(user_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE profiles
+  SET prediction_points = COALESCE(prediction_points, 0) + 1
+  WHERE id = user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ═══════════════════════════════════════════════════════════════
+-- RETROACTIVE: Award MOTM points for past matches
+-- Run this ONCE after deploying the MOTM points fix.
+-- Awards 1 point per user for each correct MOTM prediction in played matches.
+-- ═══════════════════════════════════════════════════════════════
+-- One-time retroactive: correct MOTM predictions
+UPDATE profiles
+SET prediction_points = COALESCE(prediction_points, 0) + sub.cnt
+FROM (
+  SELECT v.user_id, COUNT(*)::int AS cnt
+  FROM matches m
+  JOIN votes v ON v.match_slug = m.slug AND v.player_slug = m."motmWinner"
+  WHERE m.status = 'played'
+    AND m."motmWinner" IS NOT NULL
+    AND v.user_id IS NOT NULL
+  GROUP BY v.user_id
+) sub
+WHERE profiles.id = sub.user_id;
+
+-- One-time retroactive: correct match winner predictions (including draws)
+UPDATE profiles
+SET prediction_points = COALESCE(prediction_points, 0) + sub.cnt
+FROM (
+  SELECT mp.user_id, COUNT(*)::int AS cnt
+  FROM matches m
+  JOIN match_predictions mp ON mp.match_slug = m.slug
+    AND mp.team_slug = CASE
+      WHEN m."homeScore" > m."awayScore" THEN m."homeTeam"
+      WHEN m."awayScore" > m."homeScore" THEN m."awayTeam"
+      ELSE '__draw__'
+    END
+  WHERE m.status = 'played'
+    AND m."homeScore" IS NOT NULL
+    AND m."awayScore" IS NOT NULL
+    AND mp.user_id IS NOT NULL
+  GROUP BY mp.user_id
+) sub
+WHERE profiles.id = sub.user_id;

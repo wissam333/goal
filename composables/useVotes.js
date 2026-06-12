@@ -1,22 +1,20 @@
 export const useVotes = () => {
   const supabase = useSupabase()
-  const { getVoterId } = useVoterId()
+  const { user } = useAuth()
   if (!supabase) throw new Error("Supabase client not available")
 
+  const getUserId = () => {
+    if (user.value) return user.value.id
+    return null
+  }
+
   const submitVote = async (matchSlug, playerSlug) => {
-    const voteKey = `vote_${matchSlug}`
-    if (process.client && localStorage.getItem(voteKey)) {
-      return { error: "already_voted" }
-    }
-    const voterId = getVoterId()
-    if (!voterId) return { data: null, error: "no_voter_id" }
+    const uid = getUserId()
+    if (!uid) return { error: "login_required" }
 
     const { data, error } = await supabase
       .from("votes")
-      .insert({ match_slug: matchSlug, player_slug: playerSlug, voter_id: voterId })
-    if (!error && process.client) {
-      localStorage.setItem(voteKey, playerSlug)
-    }
+      .insert({ match_slug: matchSlug, player_slug: playerSlug, voter_id: uid, user_id: uid })
     return { data, error }
   }
 
@@ -33,25 +31,27 @@ export const useVotes = () => {
   }
 
   const hasVoted = async (matchSlug) => {
-    if (process.client && localStorage.getItem(`vote_${matchSlug}`)) {
-      return true
-    }
-    const voterId = getVoterId()
-    if (!voterId) return false
+    const uid = getUserId()
+    if (!uid) return false
     const { data } = await supabase
       .from("votes")
       .select("id")
       .eq("match_slug", matchSlug)
-      .eq("voter_id", voterId)
+      .eq("user_id", uid)
       .maybeSingle()
-    if (data) {
-      if (process.client) {
-        localStorage.setItem(`vote_${matchSlug}`, 'true')
-      }
-      return true
-    }
-    return false
+    return !!data
   }
 
-  return { submitVote, getVotes, hasVoted }
+  const getUserVotes = async () => {
+    const uid = getUserId()
+    if (!uid) return []
+    const { data } = await supabase
+      .from("votes")
+      .select("match_slug, player_slug, created_at")
+      .eq("user_id", uid)
+      .order("created_at", { ascending: false })
+    return data || []
+  }
+
+  return { submitVote, getVotes, hasVoted, getUserVotes }
 }

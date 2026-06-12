@@ -10,9 +10,9 @@ export const useSupabase = () => {
   if (!url || !key) return null
   _client = createClient(url, key, {
     auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
     },
   })
   return _client

@@ -1,6 +1,9 @@
 export default defineNuxtConfig({
   devtools: { enabled: false },
-
+  ignore: ["**/.history/**", "**/node_modules/**"],
+  components: {
+    dirs: ["~/components"],
+  },
   modules: [
     "@nuxt/icon",
     "@nuxt/image",
@@ -10,6 +13,7 @@ export default defineNuxtConfig({
   ],
 
   pwa: {
+    disable: process.env.NODE_ENV === "development",
     registerType: "autoUpdate",
     includeAssets: ["logo.png", "favicon.svg"],
     manifest: {
@@ -49,8 +53,10 @@ export default defineNuxtConfig({
     },
     devOptions: {
       enabled: false,
-      type: "module",
       suppressWarnings: true,
+      navigateFallback: "/",
+      navigateFallbackAllowlist: [/^\/(?!api)/],
+      type: "classic",
     },
   },
 
@@ -67,6 +73,7 @@ export default defineNuxtConfig({
     "/teams": { swr: 60 },
     "/teams/**": { swr: 60 },
     "/players/**": { swr: 60 },
+    "/account": { ssr: false },
   },
 
   i18n: {
@@ -142,11 +149,10 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)');window.__VAPID_KEY="${(process.env.VAPID_PUBLIC_KEY || '').replace(/"/g, '\\"')}"}})()`,
+          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)');window.__VAPID_KEY="${(process.env.VAPID_PUBLIC_KEY || "").replace(/"/g, '\\"')}"}})()`,
           tagPosition: "head",
           type: "text/javascript",
         },
-
       ],
     },
   },
@@ -173,13 +179,6 @@ export default defineNuxtConfig({
     },
     server: {
       allowedHosts: true,
-      warmup: {
-        clientFiles: [
-          "./pages/**/*.vue",
-          "./components/**/*.vue",
-          "./layouts/**/*.vue",
-        ],
-      },
     },
     optimizeDeps: {
       include: ["date-fns", "date-fns/locale", "@fancyapps/ui"],

@@ -10,15 +10,22 @@
       :duration="4000"
     />
 
-    <div class="matches-actions">
-      <SharedUiButtonBase
-        variant="primary"
-        icon-left="mdi:calendar-plus-outline"
-        @click="openAddModal"
-      >
-        إضافة مباراة
-      </SharedUiButtonBase>
-    </div>
+    <SharedUiHeaderPage
+      title="المباريات"
+      subtitle="إدارة مباريات الدوري"
+      icon="mdi:calendar-outline"
+      :is-rtl="true"
+    >
+      <template #actions>
+        <SharedUiButtonBase
+          variant="primary"
+          icon-left="mdi:calendar-plus-outline"
+          @click="openAddModal"
+        >
+          إضافة مباراة
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiHeaderPage>
 
     <SharedUiTableDataTable
       :columns="matchColumns"
@@ -386,6 +393,7 @@
 definePageMeta({ layout: 'admin' })
 
 const admin = useAdminData()
+const { awardPoints } = usePredictionPoints()
 
 const teams = ref([])
 const players = ref([])
@@ -482,6 +490,11 @@ async function sendNotif(type) {
       await admin.saveMatch(matchObj)
       await syncPlayerGoals()
 
+      if (matchObj.status === 'played') {
+        const { awarded } = await awardPoints(matchObj.slug)
+        if (awarded > 0) console.log(`Awarded points to ${awarded} users`)
+      }
+
       const title = '✅ انتهت المباراة'
       const body = `انتهت مباراة ${homeTitle} ${matchObj.homeScore} - ${matchObj.awayScore} ${awayTitle}`
       notifCenter.add({ title, body, url: matchUrl })
@@ -540,6 +553,11 @@ async function sendNotif(type) {
   try {
     await admin.saveMatch(matchObj)
     await syncPlayerGoals()
+
+    if (matchObj.status === 'played') {
+      const { awarded } = await awardPoints(matchObj.slug)
+      if (awarded > 0) console.log(`Awarded points to ${awarded} users`)
+    }
 
     const title = '✅ نتيجة المباراة'
     const body = `${homeTitle} ${matchObj.homeScore ?? 0} - ${matchObj.awayScore ?? 0} ${awayTitle}`

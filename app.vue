@@ -1,7 +1,6 @@
 <template>
   <div>
     <ElementsLoader></ElementsLoader>
-    <VitePwaManifest />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
@@ -26,14 +25,12 @@ useHead({
     lang: computed(() => locale.value),
     dir: computed(() => (locale.value === "ar" ? "rtl" : "ltr")),
   },
-  link: [
-    { rel: "apple-touch-icon", href: "/logo.png" },
-  ],
+  link: [{ rel: "apple-touch-icon", href: "/logo.png" }],
 });
 
 useSeoMeta({
   ogSiteName: computed(() => appName.value || "دوري القرية السنوي"),
   twitterCard: "summary_large_image",
-  ogImage: "/logo/logo-web.png",
+  ogImage: "/logo/logo.png",
 });
 </script>
