@@ -397,7 +397,7 @@ const onImgError = (e) => {
 useSeoMeta({
   title: () => {
     const fallback = locale.value === "ar" ? "دوري القرية" : "Village League"
-    const name = appTitle.name || fallback
+    const name = appTitle.value || fallback
     return player.value ? `${player.value.title} | ${name}` : "Player"
   },
 });

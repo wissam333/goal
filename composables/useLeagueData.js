@@ -3,6 +3,8 @@ const parseJsonFields = (match) => {
     match.goalScorers = JSON.parse(match.goalScorers)
   if (typeof match.photos === "string")
     match.photos = JSON.parse(match.photos)
+  if (typeof match.videos === "string")
+    match.videos = JSON.parse(match.videos)
   if (typeof match.cards === "string")
     match.cards = JSON.parse(match.cards)
   return match

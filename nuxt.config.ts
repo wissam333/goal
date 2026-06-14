@@ -18,7 +18,7 @@ export default defineNuxtConfig({
     includeAssets: ["logo.png", "favicon.svg"],
     manifest: {
       name: "دوري كرة القدم السنوي",
-      short_name: "دوري القرية",
+      short_name: "دوري الجروية",
       description: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
       theme_color: "#22c55e",
       background_color: "#ffffff",

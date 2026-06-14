@@ -537,23 +537,16 @@
           </h3>
           <ElementsAlbum :images="match.photos" :columns="3" />
         </div>
-        <div
-          v-else-if="liveStatus === 'played'"
-          class="section-card empty-album"
-        >
-          <Icon name="mdi:camera-off-outline" size="32" class="empty-icon" />
-          <span>{{ $t("match.noPhotos") }}</span>
-        </div>
 
         <!-- ⑥ Video -->
-        <div v-if="match.videoUrl" class="section-card">
+        <div v-if="match.videos?.length" class="section-card">
           <h3 class="section-title">
             <Icon name="mdi:play-circle-outline" size="18" />
             {{ $t("match.video") }}
           </h3>
-          <div class="video-wrap">
+          <div v-for="(v, i) in resolvedVideos" :key="i" class="video-wrap">
             <iframe
-              :src="embedUrl(match.videoUrl)"
+              :src="v.embedUrl"
               allowfullscreen
               loading="lazy"
               frameborder="0"
@@ -595,7 +588,7 @@
             >
               <Icon name="mdi:share-variant" size="20" />
             </button>
-           <button
+            <button
               class="share-btn whatsapp"
               title="WhatsApp"
               @click="sharePlatform('whatsapp')"
@@ -609,7 +602,7 @@
             >
               <Icon name="mdi:facebook-messenger" size="20" />
             </button>
-              <!--
+            <!--
             <button
               class="share-btn facebook"
               title="Facebook"
@@ -633,7 +626,7 @@
             </button>-->
             <button class="share-btn copy" title="Copy link" @click="copyLink">
               <Icon name="mdi:link-variant" size="20" />
-            </button> 
+            </button>
           </div>
         </div>
       </div>
@@ -641,38 +634,119 @@
   </div>
 
   <ClientOnly>
-    <SharedUiDialogAppModal v-model="authModalOpen" :title="authTab === 'login' ? $t('auth.loginTitle') : $t('auth.registerTitle')" max-width="420px">
+    <SharedUiDialogAppModal
+      v-model="authModalOpen"
+      :title="
+        authTab === 'login' ? $t('auth.loginTitle') : $t('auth.registerTitle')
+      "
+      max-width="420px"
+    >
       <div class="auth-tabs">
-        <button class="auth-tab" :class="{ active: authTab === 'login' }" @click="authTab = 'login'">{{ $t('auth.login') }}</button>
-        <button class="auth-tab" :class="{ active: authTab === 'register' }" @click="authTab = 'register'">{{ $t('auth.register') }}</button>
+        <button
+          class="auth-tab"
+          :class="{ active: authTab === 'login' }"
+          @click="authTab = 'login'"
+        >
+          {{ $t("auth.login") }}
+        </button>
+        <button
+          class="auth-tab"
+          :class="{ active: authTab === 'register' }"
+          @click="authTab = 'register'"
+        >
+          {{ $t("auth.register") }}
+        </button>
       </div>
-      <p class="auth-subtitle">{{ authTab === 'login' ? $t('auth.loginSubtitle') : $t('auth.registerSubtitle') }}</p>
-      <button class="google-btn" @click="handleMatchAuthGoogle" :disabled="matchAuthGoogleLoading">
+      <p class="auth-subtitle">
+        {{
+          authTab === "login"
+            ? $t("auth.loginSubtitle")
+            : $t("auth.registerSubtitle")
+        }}
+      </p>
+      <button
+        class="google-btn"
+        @click="handleMatchAuthGoogle"
+        :disabled="matchAuthGoogleLoading"
+      >
         <svg viewBox="0 0 24 24" width="20" height="20">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          <path
+            fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+          />
         </svg>
-        <span>{{ $t('auth.googleLogin') }}</span>
+        <span>{{ $t("auth.googleLogin") }}</span>
       </button>
-      <div class="auth-divider"><span>{{ $t('auth.or') }}</span></div>
+      <div class="auth-divider">
+        <span>{{ $t("auth.or") }}</span>
+      </div>
       <form @submit.prevent="handleMatchAuthSubmit" class="auth-form">
-        <SharedUiFormBaseInput v-model="matchAuthEmail" type="email" :label="$t('auth.email')" :placeholder="$t('auth.email')" size="lg" required />
-        <SharedUiFormBaseInput v-model="matchAuthPassword" type="password" :label="$t('auth.password')" :placeholder="$t('auth.password')" size="lg" required />
-        <SharedUiFormBaseInput v-if="authTab === 'register'" v-model="matchAuthConfirm" type="password" :label="$t('auth.confirmPassword')" :placeholder="$t('auth.confirmPassword')" :error="matchAuthPasswordError" size="lg" required />
+        <SharedUiFormBaseInput
+          v-model="matchAuthEmail"
+          type="email"
+          :label="$t('auth.email')"
+          :placeholder="$t('auth.email')"
+          size="lg"
+          required
+        />
+        <SharedUiFormBaseInput
+          v-model="matchAuthPassword"
+          type="password"
+          :label="$t('auth.password')"
+          :placeholder="$t('auth.password')"
+          size="lg"
+          required
+        />
+        <SharedUiFormBaseInput
+          v-if="authTab === 'register'"
+          v-model="matchAuthConfirm"
+          type="password"
+          :label="$t('auth.confirmPassword')"
+          :placeholder="$t('auth.confirmPassword')"
+          :error="matchAuthPasswordError"
+          size="lg"
+          required
+        />
         <p v-if="matchAuthError" class="auth-error">{{ matchAuthError }}</p>
-        <p v-if="matchAuthSuccess" class="auth-success">{{ matchAuthSuccess }}</p>
-        <SharedUiButtonBase type="submit" variant="primary" size="lg" :loading="matchAuthBusy" class="auth-submit">
-          {{ authTab === 'login' ? $t('auth.signIn') : $t('auth.createAccount') }}
+        <p v-if="matchAuthSuccess" class="auth-success">
+          {{ matchAuthSuccess }}
+        </p>
+        <SharedUiButtonBase
+          type="submit"
+          variant="primary"
+          size="lg"
+          :loading="matchAuthBusy"
+          class="auth-submit"
+        >
+          {{
+            authTab === "login" ? $t("auth.signIn") : $t("auth.createAccount")
+          }}
         </SharedUiButtonBase>
       </form>
       <p class="auth-switch">
         <template v-if="authTab === 'login'">
-          {{ $t('auth.noAccount') }} <button class="auth-link" @click="authTab = 'register'">{{ $t('auth.createAccount') }}</button>
+          {{ $t("auth.noAccount") }}
+          <button class="auth-link" @click="authTab = 'register'">
+            {{ $t("auth.createAccount") }}
+          </button>
         </template>
         <template v-else>
-          {{ $t('auth.hasAccount') }} <button class="auth-link" @click="authTab = 'login'">{{ $t('auth.signIn') }}</button>
+          {{ $t("auth.hasAccount") }}
+          <button class="auth-link" @click="authTab = 'login'">
+            {{ $t("auth.signIn") }}
+          </button>
         </template>
       </p>
     </SharedUiDialogAppModal>
@@ -690,56 +764,66 @@ const appTitle = useAppTitle();
 const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const auth = useAuth();
 const slug = computed(() => route.params.slug);
-const authModalOpen = ref(false)
-const authTab = ref('login')
-const matchAuthEmail = ref('')
-const matchAuthPassword = ref('')
-const matchAuthConfirm = ref('')
-const matchAuthError = ref('')
-const matchAuthSuccess = ref('')
-const matchAuthBusy = ref(false)
-const matchAuthGoogleLoading = ref(false)
-const matchAuthPasswordError = ref('')
+const authModalOpen = ref(false);
+const authTab = ref("login");
+const matchAuthEmail = ref("");
+const matchAuthPassword = ref("");
+const matchAuthConfirm = ref("");
+const matchAuthError = ref("");
+const matchAuthSuccess = ref("");
+const matchAuthBusy = ref(false);
+const matchAuthGoogleLoading = ref(false);
+const matchAuthPasswordError = ref("");
 
 const handleMatchAuthGoogle = async () => {
-  matchAuthGoogleLoading.value = true
-  await auth.signInWithGoogle()
-  matchAuthGoogleLoading.value = false
-}
+  matchAuthGoogleLoading.value = true;
+  await auth.signInWithGoogle();
+  matchAuthGoogleLoading.value = false;
+};
 
 const handleMatchAuthSubmit = async () => {
-  matchAuthError.value = ''
-  matchAuthSuccess.value = ''
-  matchAuthPasswordError.value = ''
-  matchAuthBusy.value = true
-  if (authTab.value === 'register') {
+  matchAuthError.value = "";
+  matchAuthSuccess.value = "";
+  matchAuthPasswordError.value = "";
+  matchAuthBusy.value = true;
+  if (authTab.value === "register") {
     if (matchAuthPassword.value !== matchAuthConfirm.value) {
-      matchAuthError.value = t('auth.passwordMismatch')
-      matchAuthBusy.value = false
-      return
+      matchAuthError.value = t("auth.passwordMismatch");
+      matchAuthBusy.value = false;
+      return;
     }
-    const { data, error: err } = await auth.signUp(matchAuthEmail.value, matchAuthPassword.value)
-    matchAuthBusy.value = false
+    const { data, error: err } = await auth.signUp(
+      matchAuthEmail.value,
+      matchAuthPassword.value,
+    );
+    matchAuthBusy.value = false;
     if (err) {
-      matchAuthError.value = err.message?.includes('already registered') ? t('auth.emailInUse') : err.message?.includes('weak') ? t('auth.weakPassword') : err.message || t('auth.emailInUse')
-      return
+      matchAuthError.value = err.message?.includes("already registered")
+        ? t("auth.emailInUse")
+        : err.message?.includes("weak")
+          ? t("auth.weakPassword")
+          : err.message || t("auth.emailInUse");
+      return;
     }
     if (data?.session) {
-      authModalOpen.value = false
+      authModalOpen.value = false;
     } else {
-      matchAuthSuccess.value = t('auth.registrationSuccess')
-      authTab.value = 'login'
+      matchAuthSuccess.value = t("auth.registrationSuccess");
+      authTab.value = "login";
     }
   } else {
-    const { error: err } = await auth.signIn(matchAuthEmail.value, matchAuthPassword.value)
-    matchAuthBusy.value = false
+    const { error: err } = await auth.signIn(
+      matchAuthEmail.value,
+      matchAuthPassword.value,
+    );
+    matchAuthBusy.value = false;
     if (err) {
-      matchAuthError.value = t('auth.loginError')
-      return
+      matchAuthError.value = t("auth.loginError");
+      return;
     }
-    authModalOpen.value = false
+    authModalOpen.value = false;
   }
-}
+};
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 // Phase 1: match + teams (teams is tiny, both needed immediately)
@@ -974,8 +1058,8 @@ const getVotePercent = (playerSlug) => {
 
 const castVote = async (playerSlug) => {
   if (!auth.user.value) {
-    authModalOpen.value = true
-    return
+    authModalOpen.value = true;
+    return;
   }
   if (alreadyVoted.value || !match.value?.slug) return;
   votingFor.value = playerSlug;
@@ -1008,8 +1092,8 @@ const getPredictionPercent = (teamSlug) => {
 
 const castPrediction = async (teamSlug) => {
   if (!auth.user.value) {
-    authModalOpen.value = true
-    return
+    authModalOpen.value = true;
+    return;
   }
   if (alreadyPredicted.value || !match.value?.slug) return;
   predictingTeam.value = teamSlug;
@@ -1071,12 +1155,35 @@ const formatMatchDate = (dateStr) => {
 };
 
 // ── Video embed ────────────────────────────────────────────────────────────────
+const resolvedVideos = ref([])
+
 const embedUrl = (url) => {
   if (!url) return "";
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  if (url.includes("facebook.com") || url.includes("fb.watch") || url.includes("fb.com"))
+    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=734`;
   return url;
 };
+
+const resolveVideos = async (videos) => {
+  if (!videos?.length) { resolvedVideos.value = []; return }
+  const resolved = await Promise.all(videos.map(async (v) => {
+    let url = v.url
+    if (url.includes("/share/") && (url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.watch"))) {
+      try {
+        const { url: resolvedUrl } = await $fetch(`/api/resolve-url?url=${encodeURIComponent(url)}`)
+        if (resolvedUrl && resolvedUrl !== url) url = resolvedUrl
+      } catch {}
+    }
+    return { embedUrl: embedUrl(url) }
+  }))
+  resolvedVideos.value = resolved
+}
+
+watch(() => match.value?.videos, (videos) => {
+  resolveVideos(videos)
+}, { immediate: true })
 
 // ── Share ──────────────────────────────────────────────────────────────────────
 const shareText = () => {
@@ -1085,7 +1192,7 @@ const shareText = () => {
   const as = match.value.awayScore ?? 0;
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
-  const name = appTitle.name || 'دوري القرية'
+  const name = appTitle.name || "دوري القرية";
   return locale.value === "ar"
     ? `${ht} ${hs}–${as} ${at} 🏆 | ${name}`
     : `${ht} ${hs}–${as} ${at} 🏆 | ${name}`;
@@ -1139,10 +1246,10 @@ const onImgError = (e) => {
 // ── SEO ────────────────────────────────────────────────────────────────────────
 useSeoMeta({
   title: () => {
-    const name = appTitle.name || 'دوري القرية'
+    const name = appTitle.value || "دوري القرية";
     return match.value
       ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | ${name}`
-      : "Match Details"
+      : "Match Details";
   },
 });
 </script>
@@ -1811,20 +1918,6 @@ useSeoMeta({
   color: var(--primary);
 }
 
-// ── Empty album ────────────────────────────────────────────────────────────────
-.empty-album {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-muted);
-  padding: 32px;
-}
-.empty-icon {
-  color: var(--text-muted);
-  opacity: 0.4;
-}
-
 // ── Video ──────────────────────────────────────────────────────────────────────
 .video-wrap {
   border-radius: 12px;
@@ -2072,7 +2165,6 @@ useSeoMeta({
     font-size: 20px !important;
   }
 }
-
 </style>
 
 <style lang="scss">
@@ -2098,7 +2190,7 @@ useSeoMeta({
   &.active {
     background: var(--bg-surface);
     color: var(--text-primary);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   }
 }
 .auth-subtitle {
@@ -2122,8 +2214,14 @@ useSeoMeta({
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  &:hover { background: var(--bg-surface); border-color: var(--primary-mid); }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:hover {
+    background: var(--bg-surface);
+    border-color: var(--primary-mid);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 .auth-divider {
   display: flex;
@@ -2132,8 +2230,9 @@ useSeoMeta({
   margin: 16px 0;
   color: var(--text-muted);
   font-size: 0.8rem;
-  &::before, &::after {
-    content: '';
+  &::before,
+  &::after {
+    content: "";
     flex: 1;
     height: 1px;
     background: var(--border-color);
@@ -2174,6 +2273,8 @@ useSeoMeta({
   cursor: pointer;
   font-size: 0.82rem;
   padding: 0;
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>

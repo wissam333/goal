@@ -78,7 +78,10 @@ CREATE TRIGGER on_auth_user_created
 -- 0a. Add ad column to settings (if table already exists from a previous run)
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS ad JSONB DEFAULT NULL;
 
--- 0b. Seasons table
+-- 0b. Add videos column to matches
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb;
+
+-- 0c. Seasons table
 CREATE TABLE IF NOT EXISTS seasons (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
@@ -144,6 +147,7 @@ CREATE TABLE matches (
   "goalScorers" JSONB DEFAULT '[]'::jsonb,
   "motmWinner" TEXT,
   photos JSONB DEFAULT '[]'::jsonb,
+  videos JSONB DEFAULT '[]'::jsonb,
   cards JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

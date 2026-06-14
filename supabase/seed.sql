@@ -31,7 +31,7 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
 ON CONFLICT (slug) DO NOTHING;
 
 -- Matches (only played ones with full data; upcoming ones with null scores)
-INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTeam, homeScore, awayScore, goalScorers, motmCandidates, motmWinner) VALUES
+INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTeam, homeScore, awayScore, goalScorers, motmCandidates, motmWinner, videos) VALUES
   (
     'ga-alnour-vs-aytam',
     'النور vs الأيتام',
@@ -40,7 +40,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     'alnour', 'aytam', 3, 1,
     '[{"player":"ahmed-hassan","team":"alnour","minute":12},{"player":"khaled-omar","team":"alnour","minute":34},{"player":"khaled-omar","team":"alnour","minute":67},{"player":"faris-nour","team":"aytam","minute":55}]'::jsonb,
     '["ahmed-hassan","khaled-omar","yasser-ali"]'::jsonb,
-    'ahmed-hassan'
+    'ahmed-hassan',
+    '[]'::jsonb
   ),
   (
     'gb-alqadsia-vs-alnasr',
@@ -50,7 +51,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     'alqadsia', 'alnasr', 2, 2,
     '[{"player":"badr-shamari","team":"alqadsia","minute":23},{"player":"badr-shamari","team":"alqadsia","minute":45},{"player":"omar-abdullah","team":"alnasr","minute":30},{"player":"tamer-hassan","team":"alnasr","minute":78}]'::jsonb,
     '["badr-shamari","omar-abdullah"]'::jsonb,
-    'badr-shamari'
+    'badr-shamari',
+    '[]'::jsonb
   ),
   (
     'ga-alnour-vs-alqadsia',
@@ -60,7 +62,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     'alnour', 'alqadsia', 1, 0,
     '[{"player":"ahmed-hassan","team":"alnour","minute":63}]'::jsonb,
     '["ahmed-hassan","nour-saeed"]'::jsonb,
-    'nour-saeed'
+    'nour-saeed',
+    '[]'::jsonb
   ),
   (
     'gb-aytam-vs-alnasr',
@@ -70,7 +73,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     'aytam', 'alnasr', 2, 3,
     '[{"player":"faris-nour","team":"aytam","minute":15},{"player":"hadi-mahmoud","team":"aytam","minute":44},{"player":"omar-abdullah","team":"alnasr","minute":22},{"player":"omar-abdullah","team":"alnasr","minute":60}]'::jsonb,
     '["omar-abdullah","faris-nour"]'::jsonb,
-    'omar-abdullah'
+    'omar-abdullah',
+    '[]'::jsonb
   ),
   (
     'ga-alnour-vs-alnasr',
@@ -78,7 +82,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-05-16T17:00:00+00:00',
     'A', 'الملعب الرئيسي', 'upcoming',
     'alnour', 'alnasr', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   ),
   (
     'gb-aytam-vs-alqadsia',
@@ -86,7 +91,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-05-17T19:00:00+00:00',
     'B', 'الملعب الرئيسي', 'upcoming',
     'aytam', 'alqadsia', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   ),
   (
     'ga-alnour-vs-aytam-2',
@@ -94,7 +100,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-05-23T17:00:00+00:00',
     'A', 'الملعب الرئيسي', 'upcoming',
     'alnour', 'aytam', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   ),
   (
     'gb-alqadsia-vs-alnasr-2',
@@ -102,7 +109,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-05-24T19:00:00+00:00',
     'B', 'الملعب الرئيسي', 'upcoming',
     'alqadsia', 'alnasr', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   ),
   (
     'sf-alnour-vs-alqadsia',
@@ -110,7 +118,8 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-05-30T17:00:00+00:00',
     'SF', 'الملعب الرئيسي', 'upcoming',
     'alnour', 'alqadsia', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   ),
   (
     'sf-alnasr-vs-aytam',
@@ -126,6 +135,7 @@ INSERT INTO matches (slug, title, date, "group", venue, status, homeTeam, awayTe
     '2026-06-06T20:00:00+00:00',
     'F', 'الملعب الرئيسي', 'upcoming',
     'alnour', 'alnasr', NULL, NULL,
-    '[]'::jsonb, '[]'::jsonb, NULL
+    '[]'::jsonb, '[]'::jsonb, NULL,
+    '[]'::jsonb
   )
 ON CONFLICT (slug) DO NOTHING;

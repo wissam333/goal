@@ -294,7 +294,7 @@ const formatMatchDate = (d) => {
 useSeoMeta({
   title: () => {
     const fallback = 'دوري القرية'
-    const name = appTitle.name || fallback
+    const name = appTitle.value || fallback
     return team.value ? `${team.value.title} | ${name}` : 'Team'
   },
 });
