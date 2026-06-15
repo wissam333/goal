@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   ],
 
   pwa: {
-    disable: process.env.NODE_ENV === "development",
+    disable: false,
     registerType: "autoUpdate",
     includeAssets: ["logo.png", "favicon.svg"],
     manifest: {
@@ -52,7 +52,7 @@ export default defineNuxtConfig({
       },
     },
     devOptions: {
-      enabled: false,
+      enabled: true,
       suppressWarnings: true,
       navigateFallback: "/",
       navigateFallbackAllowlist: [/^\/(?!api)/],

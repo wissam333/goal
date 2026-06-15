@@ -117,7 +117,6 @@ const handleInstall = async () => {
 
 onMounted(() => {
   if (isStandalone()) return;
-
   const inApp = detectInAppBrowser();
   if (inApp) {
     isInApp.value = true;
@@ -136,12 +135,7 @@ onMounted(() => {
   if (p === "desktop") return;
 
   platform.value = p;
-
-  // iOS doesn't use beforeinstallprompt — show immediately
-  if (p === "ios") {
-    visible.value = true;
-  }
-  // Android: wait for the prompt event (watched below)
+  visible.value = true; // ← show immediately for both iOS and Android
 });
 
 // Android: show banner once the install prompt becomes available
