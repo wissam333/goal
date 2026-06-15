@@ -17,6 +17,7 @@
 const { locale } = useI18n();
 const theme = useTheme();
 theme.init();
+usePwaInstall();
 
 const { name: appName } = useAppTitle();
 

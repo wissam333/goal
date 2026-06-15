@@ -5,19 +5,11 @@ let listenerRegistered = false;
 export const usePwaInstall = () => {
   if (import.meta.client && !listenerRegistered) {
     listenerRegistered = true;
-
-    // Check if the inline script already captured the prompt
-    if ((window as any).__PWA_PROMPT__) {
-      deferredPrompt.value = (window as any).__PWA_PROMPT__;
-      isInstallable.value = true;
-    }
-
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt.value = e;
       isInstallable.value = true;
     });
-
     window.addEventListener("appinstalled", () => {
       deferredPrompt.value = null;
       isInstallable.value = false;

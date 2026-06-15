@@ -93,7 +93,9 @@ const detectPlatform = (): "ios" | "android" | "desktop" => {
 const detectInAppBrowser = (): boolean => {
   const ua = navigator.userAgent;
   if (/WhatsApp/i.test(ua)) return true;
-  return /FBAN|FBAV|Messenger|FB_IAB|FB4A|Instagram|MicroMessenger|Line/i.test(ua);
+  return /FBAN|FBAV|Messenger|FB_IAB|FB4A|Instagram|MicroMessenger|Line/i.test(
+    ua,
+  );
 };
 
 const dismiss = () => {
@@ -115,6 +117,7 @@ const handleInstall = async () => {
 
 onMounted(() => {
   if (isStandalone()) return;
+
   const inApp = detectInAppBrowser();
   if (inApp) {
     isInApp.value = true;
@@ -122,15 +125,38 @@ onMounted(() => {
       if (localStorage.getItem(LS_KEY)) return;
     } catch {}
     visible.value = true;
-    return
+    return;
   }
+
   try {
     if (localStorage.getItem(LS_KEY)) return;
   } catch {}
+
   const p = detectPlatform();
   if (p === "desktop") return;
+
   platform.value = p;
-  visible.value = true;
+
+  // iOS doesn't use beforeinstallprompt — show immediately
+  if (p === "ios") {
+    visible.value = true;
+  }
+  // Android: wait for the prompt event (watched below)
+});
+
+// Android: show banner once the install prompt becomes available
+watch(isInstallable, (val) => {
+  if (
+    val &&
+    platform.value === "android" &&
+    !isStandalone() &&
+    !visible.value
+  ) {
+    try {
+      if (localStorage.getItem(LS_KEY)) return;
+    } catch {}
+    visible.value = true;
+  }
 });
 </script>
 
