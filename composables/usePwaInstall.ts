@@ -1,20 +1,5 @@
-// composables/usePwaInstall.ts
 const deferredPrompt = ref<any>(null);
 const isInstallable = ref(false);
-
-// Register listener once, as early as possible, only on client
-if (import.meta.client) {
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt.value = e;
-    isInstallable.value = true;
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt.value = null;
-    isInstallable.value = false;
-  });
-}
 
 export const usePwaInstall = () => {
   const install = async (): Promise<boolean> => {
@@ -26,5 +11,15 @@ export const usePwaInstall = () => {
     return outcome === "accepted";
   };
 
-  return { isInstallable, install };
+  const __setPrompt = (e: any) => {
+    deferredPrompt.value = e;
+    isInstallable.value = true;
+  };
+
+  const __clearPrompt = () => {
+    deferredPrompt.value = null;
+    isInstallable.value = false;
+  };
+
+  return { isInstallable, install, __setPrompt, __clearPrompt };
 };
