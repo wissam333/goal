@@ -153,6 +153,11 @@ export default defineNuxtConfig({
           tagPosition: "head",
           type: "text/javascript",
         },
+        {
+          innerHTML: `window.__pwaPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaPrompt=e;});`,
+          tagPosition: "head",
+          type: "text/javascript",
+        },
       ],
     },
   },

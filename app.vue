@@ -12,6 +12,16 @@
 </template>
 
 <script setup>
+if (import.meta.client) {
+  window.addEventListener(
+    "beforeinstallprompt",
+    (e) => {
+      e.preventDefault();
+      usePwaInstall().__setPrompt(e);
+    },
+    { once: true },
+  );
+}
 const { locale } = useI18n();
 const theme = useTheme();
 theme.init();

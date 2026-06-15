@@ -1,11 +1,16 @@
 export default defineNuxtPlugin(() => {
-  // Runs as early as possible on client, before any component mounts
+  const { __setPrompt, __clearPrompt, __hydrate } = usePwaInstall();
+
+  // Pick up any prompt that fired before this plugin ran
+  __hydrate();
+
+  // Listen for future prompts
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
-    usePwaInstall().__setPrompt(e);
+    __setPrompt(e);
   });
 
   window.addEventListener("appinstalled", () => {
-    usePwaInstall().__clearPrompt();
+    __clearPrompt();
   });
 });

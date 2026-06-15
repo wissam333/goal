@@ -21,5 +21,12 @@ export const usePwaInstall = () => {
     isInstallable.value = false;
   };
 
-  return { isInstallable, install, __setPrompt, __clearPrompt };
+  // Pick up the prompt if it was captured before JS hydrated
+  const __hydrate = () => {
+    if ((window as any).__pwaPrompt && !deferredPrompt.value) {
+      __setPrompt((window as any).__pwaPrompt);
+    }
+  };
+
+  return { isInstallable, install, __setPrompt, __clearPrompt, __hydrate };
 };
