@@ -149,7 +149,7 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)');window.__VAPID_KEY="${(process.env.VAPID_PUBLIC_KEY || "").replace(/"/g, '\\"')}"}})()`,
+          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)');window.__VAPID_KEY="${(process.env.VAPID_PUBLIC_KEY || "").replace(/"/g, '\\"')}";window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__PWA_PROMPT__=e})})()`,
           tagPosition: "head",
           type: "text/javascript",
         },
