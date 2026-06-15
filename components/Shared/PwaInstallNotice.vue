@@ -71,13 +71,12 @@
 </template>
 
 <script setup lang="ts">
-const LS_KEY = "pwa-install-dismissed";
 const visible = ref(false);
 const platform = ref<"ios" | "android" | "desktop">("desktop");
 const installing = ref(false);
 const isInApp = ref(false);
 
-const { isInstallable, install } = usePwaInstall();
+const { isInstallable, install, dismiss: pwaCancel } = usePwaInstall();
 
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
@@ -100,16 +99,15 @@ const detectInAppBrowser = (): boolean => {
 
 const dismiss = () => {
   visible.value = false;
-  try {
-    localStorage.setItem(LS_KEY, "1");
-  } catch {}
+  // do NOT call pwaCancel() — it sets localStorage and kills the listener forever
+  // just hide the banner for this session
 };
 
 const handleInstall = async () => {
   installing.value = true;
   try {
     const accepted = await install();
-    if (accepted) dismiss();
+    if (accepted) visible.value = false;
   } finally {
     installing.value = false;
   }
@@ -117,38 +115,24 @@ const handleInstall = async () => {
 
 onMounted(() => {
   if (isStandalone()) return;
+
   const inApp = detectInAppBrowser();
   if (inApp) {
     isInApp.value = true;
-    try {
-      if (localStorage.getItem(LS_KEY)) return;
-    } catch {}
     visible.value = true;
     return;
   }
-
-  try {
-    if (localStorage.getItem(LS_KEY)) return;
-  } catch {}
 
   const p = detectPlatform();
   if (p === "desktop") return;
 
   platform.value = p;
-  visible.value = true; // ← show immediately for both iOS and Android
+  visible.value = true;
 });
 
-// Android: show banner once the install prompt becomes available
+// upgrade from manual hint to install button once prompt becomes available
 watch(isInstallable, (val) => {
-  if (
-    val &&
-    platform.value === "android" &&
-    !isStandalone() &&
-    !visible.value
-  ) {
-    try {
-      if (localStorage.getItem(LS_KEY)) return;
-    } catch {}
+  if (val && platform.value === "android") {
     visible.value = true;
   }
 });
