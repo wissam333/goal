@@ -53,7 +53,7 @@
       </div>
 
       <!-- ── Next Match ─────────────────────────────────── -->
-      <div v-else-if="nextMatch?.slug" class="hero-card highlight-box" id="tour-next-match">
+      <div v-else-if="nextMatch?.slug" class="hero-card">
         <div v-if="!nextMatchIsLive" class="hero-badge">
           <Icon name="mdi:clock-outline" size="14" />
           {{ $t("home.nextMatch") }}
@@ -149,7 +149,7 @@
       </div>
 
       <!-- ── Last Match ────────────────────────────────── -->
-      <div v-if="lastMatch?.slug" class="mt-4 highlight-box" id="tour-last-match">
+      <div v-if="lastMatch?.slug" class="mt-4">
         <div class="section-label">
           <Icon name="mdi:clock-check-outline" size="14" />
           {{ $t("home.lastMatch") }}
@@ -527,25 +527,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 </script>
 
 <style lang="scss" scoped>
-// ── Tour highlight boxes for explainer video ────────────────────
-.highlight-box {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -6px;
-    border: 3px dashed var(--primary, #22c55e);
-    border-radius: 18px;
-    pointer-events: none;
-    z-index: 2;
-    animation: pulse-highlight 2s ease-in-out infinite;
-  }
-}
-@keyframes pulse-highlight {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
 .page-wrap {
   padding-bottom: calc(var(--bottom-nav-height) + 24px);
 }
