@@ -17,7 +17,7 @@ export default defineNuxtConfig({
     includeAssets: ["logo.png", "favicon.svg"],
     manifest: {
       name: "دوري كرة القدم السنوي",
-      short_name: "دوري القرية",
+      short_name: "دوري الجروية",
       description: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
       theme_color: "#22c55e",
       background_color: "#ffffff",
@@ -40,30 +40,22 @@ export default defineNuxtConfig({
       installPrompt: true,
       periodicSyncForUpdates: 3600,
     },
-    workbox: {
+    strategies: "injectManifest",
+    srcDir: "sw",
+    filename: "sw.js",
+    injectManifest: {
       globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
-      navigateFallback: null,
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-          handler: "NetworkFirst",
-          options: {
-            cacheName: "supabase-data",
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24,
-            },
-            cacheableResponse: {
-              statuses: [0, 200],
-            },
-          },
-        },
-      ],
+      rollupFormat: "iife",
+      rollupOptions: {
+        treeshake: false,
+      },
     },
     devOptions: {
       enabled: true,
-      type: "module",
       suppressWarnings: true,
+      navigateFallback: "/",
+      navigateFallbackAllowlist: [/^\/(?!api)/],
+      type: "module",
     },
   },
 
