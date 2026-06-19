@@ -168,6 +168,7 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL || "",
       supabaseKey: process.env.SUPABASE_ANON_KEY || "",
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://goal.wissam-n-n-najjom.workers.dev",
       vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
       leagueName: "دوري القرية السنوي",
       season: "2026",

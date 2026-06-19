@@ -188,6 +188,7 @@
 definePageMeta({ layout: 'admin' })
 
 const admin = useAdminData()
+const siteUrl = useRuntimeConfig().public.siteUrl
 const alert = reactive({ show: false, type: 'success', title: '', text: '' })
 const loading = ref(true)
 const savingAd = ref(false)
@@ -301,14 +302,18 @@ const handleSendNotification = async () => {
   if (!notifForm.title.trim()) return
   sendingNotif.value = true
   try {
-    const res = await $fetch('/api/notifications/send', {
-      method: 'POST',
-      body: {
-        title: notifForm.title.trim(),
-        body: notifForm.body.trim(),
-        url: notifForm.url.trim() || '/',
-      },
-    })
+let notifUrl = notifForm.url.trim()
+if (notifUrl && notifUrl.startsWith('/')) {
+  notifUrl = `${siteUrl}${notifUrl}`
+}
+const res = await $fetch('/api/notifications/send', {
+  method: 'POST',
+  body: {
+    title: notifForm.title.trim(),
+    body: notifForm.body.trim(),
+    url: notifUrl || '',
+  },
+})
     showAlert('success', '✅ تم الإرسال', `تم إرسال الإشعار إلى ${res.sent} مشترك`)
     notifForm.title = ""
     notifForm.body = ""

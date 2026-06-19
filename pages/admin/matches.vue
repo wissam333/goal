@@ -570,6 +570,7 @@ definePageMeta({ layout: "admin" });
 
 const admin = useAdminData();
 const { awardPoints } = usePredictionPoints();
+const siteUrl = useRuntimeConfig().public.siteUrl;
 
 const teams = ref([]);
 const players = ref([]);
@@ -617,7 +618,7 @@ async function sendNotif(type) {
   const awayTitle =
     teams.value.find((t) => t.slug === editingMatch.value.awayTeam)?.title ||
     editingMatch.value.awayTeam;
-  const matchUrl = `/matches/${editingMatch.value.slug}`;
+  const matchUrl = `${siteUrl}/matches/${editingMatch.value.slug}`;
 
   if (type === "started") {
     const title = "🔴 المباراة بدأت";
@@ -793,7 +794,7 @@ function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
   const matchTitle = `${homeTitle} vs ${awayTitle}`;
   let notifTitle = "";
   let notifBody = "";
-  let notifUrl = `/matches/${matchObj.slug}`;
+  let notifUrl = `${siteUrl}/matches/${matchObj.slug}`;
 
   if (!oldMatch) {
     notifTitle = "⚽ مباراة جديدة";
