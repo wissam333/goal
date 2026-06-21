@@ -1038,7 +1038,7 @@ const votingFor = ref(null);
 onMounted(async () => {
   if (match.value?.slug) {
     alreadyVoted.value = await hasVoted(match.value.slug);
-    votedFor.value = process.client
+    votedFor.value = import.meta.client
       ? localStorage.getItem(`vote_${match.value.slug}`)
       : null;
     voteResults.value = await getVotes(match.value.slug);

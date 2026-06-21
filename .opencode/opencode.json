@@ -2,5 +2,6 @@
   "$schema": "https://opencode.ai/config.json",
   "skills": {
     "paths": [".opencode/skills"]
-  }
+  },
+  "plugin": ["D:\\2026\\goal\\.opencode\\ponytail\\.opencode\\plugins\\ponytail.mjs"]
 }

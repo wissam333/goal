@@ -30,6 +30,6 @@ useHead({
 useSeoMeta({
   ogSiteName: computed(() => appName.value || "دوري القرية السنوي"),
   twitterCard: "summary_large_image",
-  ogImage: "/logo/logo.png",
+  ogImage: "/logo.png",
 });
 </script>

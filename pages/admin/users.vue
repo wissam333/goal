@@ -54,7 +54,10 @@ const users = ref([]);
 const loading = ref(true);
 
 onMounted(async () => {
-  if (!supabase) return;
+  if (!supabase) {
+    loading.value = false;
+    return;
+  }
   const { data: profiles } = await supabase
     .from("profiles")
     .select("*")

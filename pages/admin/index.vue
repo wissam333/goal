@@ -188,41 +188,11 @@ const quickActions = computed(() => [
   },
 ]);
 
-const standings = computed(() => {
-  const m = matches.value.filter((x) => x.status === "played");
-  const map = {};
-  for (const t of teams.value) {
-    map[t.slug] = { W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0, P: 0 };
-  }
-  for (const match of m) {
-    if (!map[match.homeTeam] || !map[match.awayTeam]) continue;
-    const hg = match.homeScore ?? 0;
-    const ag = match.awayScore ?? 0;
-    if (hg > ag) {
-      map[match.homeTeam].W++;
-      map[match.homeTeam].Pts += 3;
-      map[match.awayTeam].L++;
-    } else if (hg < ag) {
-      map[match.awayTeam].W++;
-      map[match.awayTeam].Pts += 3;
-      map[match.homeTeam].L++;
-    } else {
-      map[match.homeTeam].D++;
-      map[match.awayTeam].D++;
-      map[match.homeTeam].Pts++;
-      map[match.awayTeam].Pts++;
-    }
-    map[match.homeTeam].GF += hg;
-    map[match.homeTeam].GA += ag;
-    map[match.awayTeam].GF += ag;
-    map[match.awayTeam].GA += hg;
-  }
-  for (const s of Object.values(map)) {
-    s.P = s.W + s.D + s.L;
-    s.GD = s.GF - s.GA;
-  }
-  return map;
-});
+const { standingsMap } = useStandings();
+
+const standings = computed(() =>
+  standingsMap(teams.value, matches.value.filter((x) => x.status === "played")),
+);
 
 const sortedTeams = computed(() => {
   const filtered = groupFilter.value

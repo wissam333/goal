@@ -183,6 +183,7 @@
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
+const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
 
 const tabs = computed(() => [
@@ -223,33 +224,8 @@ const teamMap = computed(() => {
 
 const getTeamName = (slug) => teamMap.value[slug]?.title || slug;
 
-const calculateStandings = (teamList) => {
-  return teamList
-    .map((team) => {
-      const teamMatches = matches.value.filter(
-        (m) =>
-          (m.homeTeam === team.slug || m.awayTeam === team.slug) &&
-          m.status === "played",
-      );
-      let W = 0, D = 0, L = 0;
-      teamMatches.forEach((m) => {
-        const isHome = m.homeTeam === team.slug;
-        const scored = isHome ? m.homeScore || 0 : m.awayScore || 0;
-        const conceded = isHome ? m.awayScore || 0 : m.homeScore || 0;
-        if (scored > conceded) W++;
-        else if (scored === conceded) D++;
-        else L++;
-      });
-      const P = W + D + L;
-      return { ...team, P, Pts: W * 3 + D };
-    })
-    .sort((a, b) => b.Pts - a.Pts);
-};
-
-const getGroupStandings = (group) => {
-  const groupTeams = teams.value.filter((t) => (t.group || "A") === group);
-  return calculateStandings(groupTeams);
-};
+const getGroupStandings = (group) =>
+  _calcGroupStandings(group, teams.value, matches.value);
 
 const getGroupMatches = (group) => {
   const groupTeamSlugs = teams.value

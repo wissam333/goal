@@ -376,7 +376,7 @@ const isMobile = ref(false);
 const direction = computed(() => (locale.value === "ar" ? "rtl" : "ltr"));
 
 const checkMobile = () => {
-  if (process.client) {
+  if (import.meta.client) {
     isMobile.value = window.innerWidth <= props.mobileBreakpoint;
   }
 };

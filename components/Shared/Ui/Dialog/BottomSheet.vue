@@ -88,7 +88,7 @@ onUnmounted(() => {
 watch(
   () => props.modelValue,
   (isOpen) => {
-    if (process.client) {
+    if (import.meta.client) {
       if (isOpen) {
         document.body.style.overflow = "hidden";
       } else {

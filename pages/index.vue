@@ -479,46 +479,17 @@ const formatShortDate = (dateStr) => {
   } catch { return ""; }
 };
 
-const standingsMap = computed(() => {
-  const map = {};
-  if (!teams.value || !allMatches.value) return map;
-  teams.value.forEach((team) => {
-    let W = 0,
-      D = 0,
-      L = 0,
-      GF = 0,
-      GA = 0;
-    allMatches.value
-      .filter((m) => m.homeTeam === team.slug || m.awayTeam === team.slug)
-      .forEach((m) => {
-        const isHome = m.homeTeam === team.slug;
-        const scored = isHome ? m.homeScore : m.awayScore;
-        const conceded = isHome ? m.awayScore : m.homeScore;
-        if (scored > conceded) W++;
-        else if (scored === conceded) D++;
-        else L++;
-        GF += scored;
-        GA += conceded;
-      });
-    map[team.slug] = {
-      P: W + D + L,
-      W,
-      D,
-      L,
-      GF,
-      GA,
-      GD: GF - GA,
-      Pts: W * 3 + D,
-    };
-  });
-  return map;
-});
+const { standingsMap: _standingsMap } = useStandings();
 
-const getTeamPoints = (slug) => standingsMap.value[slug]?.Pts ?? 0;
+const standingsData = computed(() =>
+  _standingsMap(teams.value || [], allMatches.value || []),
+);
+
+const getTeamPoints = (slug) => standingsData.value[slug]?.Pts ?? 0;
 
 const topStandings = computed(() =>
   [...(teams.value ?? [])]
-    .map((t) => ({ ...t, ...(standingsMap.value[t.slug] ?? { P: 0, Pts: 0 }) }))
+    .map((t) => ({ ...t, ...(standingsData.value[t.slug] ?? { P: 0, Pts: 0, GD: 0 }) }))
     .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD)
     .slice(0, 4),
 );

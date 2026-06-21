@@ -1,15 +1,9 @@
-let cachedName = null
-const name = ref('')
-const loaded = ref(false)
-
 export const useAppTitle = () => {
-  if (cachedName) {
-    name.value = cachedName
-  }
+  const name = ref('')
+  const loaded = ref(false)
 
   const fetch = async () => {
-    if (cachedName) {
-      name.value = cachedName
+    if (name.value) {
       loaded.value = true
       return
     }
@@ -18,7 +12,6 @@ export const useAppTitle = () => {
       if (!supabase) return
       const { data } = await supabase.from('settings').select('name').limit(1).single()
       if (data?.name) {
-        cachedName = data.name
         name.value = data.name
       }
     } catch {
@@ -28,12 +21,11 @@ export const useAppTitle = () => {
     }
   }
 
-  if (import.meta.client && !cachedName) {
+  if (import.meta.client) {
     onMounted(() => fetch())
   }
 
   const refresh = () => {
-    cachedName = null
     name.value = ''
     loaded.value = false
     fetch()

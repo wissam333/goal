@@ -238,24 +238,12 @@ const getGroupTeams = (group) =>
 const getGroupMatches = (group) =>
   snapshotMatches.value.filter(m => m.group === group)
 
+const { calculateStandings } = useStandings()
+
 const getGroupStandings = (group) => {
   const teams = getGroupTeams(group)
-  const map = {}
-  for (const t of teams) {
-    map[t.slug] = { slug: t.slug, title: t.title, W: 0, D: 0, L: 0, GF: 0, GA: 0, P: 0, Pts: 0, GD: 0 }
-  }
-  for (const m of getGroupMatches(group)) {
-    const h = map[m.homeTeam]
-    const a = map[m.awayTeam]
-    if (!h || !a) continue
-    h.GF += m.homeScore; h.GA += m.awayScore
-    a.GF += m.awayScore; a.GA += m.homeScore
-    if (m.homeScore > m.awayScore) { h.W++; h.Pts += 3; a.L++ }
-    else if (m.awayScore > m.homeScore) { a.W++; a.Pts += 3; h.L++ }
-    else { h.D++; a.D++; h.Pts++; a.Pts++ }
-  }
-  return Object.values(map).map(s => { s.P = s.W + s.D + s.L; s.GD = s.GF - s.GA; return s })
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF)
+  const matches = getGroupMatches(group)
+  return calculateStandings(teams, matches)
 }
 
 const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "")

@@ -45,7 +45,7 @@ useSeoMeta({
       : "Follow results, standings and match details of the annual football league",
   ogType: "website",
   ogLocale: () => locale.value === "ar" ? "ar_SA" : "en_US",
-  ogImage: "/logo/logo-web.png",
+  ogImage: "/logo.png",
   twitterCard: "summary_large_image",
 });
 </script>

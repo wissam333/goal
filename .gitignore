@@ -25,3 +25,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Embedded agent submodule
+.opencode/ponytail

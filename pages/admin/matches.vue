@@ -894,6 +894,7 @@ const removeCard = (card) => {
 const loadVotes = async (matchSlug) => {
   if (!matchSlug) return;
   const supabase = useSupabase();
+  if (!supabase) return;
   const { data } = await supabase
     .from("votes")
     .select("player_slug")
@@ -966,6 +967,7 @@ const syncPlayerGoals = async () => {
     }
   }
   const supabase = useSupabase();
+  if (!supabase) return;
   const changed = players.value
     .filter((p) => (goalCount[p.slug] || 0) !== p.goals)
     .map((p) => ({ ...p, goals: goalCount[p.slug] || 0 }));
