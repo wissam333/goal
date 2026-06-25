@@ -98,6 +98,8 @@
           label="الرمز"
           placeholder="slug-team"
           hint="يُملأ تلقائياً من الاسم"
+          @focus="slugManuallyEdited = true"
+          @input="slugManuallyEdited = true"
         />
         <div class="form-color-group">
           <label class="form-color-label">اللون</label>
@@ -356,6 +358,12 @@ const defaultForm = () => ({
 
 const form = reactive(defaultForm())
 const formErrors = reactive({ title: '' })
+let slugManuallyEdited = false
+watch(() => form.title, (val) => {
+  if (!slugManuallyEdited && !modal.isEdit) {
+    form.slug = generateSlug(val || '')
+  }
+})
 
 const settings = ref({ groups: ["A", "B"] })
 
@@ -569,6 +577,7 @@ const openAddModal = () => {
   modal.isEdit = false
   modal.editingSlug = null
   modal.open = true
+  slugManuallyEdited = false
 }
 
 const openEditModal = (team) => {
@@ -583,6 +592,7 @@ const openEditModal = (team) => {
   modal.isEdit = true
   modal.editingSlug = team.slug
   modal.open = true
+  slugManuallyEdited = true
 }
 
 const handleSave = async () => {
@@ -595,6 +605,8 @@ const handleSave = async () => {
 
   if (!form.slug.trim()) {
     form.slug = generateSlug(form.title)
+  } else {
+    form.slug = generateSlug(form.slug)
   }
 
   if (!form.group) {

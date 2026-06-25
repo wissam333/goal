@@ -7,6 +7,16 @@
       :is-rtl="true"
     />
 
+    <SharedUiFeedbackAlert
+      v-if="alert.show"
+      v-model="alert.show"
+      :type="alert.type"
+      :title="alert.title"
+      :message="alert.text"
+      dismissible
+      :duration="4000"
+    />
+
     <div v-if="loading" class="loading">جاري التحميل...</div>
 
     <div v-else-if="!users.length" class="empty">لا يوجد مستخدمين بعد</div>
@@ -19,6 +29,7 @@
             <th>الدور</th>
             <th>النقاط</th>
             <th>التاريخ</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -39,6 +50,17 @@
             </td>
             <td class="points-cell">{{ u.prediction_points || 0 }}</td>
             <td class="date-cell">{{ formatDate(u.created_at) }}</td>
+            <td class="action-cell">
+              <button
+                class="btn-delete"
+                title="حذف المستخدم"
+                :disabled="deleting === u.id"
+                @click="deleteUser(u)"
+              >
+                <span v-if="deleting === u.id" class="spinner" />
+                <span v-else class="icon">✕</span>
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -53,6 +75,15 @@ const supabase = useSupabase();
 const users = ref([]);
 const loading = ref(true);
 
+const alert = reactive({ show: false, type: "success", title: "", text: "" });
+const showAlert = (type, title, text) => {
+  alert.type = type;
+  alert.title = title;
+  alert.text = text;
+  alert.show = false;
+  nextTick(() => (alert.show = true));
+};
+
 onMounted(async () => {
   if (!supabase) {
     loading.value = false;
@@ -65,6 +96,24 @@ onMounted(async () => {
   users.value = profiles || [];
   loading.value = false;
 });
+
+const deleting = ref(null);
+async function deleteUser(u) {
+  if (!confirm(`حذف المستخدم "${u.display_name || u.email || u.id}" نهائيًا؟`)) return;
+  deleting.value = u.id;
+  try {
+    await $fetch("/api/admin/delete-user", {
+      method: "POST",
+      body: { userId: u.id },
+    });
+    users.value = users.value.filter((x) => x.id !== u.id);
+    showAlert("success", "✅ تم الحذف", "تم حذف المستخدم");
+  } catch {
+    showAlert("error", "❌ خطأ", "فشل حذف المستخدم");
+  } finally {
+    deleting.value = null;
+  }
+}
 
 const formatDate = (d) => {
   if (!d) return "—";
@@ -160,4 +209,41 @@ const formatDate = (d) => {
     color: var(--primary);
   }
 }
+
+.action-cell {
+  width: 48px;
+  text-align: center;
+}
+
+.btn-delete {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.15s;
+  &:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: #ef4444;
+  }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  .icon { font-size: 0.75rem; }
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--text-muted);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

@@ -50,7 +50,7 @@ export default defineNuxtConfig({
     srcDir: "sw",
     filename: "sw.js",
     injectManifest: {
-      globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+      globPatterns: ["**/*.{js,css,svg,png,ico,woff2}"],
       rollupFormat: "iife",
       rollupOptions: {
         treeshake: false,
