@@ -85,6 +85,7 @@
             <span v-if="player.number" class="player-number">#{{ player.number }}</span>
             <span class="player-name">{{ player.title }}</span>
             <span v-if="player.position" class="player-position">{{ player.position }}</span>
+            <div v-if="player.captain" class="captain-corner" title="قائد الفريق">👑</div>
             <div class="player-stats">
               <span class="pstat">
                 <Icon name="mdi:soccer" size="12" />
@@ -419,6 +420,14 @@ useSeoMeta({
 }
 .player-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
 .player-position { font-size: 0.68rem; color: var(--text-muted); }
+
+.captain-corner {
+  position: absolute;
+  top: 6px;
+  inset-inline-start: 6px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
 
 .player-stats {
   display: flex; gap: 8px; margin-top: 4px;

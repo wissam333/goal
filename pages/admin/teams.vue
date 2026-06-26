@@ -193,7 +193,10 @@
             {{ p.number || '-' }}
           </div>
           <div class="player-info">
-            <span class="player-name">{{ p.title }}</span>
+            <span class="player-name">
+              {{ p.title }}
+              <span v-if="p.captain" class="captain-badge" title="قائد الفريق">👑</span>
+            </span>
             <span class="player-position">{{ p.position || '-' }}</span>
           </div>
           <div class="player-stats">
@@ -260,6 +263,10 @@
           type="number"
           placeholder="0"
         />
+        <label class="captain-toggle">
+          <input v-model="playerForm.captain" type="checkbox" />
+          <span>قائد الفريق (كابتن)</span>
+        </label>
       </div>
       <template #actions>
         <SharedUiButtonBase variant="neutral" ghost @click="playerForm.open = false">
@@ -426,6 +433,7 @@ const playerForm = reactive({
   goals: 0,
   appearances: 0,
   photo: null,
+  captain: false,
 })
 
 const playerDefaultForm = (teamSlug) => ({
@@ -437,6 +445,7 @@ const playerDefaultForm = (teamSlug) => ({
   goals: 0,
   appearances: 0,
   photo: null,
+  captain: false,
 })
 
 const playerDelete = reactive({
@@ -485,6 +494,7 @@ const openPlayerEdit = (player) => {
     goals: player.goals,
     appearances: player.appearances,
     photo: player.photo,
+    captain: player.captain || false,
   })
 }
 
@@ -502,6 +512,7 @@ const handlePlayerSave = async () => {
     goals: Number(playerForm.goals) || 0,
     appearances: Number(playerForm.appearances) || 0,
     photo: playerForm.photo,
+    captain: !!playerForm.captain,
   }
   try {
     await admin.savePlayer(payload)
@@ -952,5 +963,21 @@ onMounted(() => {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
   }
+}
+
+.captain-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  input { width: 18px; height: 18px; cursor: pointer; }
+}
+
+.captain-badge {
+  font-size: 1rem;
+  margin-right: 4px;
 }
 </style>

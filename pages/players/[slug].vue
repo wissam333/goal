@@ -29,15 +29,16 @@
         <div class="hero-inner">
           <!-- Avatar -->
           <div class="hero-avatar">
-            <img
-              v-if="player.photo"
-              :src="player.photo"
-              :alt="player.title"
-              width="100"
-              height="100"
-              loading="lazy"
-              @error="onImgError"
-            />
+            <a v-if="player.photo" :href="player.photo" data-fancybox="player-photo">
+              <img
+                :src="player.photo"
+                :alt="player.title"
+                width="100"
+                height="100"
+                loading="lazy"
+                @error="onImgError"
+              />
+            </a>
             <span v-else class="avatar-initial">{{
               player.title?.charAt(0)
             }}</span>
@@ -53,6 +54,7 @@
               <span v-if="player.position" class="badge-pos">{{
                 player.position
               }}</span>
+              <span v-if="player.captain" class="badge-captain">👑 كابتن</span>
               <span
                 v-if="teamName"
                 class="badge-team"
@@ -536,6 +538,15 @@ useSeoMeta({
 .badge-pos {
   background: var(--primary-soft);
   color: var(--primary);
+  border-radius: 7px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badge-captain {
+  background: rgba(234, 179, 8, 0.12);
+  color: #ca8a04;
+  border: 1.5px solid #ca8a04;
   border-radius: 7px;
   padding: 3px 10px;
   font-size: 0.75rem;

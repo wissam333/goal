@@ -72,7 +72,8 @@ export const useAdminData = () => {
   const uploadToStorage = async (blob, bucket, fileName) => {
     checkDb()
     const ext = blob.type?.includes("png") ? "png" : "webp"
-    const path = `${fileName}.${ext}`
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const path = `${uniqueName}.${ext}`
     const { error } = await supabase.storage.from(bucket).upload(path, blob, {
       contentType: blob.type,
       upsert: true,
