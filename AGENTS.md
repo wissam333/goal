@@ -40,8 +40,8 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer, manual dark/ligh
 - **Admin auth**: Uses Supabase Auth + `profiles.role = 'admin'` check. No hardcoded password.
 - **VAPID keys**: in `.env` (generated via `web-push`), exposed via `runtimeConfig`
 - **Nitro**: `compressPublicAssets: true`, `prerender.failOnError: false`
-- **PWA**: `rollupFormat: "iife"` + `rollupOptions: { treeshake: false }` in `nuxt.config.ts` to prevent Vite removing `self.__WB_MANIFEST`
-- **Runtime config**: `siteUrl` (NUXT_PUBLIC_SITE_URL), `leagueName`, `season` hardcoded in `nuxt.config.ts`
+- **PWA**: `rollupFormat: "iife"` + `rollupOptions: { treeshake: false }` in `nuxt.config.ts` to prevent Vite removing `self.__WB_MANIFEST`. `globPatterns` excludes `html` to prevent stale SSR pages in SW cache.
+- **Runtime config**: `siteUrl` (NUXT_PUBLIC_SITE_URL, defaults to Cloudflare domain), `leagueName`, `season` hardcoded in `nuxt.config.ts`
 
 ## Completed Work
 ### Initial setup
@@ -105,6 +105,12 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer, manual dark/ligh
 - Per-page `useSeoMeta` sets dynamic `ogImage`, `ogTitle`, `ogDescription` for match, team, player detail pages
 - Fallback to static `/logo.png` for generic pages
 - Default `ogImage` fixed to `/logo.png` in app.vue and layouts/default.vue
+
+### Admin & Fixes (June 2026)
+- **Notification URLs**: Added `siteUrl` runtimeConfig (Cloudflare domain), fixed admin matches.vue and settings.vue to send absolute URLs in push notifications — clicking notification opens Cloudflare site regardless of where API runs
+- **Admin user delete**: Added delete button per user in `/admin/users`, created `/api/admin/delete-user` endpoint using service key — deletes votes, predictions, then auth user (cascades to profile)
+- **Team slug auto-slugify**: Admin teams form now auto-generates slug from title on new teams, sanitizes slug on input (lowercase, hyphens), tracks manual edits to avoid overwriting
+- **PWA HTML cache fix**: Removed `html` from `injectManifest.globPatterns` — SW no longer pre-caches HTML pages, preventing stale SSR content. Static assets (JS, CSS, images) still cached
 
 ## Known Issues
 - Cloudflare Pages SSR: Supabase queries return empty (no errors) — likely runtime issue with `@supabase/supabase-js` in Workers environment. Vercel SSR works fine.

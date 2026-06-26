@@ -91,7 +91,7 @@
         </button>
 
         <!-- Language toggle -->
-        <button
+        <!-- <button
           class="ctrl-btn lang-btn"
           :aria-label="
             locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'
@@ -99,7 +99,7 @@
           @click="toggleLang"
         >
           {{ locale === "ar" ? "EN" : "ع" }}
-        </button>
+        </button> -->
 
         <!-- Mobile menu button (only shows links, not bottom nav) -->
         <button
@@ -162,7 +162,7 @@
             }}</span>
           </button>
 
-          <button
+          <!-- <button
             class="mobile-nav-item mobile-nav-btn"
             @click="
               toggleLang();
@@ -171,7 +171,7 @@
           >
             <Icon name="mdi:translate" size="18" aria-hidden="true" />
             <span>{{ locale === "ar" ? "English" : "العربية" }}</span>
-          </button>
+          </button> -->
         </div>
       </div>
     </Transition>

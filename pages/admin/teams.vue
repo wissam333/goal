@@ -623,7 +623,16 @@ const handleSave = async () => {
       group: form.group,
     }
 
-    await admin.saveTeam(teamObj)
+    if (modal.isEdit) {
+      const supabase = useSupabase()
+      const { error } = await supabase
+        .from('teams')
+        .update(teamObj)
+        .eq('slug', modal.editingSlug)
+      if (error) throw error
+    } else {
+      await admin.saveTeam(teamObj)
+    }
     modal.open = false
     await loadData()
     showAlert('success', modal.isEdit ? 'تم تحديث الفريق بنجاح' : 'تمت إضافة الفريق بنجاح')
