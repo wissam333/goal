@@ -29,6 +29,7 @@
         <div class="hero-content">
           <div
             class="hero-logo"
+            :class="{ 'hero-logo--has-image': !!team.logo }"
             :style="team.color ? `border-color: ${team.color}60; box-shadow: 0 0 30px ${team.color}25` : ''"
           >
             <NuxtImg
@@ -345,6 +346,7 @@ useSeoMeta({
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   img { width: 100%; height: 100%; object-fit: contain; }
+  &.hero-logo--has-image { border: none; background: none; box-shadow: none !important; }
 }
 .hero-initial { font-size: 2.2rem; font-weight: 900; color: var(--primary); }
 
@@ -486,5 +488,9 @@ useSeoMeta({
   .section { padding: 0 14px 20px; }
   .players-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .hero-name { font-size: 1.3rem; }
+}
+
+@media (min-width: 768px) {
+  .hero-logo { width: 120px; height: 120px; }
 }
 </style>
