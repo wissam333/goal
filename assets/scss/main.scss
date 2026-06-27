@@ -490,6 +490,21 @@ label {
 }
 
 // global loader ===============================
+@keyframes img-shimmer {
+  to { background-position: -200% 0; }
+}
+
+img[loading="lazy"] {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: img-shimmer 1.4s linear infinite;
+}
+
+img[loading="lazy"].img-loaded {
+  background: none;
+  animation: none;
+}
+
 .triathlon-loader {
     #preloader {
         position: fixed;

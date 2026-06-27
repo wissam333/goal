@@ -16,9 +16,9 @@ export default defineNuxtConfig({
     registerType: "autoUpdate",
     includeAssets: ["logo.png", "favicon.svg"],
     manifest: {
-      name: "دوري كرة القدم السنوي",
-      short_name: "دوري الجروية",
-      description: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
+      name: "Green Ball",
+      short_name: "Green Ball",
+      description: "متابع نتائج وجدول دوري كرة القدم",
       theme_color: "#22c55e",
       background_color: "#ffffff",
       display: "standalone",
@@ -122,14 +122,14 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "دوري كرة القدم السنوي",
+      title: "Green Ball",
       htmlAttrs: { lang: "ar" },
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         {
           name: "description",
-          content: "متابع نتائج وجدول دوري كرة القدم السنوي للقرية",
+          content: "متابع نتائج وجدول دوري كرة القدم",
         },
         {
           name: "theme-color",
@@ -168,7 +168,9 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL || "",
       supabaseKey: process.env.SUPABASE_ANON_KEY || "",
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://goal.wissam-n-najjom.workers.dev",
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        "https://goal.wissam-n-najjom.workers.dev",
       vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
       leagueName: "دوري القرية السنوي",
       season: "2026",

@@ -28,8 +28,19 @@ useHead({
 });
 
 useSeoMeta({
-  ogSiteName: computed(() => appName.value || "دوري القرية السنوي"),
+  ogSiteName: computed(() => appName.value || "Green Ball"),
   twitterCard: "summary_large_image",
   ogImage: "/logo.png",
 });
+
+onMounted(() => {
+  document.addEventListener('load', (e) => {
+    if (e.target.matches?.('img[loading="lazy"]')) {
+      e.target.classList.add('img-loaded')
+    }
+  }, true)
+  document.querySelectorAll('img[loading="lazy"]').forEach((img) => {
+    if (img.complete) img.classList.add('img-loaded')
+  })
+})
 </script>

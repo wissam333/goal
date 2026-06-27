@@ -143,10 +143,9 @@
         </NuxtLink>
       </div>
 
-      <div v-else class="hero-empty">
-        <Icon name="game-icons:soccer-ball" size="40" />
+      <BallPhysics v-else>
         <p>{{ $t("match.noUpcoming") }}</p>
-      </div>
+      </BallPhysics>
 
       <!-- ── Last Match ────────────────────────────────── -->
       <div v-if="lastMatch?.slug" class="mt-4">
@@ -315,6 +314,7 @@
                 :alt="team.title"
                 width="44"
                 height="44"
+                loading="lazy"
                 class="team-card-logo"
               />
               <div
@@ -907,24 +907,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   }
 }
 
-.hero-empty {
-  background: linear-gradient(160deg, #e8f5e9, #c8e6c9);
-  border-radius: 20px;
-  padding: 48px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: var(--text-muted);
-  :root.dark & {
-    background: linear-gradient(160deg, #0a1a0f, #0d1f14);
-    color: rgba(255, 255, 255, 0.3);
-  }
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-  }
-}
+
 
 // ── Last Match ─────────────────────────────────────────────
 .last-card {
