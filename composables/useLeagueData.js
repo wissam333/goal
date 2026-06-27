@@ -10,36 +10,11 @@ const parseJsonFields = (match) => {
   return match
 }
 
-const isClient = typeof localStorage !== "undefined"
-
-const CACHE_PREFIX = "league-data-"
-
-const cacheKey = (table, season) => `${CACHE_PREFIX}${season}-${table}`
-
-const readCache = (table, season) => {
-  if (!isClient) return null
-  try {
-    const raw = localStorage.getItem(cacheKey(table, season))
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-const writeCache = (table, season, data) => {
-  if (!isClient) return
-  try {
-    localStorage.setItem(cacheKey(table, season), JSON.stringify(data))
-  } catch {}
-}
-
 export const useLeagueData = () => {
   const supabase = useSupabase()
-  const config = useRuntimeConfig()
-  const season = config.public.season || "default"
 
   const fromSupabase = async (table, query = {}) => {
-    if (!supabase) return readCache(table, season)
+    if (!supabase) return null
     try {
       let q = supabase.from(table).select(query.select || "*")
       if (query.eq) for (const [k, v] of Object.entries(query.eq)) q = q.eq(k, v)
@@ -57,17 +32,13 @@ export const useLeagueData = () => {
       if (error) throw error
       return data
     } catch {
-      return readCache(table, season)
+      return null
     }
   }
 
   const fetchTeams = async () => {
     const data = await fromSupabase("teams")
-    if (data) {
-      writeCache("teams", season, data)
-      return data
-    }
-    return readCache("teams", season) || []
+    return data || []
   }
 
   const fetchTeam = async (slug) => {
@@ -76,10 +47,7 @@ export const useLeagueData = () => {
       select: "*",
       limit: 1,
     })
-    if (data?.length) return data[0]
-    const cached = readCache("teams", season)
-    if (cached) return cached.find((t) => t.slug === slug) || null
-    return null
+    return data?.length ? data[0] : null
   }
 
   const fetchPlayers = async (filters = {}) => {
@@ -87,11 +55,7 @@ export const useLeagueData = () => {
     if (filters.team) query.eq = { team: filters.team }
     if (filters.order) query.order = filters.order
     const data = await fromSupabase("players", query)
-    if (data) {
-      if (!filters.team && !filters.order) writeCache("players", season, data)
-      return data
-    }
-    return readCache("players", season) || []
+    return data || []
   }
 
   const fetchPlayer = async (slug) => {
@@ -100,10 +64,7 @@ export const useLeagueData = () => {
       select: "*",
       limit: 1,
     })
-    if (data?.length) return data[0]
-    const cached = readCache("players", season)
-    if (cached) return cached.find((p) => p.slug === slug) || null
-    return null
+    return data?.length ? data[0] : null
   }
 
   const fetchMatches = async (filters = {}) => {
@@ -124,16 +85,7 @@ export const useLeagueData = () => {
     if (filters.statusIn)
       query.in = [{ column: "status", values: filters.statusIn }]
     const data = await fromSupabase("matches", query)
-    if (data) {
-      const parsed = data.map(parseJsonFields)
-      const isFullTable =
-        !filters.status && !filters.group && !filters.slug && !filters.team &&
-        !filters.statusIn && !filters.orderBy && !filters.limit
-      if (isFullTable) writeCache("matches", season, parsed)
-      return parsed
-    }
-    const cached = readCache("matches", season)
-    if (cached) return cached.map(parseJsonFields)
+    if (data) return data.map(parseJsonFields)
     return []
   }
 
@@ -144,8 +96,7 @@ export const useLeagueData = () => {
 
   const fetchSettings = async () => {
     const data = await fromSupabase("settings", { limit: 1 })
-    if (data?.length) return data[0]
-    return readCache("settings", season) || null
+    return data?.length ? data[0] : null
   }
 
   return {
