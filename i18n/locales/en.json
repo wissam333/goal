@@ -60,6 +60,7 @@
   "page": "Page",
   "allDates": "All Dates",
   "today": "Today",
+  "yesterday": "Yesterday",
   "thisWeek": "This Week",
   "thisMonth": "This Month",
   "thisYear": "This Year",
@@ -146,7 +147,9 @@
   "fixtures": {
     "all": "All",
     "matches": "Matches",
-    "back": "Back"
+    "back": "Back",
+    "timeline": "Timeline",
+    "list": "List"
   },
   "stats": {
     "totalTeams": "Teams",

@@ -60,6 +60,7 @@
   "page": "صفحة",
   "allDates": "كل التواريخ",
   "today": "اليوم",
+  "yesterday": "أمس",
   "thisWeek": "هذا الأسبوع",
   "thisMonth": "هذا الشهر",
   "thisYear": "هذه السنة",
@@ -146,7 +147,9 @@
   "fixtures": {
     "all": "الكل",
     "matches": "المباريات",
-    "back": "رجوع"
+    "back": "رجوع",
+    "timeline": "تسلسل زمني",
+    "list": "قائمة"
   },
   "stats": {
     "totalTeams": "الفرق",

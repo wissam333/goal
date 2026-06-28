@@ -22,8 +22,20 @@
       </button>
     </div>
 
+    <!-- View toggle -->
+    <div class="view-toggle">
+      <button class="view-btn" :class="{ active: viewMode === 'timeline' }" @click="viewMode = 'timeline'">
+        <Icon name="mdi:timeline" size="14" />
+        {{ $t('fixtures.timeline') }}
+      </button>
+      <button class="view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'">
+        <Icon name="mdi:format-list-text" size="14" />
+        {{ $t('fixtures.list') }}
+      </button>
+    </div>
+
     <!-- Loading -->
-    <div v-if="pending" class="skeleton-wrap">
+    <div v-if="!pageReady && !matchesData?.length" class="skeleton-wrap">
       <div v-for="i in 3" :key="i" class="skeleton-week">
         <div class="skeleton-week-title" />
         <div v-for="j in 3" :key="j" class="skeleton-match" />
@@ -38,69 +50,88 @@
     />
 
     <template v-else>
-      <div class="bracket-flow">
-        <!-- Group Stage -->
-        <div class="bracket-row group-row">
-          <div v-for="group in groupStage" :key="group.group" class="bracket-stage">
-            <div class="stage-header">
-              <Icon name="mdi:table" size="14" />
-              {{ $t("standings.group") }} {{ group.group }}
-            </div>
+      <!-- Timeline View -->
+      <div v-show="viewMode === 'timeline'" class="timeline">
+        <div v-for="dateGroup in timeline" :key="dateGroup.dateKey" class="tl-date-group">
+          <div class="tl-date-header">
+            <span class="tl-date-badge">{{ dateGroup.dateLabel }}</span>
+          </div>
+          <div class="tl-matches">
             <div
-              v-for="match in group.matches"
+              v-for="match in dateGroup.matches"
               :key="match.slug"
-              class="bracket-match"
-              :class="`bracket-${match.status}`"
+              class="tl-match"
+              :class="`tl-${match.status}`"
               @click="navigateTo(`/matches/${match.slug}`)"
             >
-              <div class="bm-team">
-                <span class="bm-name" :class="{ win: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
-                <span class="bm-score" :class="{ win: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : '' }}</span>
+              <div class="tl-line-dot" />
+              <div class="tl-time">
+                <template v-if="match.status === 'played'">
+                  <span class="tl-time-val">{{ showTime ? formatMatchTime(match.date) : '--:--' }}</span>
+                </template>
+                <template v-else-if="match.status === 'live'">
+                  <span class="tl-live">
+                    <span class="live-dot" /> {{ $t('match.live') }}
+                  </span>
+                </template>
+                <template v-else>
+                  <span class="tl-time-val">{{ showTime ? formatMatchTime(match.date) : '--:--' }}</span>
+                </template>
               </div>
-              <div class="bm-team">
-                <span class="bm-name" :class="{ win: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
-                <span class="bm-score" :class="{ win: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : '' }}</span>
+              <div class="tl-card">
+                <div class="tl-card-inner">
+                  <div class="tl-team">
+                    <span class="tl-team-name" :class="{ winner: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
+                    <span class="tl-score" :class="{ winner: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : '' }}</span>
+                  </div>
+                  <div class="tl-vs">
+                    <template v-if="match.status === 'played'">–</template>
+                    <template v-else-if="match.status === 'live'"><span class="live-dot" /></template>
+                    <template v-else>VS</template>
+                  </div>
+                  <div class="tl-team tl-away">
+                    <span class="tl-score" :class="{ winner: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : '' }}</span>
+                    <span class="tl-team-name" :class="{ winner: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
+                  </div>
+                </div>
+                <div class="tl-card-footer">
+                  <span class="tl-round">{{ matchGroupLabel(match) }}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Connector down -->
-        <div class="connector-down">
-          <div class="connector-line" />
-        </div>
-
-        <!-- Knockout Stage -->
-        <div v-if="knockoutStage.length" class="bracket-row knockout-row">
-          <div v-for="round in knockoutStage" :key="round.label" class="bracket-stage">
-            <div class="stage-header" :class="{ 'stage-final': round.isFinal }">
-              <Icon :name="round.isFinal ? 'mdi:trophy' : 'mdi:tournament'" size="14" />
-              {{ round.label }}
+      <!-- List View -->
+      <div v-show="viewMode === 'list'" class="list-view">
+        <div
+          v-for="match in filteredMatches"
+          :key="match.slug"
+          class="lv-card"
+          :class="`lv-${match.status}`"
+          @click="navigateTo(`/matches/${match.slug}`)"
+        >
+          <div class="lv-meta">
+            <span class="lv-date">{{ formatDate(match.date) }}</span>
+            <span class="lv-time">{{ showTime ? formatMatchTime(match.date) : '--:--' }}</span>
+          </div>
+          <div class="lv-teams">
+            <div class="lv-row">
+              <span class="lv-name" :class="{ winner: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
+              <span class="lv-score" :class="{ winner: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : '' }}</span>
             </div>
-            <div
-              v-for="match in round.matches"
-              :key="match.slug"
-              class="bracket-match"
-              :class="[`bracket-${match.status}`, { 'match-final': round.isFinal }]"
-              @click="navigateTo(`/matches/${match.slug}`)"
-            >
-              <div class="bm-team">
-                <span class="bm-name" :class="{ win: isWinner(match, match.homeTeam) }">{{ getTeamName(match.homeTeam) }}</span>
-                <span class="bm-score" :class="{ win: isWinner(match, match.homeTeam) }">{{ match.status === 'played' ? (match.homeScore ?? 0) : match.status === 'upcoming' ? '' : '–' }}</span>
-              </div>
-              <div class="bm-team">
-                <span class="bm-name" :class="{ win: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
-                <span class="bm-score" :class="{ win: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : match.status === 'upcoming' ? '' : '–' }}</span>
-              </div>
-              <div class="bm-meta">
-                <span v-if="match.status === 'upcoming'" class="bm-time">{{ showTime ? formatMatchTime(match.date) : '--:--' }}</span>
-                <span v-else-if="match.status === 'live'" class="bm-live">
-                  <span class="live-dot" /> LIVE
-                </span>
-                <span v-else class="bm-date">{{ formatMatchDate(match.date) }}</span>
-              </div>
+            <div class="lv-row">
+              <span class="lv-name" :class="{ winner: isWinner(match, match.awayTeam) }">{{ getTeamName(match.awayTeam) }}</span>
+              <span class="lv-score" :class="{ winner: isWinner(match, match.awayTeam) }">{{ match.status === 'played' ? (match.awayScore ?? 0) : '' }}</span>
             </div>
           </div>
+          <div class="lv-status">
+            <template v-if="match.status === 'live'"><span class="live-dot" /></template>
+            <template v-else-if="match.status === 'upcoming'"><Icon name="mdi:clock-outline" size="12" /></template>
+            <template v-else><Icon name="mdi:check" size="12" /></template>
+          </div>
+          <span class="lv-round">{{ matchGroupLabel(match) }}</span>
         </div>
       </div>
     </template>
@@ -176,6 +207,8 @@ const filters = computed(() => [
   },
 ]);
 
+const viewMode = ref('timeline')
+
 const filteredMatches = computed(() => {
   if (activeFilter.value === "all") return matches.value;
   return matches.value.filter((m) => m.status === activeFilter.value);
@@ -189,40 +222,56 @@ const isWinner = (match, teamSlug) => {
   return (scored ?? 0) > (conceded ?? 0);
 };
 
-const KNOCKOUT_GROUPS = ['QF', 'SF', 'F']
+const KNOCKOUT_LABELS = { QF: 'bracket.quarterfinal', SF: 'bracket.semifinal', F: 'bracket.final' }
 
-const groupStage = computed(() => {
+const formatDateLabel = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const d = parseISO(dateStr);
+    const today = new Date();
+    const todayKey = format(today, 'yyyy-MM-dd');
+    const dateKey = format(d, 'yyyy-MM-dd');
+    if (dateKey === todayKey) return t('today');
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (dateKey === format(yesterday, 'yyyy-MM-dd')) return t('yesterday');
+    return format(d, 'EEEE d MMMM', { locale: dateFnsLocale.value });
+  } catch { return ''; }
+};
+
+const matchGroupLabel = (match) => {
+  if (!match.group) return '';
+  if (KNOCKOUT_LABELS[match.group]) return t(KNOCKOUT_LABELS[match.group]);
+  return `${t('standings.group')} ${match.group}`;
+};
+
+const timeline = computed(() => {
   const groups = {};
   filteredMatches.value.forEach((m) => {
-    const g = m.group || 'A';
-    if (KNOCKOUT_GROUPS.includes(g)) return;
-    if (!groups[g]) groups[g] = [];
-    groups[g].push(m);
+    const key = m.date ? format(parseISO(m.date), 'yyyy-MM-dd') : 'unknown';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
   });
   return Object.entries(groups)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([group, matches]) => ({ group, matches }));
-});
-
-const knockoutStage = computed(() => {
-  const rounds = [];
-  const qf = filteredMatches.value.filter(m => m.group === 'QF').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const sf = filteredMatches.value.filter(m => m.group === 'SF').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const f = filteredMatches.value.filter(m => m.group === 'F').sort((a, b) => new Date(a.date) - new Date(b.date));
-  if (qf.length) rounds.push({ label: t('bracket.quarterfinal'), matches: qf, isFinal: false });
-  if (sf.length) rounds.push({ label: t('bracket.semifinal'), matches: sf, isFinal: false });
-  if (f.length) rounds.push({ label: t('bracket.final'), matches: f, isFinal: true });
-  return rounds;
+    .map(([dateKey, matches]) => ({
+      dateKey,
+      dateLabel: formatDateLabel(matches[0].date),
+      matches,
+    }));
 });
 
 // Date formatting
 const dateFnsLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const showTime = ref(false)
+const pageReady = ref(false)
 let refreshTimer = null
-onMounted(() => {
+onMounted(async () => {
   showTime.value = true
   now.value = Date.now()
+  await refreshMatches()
+  pageReady.value = true
   refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
 })
 onUnmounted(() => {
@@ -240,6 +289,13 @@ onUnmounted(() => {
   unsubFixturesMatches()
 })
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    return format(parseISO(dateStr), "d MMM", { locale: dateFnsLocale.value });
+  } catch { return ""; }
+};
+
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return "";
   try {
@@ -254,7 +310,7 @@ const formatMatchDate = (dateStr) => {
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "";
   try {
-    return format(parseISO(dateStr), "HH:mm");
+    return format(parseISO(dateStr), "h:mm a", { locale: dateFnsLocale.value });
   } catch {
     return "";
   }
@@ -280,11 +336,8 @@ useSeoMeta({
   overflow-x: auto;
   padding-bottom: 4px;
   -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
 }
-
 .filter-btn {
   display: inline-flex;
   align-items: center;
@@ -300,30 +353,16 @@ useSeoMeta({
   white-space: nowrap;
   transition: all 0.15s;
   flex-shrink: 0;
-
-  &:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-
-  &.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
-  }
+  &:hover { border-color: var(--primary); color: var(--primary); }
+  &.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 }
-
 .filter-count {
   background: rgba(255, 255, 255, 0.25);
   border-radius: 999px;
   padding: 1px 6px;
   font-size: 0.7rem;
   font-weight: 700;
-
-  .filter-btn:not(.active) & {
-    background: var(--bg-elevated);
-    color: var(--text-muted);
-  }
+  .filter-btn:not(.active) & { background: var(--bg-elevated); color: var(--text-muted); }
 }
 
 // ── Skeletons ──────────────────────────────────────────────────────────────────
@@ -332,310 +371,141 @@ useSeoMeta({
   flex-direction: column;
   gap: 24px;
 }
-@keyframes sh {
-  to { background-position: -200% 0; }
-}
-
-.skeleton-match {
-  height: 72px;
-  border-radius: 12px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-elevated) 25%,
-    var(--bg-surface) 50%,
-    var(--bg-elevated) 75%
-  );
-  background-size: 200% 100%;
-  animation: sh 1.4s linear infinite;
-}
-
-// ── Bracket Flowchart ──────────────────────────────────────────────────────────
-.bracket-flow {
+.skeleton-week {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: 8px 0 24px;
+  gap: 10px;
 }
-
-.bracket-row {
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  justify-content: center;
-}
-
-.bracket-stage {
-  flex: 1;
-  max-width: 340px;
-  min-width: 0;
-}
-
-.stage-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--primary);
-  margin-bottom: 10px;
-  padding: 6px 12px;
-  background: var(--primary-soft);
-  border-radius: 8px;
-  letter-spacing: 0.3px;
-}
-
-.stage-final {
-  color: #ca8a04;
-  background: rgba(234, 179, 8, 0.12);
-}
-
-// ── Match card ─────────────────────────────────────────────────────────────────
-.bracket-match {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-bottom: 8px;
-
-  &:hover {
-    border-color: var(--primary);
-    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-  }
-
-  &.bracket-live {
-    border-color: var(--primary);
-    background: rgba(34,197,94,0.03);
-  }
-
-  &.match-final {
-    border-color: rgba(234,179,8,0.3);
-    background: linear-gradient(135deg, rgba(234,179,8,0.04), transparent);
-  }
-}
-
-.bm-team {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.bm-name {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.3;
-
-  &.win {
-    color: var(--primary);
-  }
-}
-
-.bm-score {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  min-width: 22px;
-  text-align: center;
-  direction: ltr;
-
-  &.win {
-    color: var(--primary);
-  }
-}
-
-.bm-meta {
-  text-align: center;
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  padding-top: 4px;
-  border-top: 1px solid var(--border-color);
-  margin-top: 4px;
-}
-
-.bm-time {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.bm-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 700;
-  color: #16a34a;
-  font-size: 0.65rem;
-  letter-spacing: 0.5px;
-}
-
-.bm-date {
-  color: var(--text-muted);
-}
-
-// ── Connector ──────────────────────────────────────────────────────────────────
-.connector-down {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  width: 100%;
-  position: relative;
-}
-
-.connector-line {
-  width: 2px;
-  height: 100%;
-  background: var(--border-color);
-  position: relative;
-
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    width: 40%;
-    height: 2px;
-    background: var(--border-color);
-  }
-
-  &::before {
-    top: 0;
-    transform: translateX(-50%);
-  }
-
-  &::after {
-    bottom: 0;
-    transform: translateX(-50%);
-  }
-}
-
-// ── Group row ──────────────────────────────────────────────────────────────────
-@media (min-width: 640px) {
-  .group-row .bracket-stage {
-    flex: 0 1 340px;
-  }
-
-  .knockout-row .bracket-stage {
-    flex: 0 1 300px;
-  }
-}
-
-@media (max-width: 639px) {
-  .bracket-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .bracket-stage {
-    max-width: 100%;
-    flex: none !important;
-  }
-
-  .connector-down {
-    height: 24px;
-  }
-}
-
-// ── Skeleton overrides ─────────────────────────────────────────────────────────
+@keyframes sh { to { background-position: -200% 0; } }
 .skeleton-week-title {
   height: 28px;
   width: 120px;
   border-radius: 8px;
   background: var(--bg-elevated);
 }
-
 .skeleton-match {
   height: 72px;
   border-radius: 12px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-elevated) 25%,
-    var(--bg-surface) 50%,
-    var(--bg-elevated) 75%
-  );
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 }
 
-.round-header {
+// ── Timeline ───────────────────────────────────────────────────────────────────
+.timeline {
+  padding: 0 0 24px;
+}
+
+.tl-date-group {
+  margin-bottom: 28px;
+  &:last-child { margin-bottom: 0; }
+}
+
+.tl-date-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  padding: 0 4px;
+  gap: 10px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 0;
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
 }
 
-.round-badge {
+.tl-date-badge {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  border-radius: 8px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 0.82rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.round-count {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.tl-matches {
+  position: relative;
+  padding-inline-start: 24px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: 10px;
+    width: 2px;
+    background: var(--border-color);
+    border-radius: 2px;
+  }
 }
 
-// ── Matches list ───────────────────────────────────────────────────────────────
-.matches-list {
+.tl-match {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s;
+  &:last-child { margin-bottom: 0; }
+  &:active { transform: scale(0.98); }
+}
+
+.tl-line-dot {
+  position: absolute;
+  inset-inline-start: -19px;
+  top: 22px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-color);
+  z-index: 1;
+  .tl-live & { border-color: #16a34a; background: #16a34a; }
+  .tl-played & { border-color: var(--primary); background: var(--primary); }
+}
+
+.tl-time {
+  flex-shrink: 0;
+  width: 52px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.match-row {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: all 0.18s;
-  display: grid;
-  grid-template-columns: 52px 1fr auto 20px;
   align-items: center;
-  gap: 12px;
-
-  &:hover {
-    border-color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  }
-
-  &.match-upcoming {
-    border-inline-start: 3px solid var(--primary);
-  }
-  &.match-live {
-    border-inline-start: 3px solid #22c55e;
-    background: rgba(34, 197, 94, 0.03);
-  }
+  justify-content: center;
+  padding-top: 4px;
 }
 
-// ── Status ─────────────────────────────────────────────────────────────────────
-.match-status {
-  text-align: center;
+.tl-time-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
-.status-live {
+.tl-live {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
-  border-radius: 6px;
-  padding: 3px 7px;
-  font-size: 0.65rem;
+  gap: 3px;
+  font-size: 0.62rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  color: #16a34a;
+  letter-spacing: 0.3px;
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+    animation: pulse-green 1.5s infinite;
+  }
+}
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
 }
 
 .live-dot {
@@ -646,171 +516,206 @@ useSeoMeta({
   animation: pulse-green 1.5s infinite;
 }
 
-@keyframes pulse-green {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(0.7);
-  }
+.tl-card {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.15s;
+  .tl-live & { border-color: rgba(22, 163, 74, 0.3); }
+  .tl-upcoming & { border-color: var(--border-color); }
+  &:hover { border-color: var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 }
 
-.status-ft {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: var(--bg-elevated);
-  border-radius: 6px;
-  padding: 3px 7px;
-}
-
-.status-time {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-// ── Teams ──────────────────────────────────────────────────────────────────────
-.match-teams {
+.tl-card-inner {
   display: flex;
   align-items: center;
-  gap: 10px;
+  padding: 12px 14px;
+  gap: 8px;
 }
 
-.match-team {
+.tl-team {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-
-  &.home {
-    justify-content: flex-end;
-  }
-  &.away {
-    justify-content: flex-start;
-  }
+  min-width: 0;
+  &.tl-away { justify-content: flex-end; }
 }
 
-.match-team-name {
-  font-size: 0.88rem;
+.tl-team-name {
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100px;
+  &.winner { color: var(--primary); }
 }
 
-.match-team-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-}
-
-.logo-initial {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-// ── Score ──────────────────────────────────────────────────────────────────────
-.match-score {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 60px;
-  justify-content: center;
-}
-
-.score-home,
-.score-away {
-  font-size: 1.25rem;
+.tl-score {
+  font-size: 1.1rem;
   font-weight: 800;
-  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
   min-width: 20px;
   text-align: center;
-  &.score-winner {
+  direction: ltr;
+  &.winner { color: var(--primary); }
+}
+
+.tl-vs {
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  .live-dot { display: inline-block; margin: 0 auto; }
+}
+
+.tl-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.tl-round {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+// ── View toggle ─────────────────────────────────────────────────────────────────
+.view-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  padding: 3px;
+  width: fit-content;
+}
+.view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  &.active {
+    background: var(--bg-surface);
     color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 }
 
-.score-sep {
-  color: var(--text-muted);
-  font-weight: 400;
-  font-size: 1rem;
+// ── List View ─────────────────────────────────────────────────────────────────
+.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 24px;
 }
-
-.score-vs {
+.lv-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { border-color: var(--primary); }
+  &:active { transform: scale(0.98); }
+  &.lv-live { border-color: rgba(22,163,74,0.4); }
+}
+.lv-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.lv-date {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.lv-time {
   font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.lv-teams {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.lv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lv-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+  &.winner { color: var(--primary); }
+}
+.lv-score {
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  min-width: 20px;
+  text-align: center;
+  direction: ltr;
+  &.winner { color: var(--primary); }
+}
+.lv-status {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  .live-dot { margin: 0 auto; }
+}
+.lv-round {
+  font-size: 0.6rem;
   font-weight: 700;
   color: var(--text-muted);
   background: var(--bg-elevated);
   border-radius: 6px;
-  padding: 4px 8px;
-}
-
-// ── Meta ───────────────────────────────────────────────────────────────────────
-.match-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-}
-
-.meta-venue,
-.meta-date {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  padding: 2px 6px;
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
-// ── Chevron ────────────────────────────────────────────────────────────────────
-.row-chevron {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-@media (max-width: 600px) {
-  .match-row {
-    grid-template-columns: 44px 1fr;
-    grid-template-rows: auto auto;
-    gap: 8px;
-    padding: 12px 12px;
-  }
-
-  .match-meta {
-    grid-column: 2;
-    flex-direction: row;
-    justify-content: flex-start;
-  }
-  .row-chevron {
-    display: none;
-  }
-  .match-team-name {
-    max-width: 70px;
-    font-size: 0.8rem;
-  }
-  .score-home,
-  .score-away {
-    font-size: 1.1rem;
-  }
+@media (min-width: 600px) {
+  .tl-team-name { max-width: 160px; font-size: 0.9rem; }
+  .tl-score { font-size: 1.2rem; }
+  .tl-time { width: 60px; }
+  .tl-time-val { font-size: 0.85rem; }
 }
 </style>
