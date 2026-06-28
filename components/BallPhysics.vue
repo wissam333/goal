@@ -7,10 +7,7 @@
     >
       <Icon name="game-icons:soccer-ball" />
     </div>
-    <div class="ball-overlay">
-      <div class="icon-wrap" :class="{ glow: overlapping }">
-        <Icon ref="staticIcon" name="game-icons:soccer-ball" size="40" />
-      </div>
+    <div v-if="$slots.default" class="ball-overlay">
       <slot />
     </div>
   </div>
@@ -21,14 +18,11 @@ const GRAVITY = 0.15
 const FRICTION = 0.98
 const BOUNCE = 0.5
 const BALL_SIZE = 48
-const OVERLAP_DIST = BALL_SIZE * 1.2
 
 const container = ref(null)
 const ball = ref(null)
-const staticIcon = ref(null)
 const x = ref(0)
 const y = ref(0)
-const overlapping = ref(false)
 let vx = 3
 let vy = 0
 let dragging = false
@@ -52,16 +46,6 @@ function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val))
 }
 
-function checkOverlap() {
-  const cx = x.value + BALL_SIZE / 2
-  const cy = y.value + BALL_SIZE / 2
-  const ix = (containerW + BALL_SIZE) / 2
-  const iy = (containerH + BALL_SIZE) / 2
-  const dx = cx - ix
-  const dy = cy - iy
-  overlapping.value = Math.sqrt(dx * dx + dy * dy) < OVERLAP_DIST
-}
-
 function physics() {
   if (dragging) { rafId = requestAnimationFrame(physics); return }
   vy += GRAVITY
@@ -74,9 +58,8 @@ function physics() {
   if (y.value < 0) { y.value = 0; vy *= -BOUNCE }
   if (y.value > containerH) { y.value = containerH; vy *= -BOUNCE }
   if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1 && y.value >= containerH) {
-    vx = 0; vy = 0; overlapping.value = false; return
+    vx = 0; vy = 0; return
   }
-  checkOverlap()
   rafId = requestAnimationFrame(physics)
 }
 
@@ -103,7 +86,6 @@ function onDrag(e) {
   vy = pt.clientY - lastY
   lastX = pt.clientX
   lastY = pt.clientY
-  checkOverlap()
 }
 
 function endDrag() {
@@ -181,15 +163,5 @@ onUnmounted(() => {
     margin: 0;
     font-size: 0.9rem;
   }
-}
-.icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  line-height: 1;
-}
-.glow {
-  box-shadow: 0 0 6px 4px color-mix(in srgb, var(--primary) 50%, transparent), 0 0 14px 8px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 </style>

@@ -143,6 +143,7 @@
         </NuxtLink>
       </div>
 
+      <!-- ── Empty / No Matches ────────────────────────── -->
       <BallPhysics v-else>
         <p>{{ $t("match.noUpcoming") }}</p>
       </BallPhysics>
