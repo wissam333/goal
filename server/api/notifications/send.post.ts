@@ -1,11 +1,6 @@
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
-    const origin = getHeader(event, 'origin') || getHeader(event, 'referer') || ''
-    const siteUrl = config.public.siteUrl
-    if (origin && siteUrl && !origin.startsWith(siteUrl)) {
-      throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
-    }
     const body = await readBody(event)
     const { title, body: messageBody, url, icon } = body
     if (!title) {
