@@ -1,8 +1,13 @@
 import { createClient } from "@supabase/supabase-js"
 
 let _client = null
+let _hydrated = false
 
 export const useSupabase = () => {
+  if (_client && import.meta.client && !_hydrated) {
+    _client = null
+    _hydrated = true
+  }
   if (_client) return _client
   const config = useRuntimeConfig()
   const url = config.public.supabaseUrl

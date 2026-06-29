@@ -539,12 +539,4 @@ CREATE TABLE IF NOT EXISTS managers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-ALTER TABLE managers ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "managers_read_all" ON managers;
-CREATE POLICY "managers_read_all" ON managers
-  FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "managers_admin_all" ON managers;
-CREATE POLICY "managers_admin_all" ON managers
-  FOR ALL USING (public.is_admin());
+ALTER TABLE managers DISABLE ROW LEVEL SECURITY;
