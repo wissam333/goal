@@ -300,6 +300,101 @@
     </SharedUiDialogAppModal>
 
     <SharedUiDialogAppModal
+      v-model="managersModal.open"
+      :title="'الإداريون - ' + (managersModal.team?.title || '')"
+      max-width="560px"
+    >
+      <div class="players-modal-header">
+        <SharedUiButtonBase
+          variant="primary"
+          size="sm"
+          icon-left="mdi:account-plus-outline"
+          @click="openManagerAdd"
+        >
+          إضافة إداري
+        </SharedUiButtonBase>
+      </div>
+
+      <div v-if="managersModal.loading" class="modal-loading">جاري التحميل...</div>
+      <SharedUiFeedbackEmptyState
+        v-else-if="!managersModal.managers.length"
+        title="لا يوجد إداريون"
+        description="لم تتم إضافة أي إداريين لهذا الفريق بعد."
+        icon="mdi:account-tie-outline"
+      />
+      <div v-else class="player-list">
+        <div v-for="m in managersModal.managers" :key="m.id" class="player-item">
+          <div class="player-info">
+            <span class="player-name">{{ m.name }}</span>
+          </div>
+          <div class="player-item-actions">
+            <button class="player-action-btn edit" title="تعديل" @click="openManagerEdit(m)">
+              <Icon name="mdi:pencil-outline" size="16" />
+            </button>
+            <button class="player-action-btn delete" title="حذف" @click="confirmManagerDelete(m)">
+              <Icon name="mdi:delete-outline" size="16" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <template #actions>
+        <SharedUiButtonBase variant="outline" @click="managersModal.open = false">
+          إغلاق
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
+      v-model="managerForm.open"
+      :title="managerForm.isEdit ? 'تعديل إداري' : 'إضافة إداري'"
+      max-width="520px"
+    >
+      <div class="form-grid">
+        <AdminImageUpload
+          v-model="managerForm.image"
+          label="صورة الإداري"
+          :upload="uploadManagerPhoto"
+        />
+        <SharedUiFormBaseInput
+          v-model="managerForm.name"
+          label="الاسم"
+          placeholder="أدخل اسم الإداري"
+          required
+        />
+      </div>
+      <template #actions>
+        <SharedUiButtonBase variant="neutral" ghost @click="managerForm.open = false">
+          إلغاء
+        </SharedUiButtonBase>
+        <SharedUiButtonBase
+          variant="primary"
+          :disabled="!managerForm.name.trim()"
+          :loading="managerForm.saving"
+          @click="handleManagerSave"
+        >
+          {{ managerForm.isEdit ? 'حفظ التعديلات' : 'إضافة' }}
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
+      v-model="managerDelete.open"
+      title="حذف إداري"
+      max-width="400px"
+    >
+      <p class="delete-msg">هل أنت متأكد من حذف الإداري <strong>{{ managerDelete.manager?.name }}</strong>؟</p>
+      <template #actions>
+        <SharedUiButtonBase variant="neutral" ghost @click="managerDelete.open = false">
+          إلغاء
+        </SharedUiButtonBase>
+        <SharedUiButtonBase variant="error" :loading="managerDelete.deleting" @click="handleManagerDelete">
+          حذف
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
       v-model="restoreModal.open"
       title="استعادة فريق من الأرشيف"
       max-width="640px"
@@ -399,12 +494,14 @@ const teamColumns = [
 
 const teamActions = [
   { key: 'players', icon: 'mdi:account-group-outline', label: 'اللاعبون', class: 'btn-info' },
+  { key: 'managers', icon: 'mdi:account-tie-outline', label: 'الإداريون', class: 'btn-info' },
   { key: 'edit', icon: 'mdi:pencil-outline', label: 'تعديل', class: 'btn-warning' },
   { key: 'delete', icon: 'mdi:delete-outline', label: 'حذف', class: 'btn-danger' },
 ]
 
 const handleTeamAction = ({ action, row }) => {
   if (action.key === 'players') showTeamPlayers(row)
+  else if (action.key === 'managers') showTeamManagers(row)
   else if (action.key === 'edit') openEditModal(row)
   else if (action.key === 'delete') confirmDelete(row)
 }
@@ -453,6 +550,111 @@ const playerDelete = reactive({
   deleting: false,
   player: null,
 })
+
+// ── Managers ──────────────────────────────────────────────────
+const allManagers = ref([])
+
+const managersModal = reactive({
+  open: false,
+  loading: false,
+  team: null,
+  managers: [],
+})
+
+const managerForm = reactive({
+  open: false,
+  isEdit: false,
+  saving: false,
+  editingId: null,
+  name: '',
+  image: null,
+})
+
+const managerDefaultForm = () => ({ name: '', image: null })
+
+const managerDelete = reactive({
+  open: false,
+  deleting: false,
+  manager: null,
+})
+
+const showTeamManagers = async (team) => {
+  managersModal.team = team
+  managersModal.loading = true
+  managersModal.open = true
+  if (!allManagers.value.length) allManagers.value = await admin.getManagers()
+  managersModal.managers = allManagers.value.filter(m => m.team_slug === team.slug)
+  managersModal.loading = false
+}
+
+const refreshTeamManagers = () => {
+  if (managersModal.team) {
+    managersModal.managers = allManagers.value.filter(m => m.team_slug === managersModal.team.slug)
+  }
+}
+
+const openManagerAdd = () => {
+  Object.assign(managerForm, managerDefaultForm(), { open: true, isEdit: false, saving: false, editingId: null })
+}
+
+const openManagerEdit = (manager) => {
+  Object.assign(managerForm, {
+    open: true,
+    isEdit: true,
+    saving: false,
+    editingId: manager.id,
+    name: manager.name,
+    image: manager.image,
+  })
+}
+
+const handleManagerSave = async () => {
+  if (!managerForm.name.trim()) return
+  managerForm.saving = true
+  const payload = {
+    name: managerForm.name.trim(),
+    team_slug: managersModal.team.slug,
+    image: managerForm.image || '',
+  }
+  if (managerForm.editingId) payload.id = managerForm.editingId
+  try {
+    await admin.saveManager(payload)
+    managerForm.open = false
+    allManagers.value = await admin.getManagers()
+    refreshTeamManagers()
+    showAlert('success', managerForm.isEdit ? 'تم تحديث الإداري بنجاح' : 'تمت إضافة الإداري بنجاح')
+  } catch {
+    showAlert('error', 'حدث خطأ أثناء الحفظ')
+  } finally {
+    managerForm.saving = false
+  }
+}
+
+const confirmManagerDelete = (manager) => {
+  managerDelete.manager = manager
+  managerDelete.open = true
+}
+
+const handleManagerDelete = async () => {
+  if (!managerDelete.manager) return
+  managerDelete.deleting = true
+  try {
+    await admin.deleteManager(managerDelete.manager.id)
+    managerDelete.open = false
+    managerDelete.manager = null
+    allManagers.value = await admin.getManagers()
+    refreshTeamManagers()
+    showAlert('success', 'تم حذف الإداري بنجاح')
+  } catch {
+    showAlert('error', 'حدث خطأ أثناء الحذف')
+  } finally {
+    managerDelete.deleting = false
+  }
+}
+
+const uploadManagerPhoto = async (blob) => {
+  return admin.uploadToStorage(blob, 'team-images', `manager-${Date.now()}`)
+}
 
 const restoreModal = reactive({
   open: false,

@@ -103,6 +103,33 @@
         />
       </div>
 
+      <!-- Managers section -->
+      <div v-if="managers.length" class="section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <Icon name="mdi:account-tie-outline" size="20" />
+            الإداريون
+          </h2>
+          <span class="section-count">{{ managers.length }}</span>
+        </div>
+
+        <div class="managers-row">
+          <div v-for="m in managers" :key="m.id" class="manager-card">
+            <div class="manager-avatar">
+              <NuxtImg
+                v-if="m.image"
+                :src="m.image"
+                :alt="m.name"
+                width="56" height="56"
+                format="webp" loading="lazy"
+              />
+              <span v-else class="avatar-initial">{{ m.name?.charAt(0) }}</span>
+            </div>
+            <span class="manager-name">{{ m.name }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Recent Results -->
       <div v-if="recentMatches.length" class="section">
         <div class="section-header">
@@ -188,24 +215,27 @@ import { syrianAr } from '~/utils/syrianAr';
 const route = useRoute();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();
-const { fetchTeam, fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
+const { fetchTeam, fetchPlayers, fetchManagers, fetchMatches, fetchTeams } = useLeagueData();
 const slug = computed(() => route.params.slug);
 
 const [
   { data: team, pending: teamPending, error: teamError },
   { data: playersData, pending: playersPending },
+  { data: managersData, pending: managersPending },
   { data: matchesData, pending: matchesPending },
   { data: teamsData },
 ] = await Promise.all([
   useAsyncData(`team-${slug.value}`, () => fetchTeam(slug.value)),
   useAsyncData(`team-players-${slug.value}`, () => fetchPlayers({ team: slug.value })),
+  useAsyncData(`team-managers-${slug.value}`, () => fetchManagers(slug.value)),
   useAsyncData(`team-matches-${slug.value}`, () => fetchMatches({ team: slug.value })),
   useAsyncData(`all-teams-${slug.value}`, () => fetchTeams()),
 ]);
 
-const pending = computed(() => teamPending.value || playersPending.value || matchesPending.value);
+const pending = computed(() => teamPending.value || playersPending.value || managersPending.value || matchesPending.value);
 const error = computed(() => teamError.value);
 const players = computed(() => playersData.value || []);
+const managers = computed(() => managersData.value || []);
 const allMatches = computed(() => matchesData.value || []);
 const allTeams = computed(() => teamsData.value || []);
 
@@ -422,6 +452,34 @@ useSeoMeta({
 }
 .player-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
 .player-position { font-size: 0.68rem; color: var(--text-muted); }
+
+// ── Managers ────────────────────────────────────────────
+.managers-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.manager-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  text-align: center;
+  min-width: 100px;
+}
+.manager-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: var(--bg-elevated);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.manager-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
 
 .captain-corner {
   position: absolute;

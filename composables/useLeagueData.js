@@ -94,6 +94,14 @@ export const useLeagueData = () => {
     return matches?.[0] || null
   }
 
+  const fetchManagers = async (teamSlug) => {
+    const data = await fromSupabase("managers", {
+      select: "*",
+      eq: { team_slug: teamSlug },
+    })
+    return data || []
+  }
+
   const fetchSettings = async () => {
     const data = await fromSupabase("settings", { limit: 1 })
     return data?.length ? data[0] : null
@@ -104,6 +112,7 @@ export const useLeagueData = () => {
     fetchTeam,
     fetchPlayers,
     fetchPlayer,
+    fetchManagers,
     fetchMatches,
     fetchMatch,
     fetchSettings,

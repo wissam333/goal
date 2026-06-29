@@ -527,3 +527,24 @@ FROM (
   GROUP BY mp.user_id
 ) sub
 WHERE profiles.id = sub.user_id;
+
+-- ═══════════════════════════════════════════════════════════════
+-- MANAGERS TABLE
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS managers (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name TEXT NOT NULL,
+  image TEXT DEFAULT '',
+  team_slug TEXT NOT NULL REFERENCES teams(slug) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE managers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "managers_read_all" ON managers;
+CREATE POLICY "managers_read_all" ON managers
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "managers_admin_all" ON managers;
+CREATE POLICY "managers_admin_all" ON managers
+  FOR ALL USING (public.is_admin());

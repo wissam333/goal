@@ -51,6 +51,30 @@ export const useAdminData = () => {
     if (error) throw error
   }
 
+  const getManagers = async () => {
+    checkDb()
+    const { data } = await supabase.from("managers").select("*").order("id")
+    return data || []
+  }
+
+  const saveManager = async (manager) => {
+    checkDb()
+    if (manager.id) {
+      const { id, ...rest } = manager
+      const { error } = await supabase.from("managers").update(rest).eq("id", id)
+      if (error) throw error
+    } else {
+      const { error } = await supabase.from("managers").insert(manager)
+      if (error) throw error
+    }
+  }
+
+  const deleteManager = async (id) => {
+    checkDb()
+    const { error } = await supabase.from("managers").delete().eq("id", id)
+    if (error) throw error
+  }
+
   const saveMatch = async (match) => {
     checkDb()
     const { error } = await supabase.from("matches").upsert(match, { onConflict: "slug" })
@@ -108,6 +132,7 @@ export const useAdminData = () => {
 
   return {
     getTeams, getPlayers, getMatches, getSettings,
+    getManagers, saveManager, deleteManager,
     saveTeam, deleteTeam, savePlayer, deletePlayer,
     saveMatch, deleteMatch, saveSettings,
     uploadToStorage, uploadPhoto, deletePhoto,
