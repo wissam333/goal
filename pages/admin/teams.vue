@@ -653,7 +653,7 @@ const handleManagerDelete = async () => {
 }
 
 const uploadManagerPhoto = async (blob) => {
-  return admin.uploadToStorage(blob, 'team-images', `manager-${Date.now()}`)
+  return admin.uploadToStorage(blob, 'manager-images', `manager-${Date.now()}`)
 }
 
 const restoreModal = reactive({
