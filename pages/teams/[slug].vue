@@ -108,13 +108,18 @@
         <div class="section-header">
           <h2 class="section-title">
             <Icon name="mdi:account-tie-outline" size="20" />
-            الإداريون
+            الطاقم
           </h2>
           <span class="section-count">{{ managers.length }}</span>
         </div>
 
         <div class="managers-row">
-          <div v-for="m in managers" :key="m.id" class="manager-card">
+          <div
+            v-for="m in managers"
+            :key="m.id"
+            class="manager-card"
+            @click="navigateTo(`/managers/${m.id}`)"
+          >
             <div class="manager-avatar">
               <NuxtImg
                 v-if="m.image"
@@ -126,6 +131,7 @@
               <span v-else class="avatar-initial">{{ m.name?.charAt(0) }}</span>
             </div>
             <span class="manager-name">{{ m.name }}</span>
+            <span v-if="m.role" class="manager-role">{{ m.role }}</span>
           </div>
         </div>
       </div>
@@ -480,6 +486,8 @@ useSeoMeta({
   img { width: 100%; height: 100%; object-fit: cover; }
 }
 .manager-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+.manager-role { font-size: 0.65rem; font-weight: 600; color: var(--text-muted); }
+.manager-card { cursor: pointer; transition: all 0.15s; &:hover { border-color: var(--primary); } }
 
 .captain-corner {
   position: absolute;

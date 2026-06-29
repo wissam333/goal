@@ -326,6 +326,7 @@
         <div v-for="m in managersModal.managers" :key="m.id" class="player-item">
           <div class="player-info">
             <span class="player-name">{{ m.name }}</span>
+            <span v-if="m.role" class="player-position">{{ m.role }}</span>
           </div>
           <div class="player-item-actions">
             <button class="player-action-btn edit" title="تعديل" @click="openManagerEdit(m)">
@@ -361,6 +362,13 @@
           label="الاسم"
           placeholder="أدخل اسم الإداري"
           required
+        />
+        <SharedUiFormBaseSelect
+          v-model="managerForm.role"
+          label="المسمى"
+          :options="managerRoles"
+          placeholder="اختر المسمى (اختياري)"
+          clearable
         />
       </div>
       <template #actions>
@@ -568,9 +576,17 @@ const managerForm = reactive({
   editingId: null,
   name: '',
   image: null,
+  role: '',
 })
 
-const managerDefaultForm = () => ({ name: '', image: null })
+const managerRoles = [
+  { label: 'مدرب', value: 'مدرب' },
+  { label: 'مساعد مدرب', value: 'مساعد مدرب' },
+  { label: 'طبيب', value: 'طبيب' },
+  { label: 'إداري', value: 'إداري' },
+]
+
+const managerDefaultForm = () => ({ name: '', image: null, role: '' })
 
 const managerDelete = reactive({
   open: false,
@@ -605,6 +621,7 @@ const openManagerEdit = (manager) => {
     editingId: manager.id,
     name: manager.name,
     image: manager.image,
+    role: manager.role || '',
   })
 }
 
@@ -615,6 +632,7 @@ const handleManagerSave = async () => {
     name: managerForm.name.trim(),
     team_slug: managersModal.team.slug,
     image: managerForm.image || '',
+    role: managerForm.role,
   }
   if (managerForm.editingId) payload.id = managerForm.editingId
   try {
