@@ -836,7 +836,7 @@ const handleSave = async () => {
 
   if (!form.slug.trim()) {
     form.slug = generateSlug(form.title)
-  } else {
+  } else if (!modal.isEdit) {
     form.slug = generateSlug(form.slug)
   }
 
