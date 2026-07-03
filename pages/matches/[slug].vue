@@ -448,6 +448,10 @@
                 >
                   <span class="motm-player-num">{{ player.number }}</span>
                   <span class="motm-player-name">{{ player.title }}</span>
+                  <span
+                    v-if="Object.keys(voteResults).length"
+                    class="motm-pct"
+                  >{{ getVotePercent(player.slug) }}%</span>
                   <Icon
                     v-if="alreadyVoted && votedFor === player.slug"
                     name="mdi:check-circle"
@@ -485,6 +489,10 @@
                 >
                   <span class="motm-player-num">{{ player.number }}</span>
                   <span class="motm-player-name">{{ player.title }}</span>
+                  <span
+                    v-if="Object.keys(voteResults).length"
+                    class="motm-pct"
+                  >{{ getVotePercent(player.slug) }}%</span>
                   <Icon
                     v-if="alreadyVoted && votedFor === player.slug"
                     name="mdi:check-circle"
@@ -505,27 +513,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Results (always visible when votes exist) -->
-            <div
-              v-if="Object.keys(voteResults).length"
-              class="motm-results-after"
-            >
-              <div
-                v-for="candidate in sortedCandidates"
-                :key="candidate.slug"
-                class="vote-result-row"
-              >
-                <span class="vr-name">{{ getPlayerName(candidate.slug) }}</span>
-                <span class="vr-team">{{ candidate.teamTitle }}</span>
-                <SharedUiIndicatorsProgress
-                  :value="candidate.pct"
-                  color="primary"
-                  class="vr-bar"
-                />
-                <span class="vr-pct">{{ candidate.pct }}%</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -544,13 +531,15 @@
             <Icon name="mdi:play-circle-outline" size="18" />
             {{ $t("match.video") }}
           </h3>
-          <div v-for="(v, i) in resolvedVideos" :key="i" class="video-wrap">
-            <iframe
-              :src="v.embedUrl"
-              allowfullscreen
-              loading="lazy"
-              frameborder="0"
-            ></iframe>
+          <div class="video-grid">
+            <div v-for="(v, i) in resolvedVideos" :key="i" class="video-wrap">
+              <iframe
+                :src="v.embedUrl"
+                allowfullscreen
+                loading="lazy"
+                frameborder="0"
+              ></iframe>
+            </div>
           </div>
         </div>
 
@@ -953,10 +942,14 @@ const getPlayerTeamName = (slug) => {
 };
 
 const homePlayers = computed(() =>
-  players.value.filter((p) => p.team === match.value?.homeTeam),
+  players.value.filter((p) => p.team === match.value?.homeTeam).sort(
+    (a, b) => (voteResults.value[b.slug] || 0) - (voteResults.value[a.slug] || 0),
+  ),
 );
 const awayPlayers = computed(() =>
-  players.value.filter((p) => p.team === match.value?.awayTeam),
+  players.value.filter((p) => p.team === match.value?.awayTeam).sort(
+    (a, b) => (voteResults.value[b.slug] || 0) - (voteResults.value[a.slug] || 0),
+  ),
 );
 
 const motmWinnerResolved = computed(() => {
@@ -1819,6 +1812,11 @@ useSeoMeta({
   font-weight: 600;
   color: var(--text-primary);
 }
+.motm-pct {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
 .motm-check {
   color: var(--primary);
   flex-shrink: 0;
@@ -1919,6 +1917,14 @@ useSeoMeta({
 }
 
 // ── Video ──────────────────────────────────────────────────────────────────────
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 .video-wrap {
   border-radius: 12px;
   overflow: hidden;

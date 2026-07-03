@@ -1423,14 +1423,6 @@ const handleSave = async () => {
   const matchDate = form.date ? new Date(form.date).toISOString() : null;
   const matchStatus = computeStatus(matchDate);
 
-  if (matchStatus !== "upcoming") {
-    const missingPlayer = goalScorers.value.some((g) => g.team && !g.player);
-    if (missingPlayer) {
-      showAlert("error", "تنبيه", "يرجى اختيار اللاعب لكل مسجلي الأهداف");
-      return;
-    }
-  }
-
   saving.value = true;
   const matchObj = {
     slug: editingMatch.value?.slug || generateSlug(),
@@ -1449,7 +1441,7 @@ const handleSave = async () => {
   };
 
   matchObj.goalScorers = goalScorers.value.map((g) => ({
-    player: g.player,
+    player: g.player || "unknown",
     team: g.team,
     minute: g.minute ? Number(g.minute) : null,
   }));
