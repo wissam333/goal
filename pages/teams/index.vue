@@ -135,7 +135,7 @@ const matches = computed(() => matchesData.value || []);
 // Calculate per-team stats
 const calculateTeamStats = (team) => {
   const teamMatches = matches.value.filter(
-    (m) => m.homeTeam === team.slug || m.awayTeam === team.slug,
+    (m) => (m.homeTeam === team.slug || m.awayTeam === team.slug) && m.homeScore != null,
   );
   let W = 0,
     D = 0,
