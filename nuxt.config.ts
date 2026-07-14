@@ -70,14 +70,6 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    "/": { swr: 60 },
-    "/standings": { swr: 60 },
-    "/fixtures": { swr: 60 },
-    "/bracket": { swr: 60 },
-    "/stats": { swr: 60 },
-    "/teams": { swr: 60 },
-    "/teams/**": { swr: 60 },
-    "/players/**": { swr: 60 },
     "/account": { ssr: false },
   },
 
