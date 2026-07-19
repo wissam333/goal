@@ -29,7 +29,7 @@
             :key="team.slug"
             class="team-card"
             :style="{ animationDelay: `${idx * 0.07}s` }"
-            @click="navigateTo(`/teams/${team.slug}`)"
+            @click="navigateTo(leaguePath(`/teams/${team.slug}`))"
           >
             <!-- Card header with team color -->
             <div
@@ -113,6 +113,7 @@
 </template>
 
 <script setup>
+const { leaguePath } = useCurrentLeague();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();

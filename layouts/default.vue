@@ -20,6 +20,7 @@
 <script setup>
 const { locale, t } = useI18n();
 const { name: appName } = useAppTitle();
+const { isLeagueRoute, leaguePath } = useCurrentLeague();
 
 const defaultTitle = computed(() =>
   locale.value === "ar" ? "دوري القرية السنوي" : "Village League"
@@ -27,14 +28,17 @@ const defaultTitle = computed(() =>
 
 const pageTitle = computed(() => appName.value || defaultTitle.value)
 
-const bottomNavItems = computed(() => [
-  { key: "home",      label: "nav.home",      icon: "mdi:home-outline",         to: "/" },
-  { key: "standings", label: "nav.standings",  icon: "mdi:table",                to: "/standings" },
-  { key: "fixtures",  label: "nav.fixtures",   icon: "mdi:calendar-outline",     to: "/fixtures" },
-  { key: "bracket",   label: "nav.bracket",    icon: "mdi:trophy-outline",       to: "/bracket" },
-  { key: "teams",     label: "nav.teams",      icon: "mdi:shield-outline",       to: "/teams" },
-  { key: "stats",     label: "nav.stats",      icon: "mdi:chart-bar",            to: "/stats" },
-]);
+const bottomNavItems = computed(() => {
+  const base = isLeagueRoute.value ? leaguePath().replace(/\/+$/, '') : ''
+  return [
+    { key: "home",      label: "nav.home",      icon: "mdi:home-outline",         to: base || "/" },
+    { key: "standings", label: "nav.standings",  icon: "mdi:table",                to: `${base}/standings` },
+    { key: "fixtures",  label: "nav.fixtures",   icon: "mdi:calendar-outline",     to: `${base}/fixtures` },
+    { key: "bracket",   label: "nav.bracket",    icon: "mdi:trophy-outline",       to: `${base}/bracket` },
+    { key: "teams",     label: "nav.teams",      icon: "mdi:shield-outline",       to: `${base}/teams` },
+    { key: "stats",     label: "nav.stats",      icon: "mdi:chart-bar",            to: `${base}/stats` },
+  ]
+})
 
 useSeoMeta({
   title: () => pageTitle.value,

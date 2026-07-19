@@ -10,14 +10,30 @@ const parseJsonFields = (match) => {
   return match
 }
 
-export const useLeagueData = () => {
+export const useLeagueData = (leagueId = null) => {
   const supabase = useSupabase()
+  const route = useRoute()
+
+  const _id = computed(() => leagueId || useCurrentLeague().leagueId.value)
+
+  const _resolveLeague = async () => {
+    let lid = _id.value
+    if (!lid && route.params.league) {
+      const { data } = await supabase.from('leagues').select('id').eq('slug', route.params.league).maybeSingle()
+      if (data) lid = data.id
+    }
+    return lid
+  }
 
   const fromSupabase = async (table, query = {}) => {
     if (!supabase) return null
     try {
       let q = supabase.from(table).select(query.select || "*")
-      if (query.eq) for (const [k, v] of Object.entries(query.eq)) q = q.eq(k, v)
+      const eqs = {}
+      if (query.eq) Object.assign(eqs, query.eq)
+      const lid = await _resolveLeague()
+      if (lid) eqs.league_id = lid
+      for (const [k, v] of Object.entries(eqs)) q = q.eq(k, v)
       if (query.in)
         for (const { column, values } of query.in) q = q.in(column, values)
       if (query.or)
@@ -52,7 +68,9 @@ export const useLeagueData = () => {
 
   const fetchPlayers = async (filters = {}) => {
     const query = { select: "*" }
-    if (filters.team) query.eq = { team: filters.team }
+    const eqs = {}
+    if (filters.team) eqs.team = filters.team
+    if (Object.keys(eqs).length) query.eq = eqs
     if (filters.order) query.order = filters.order
     const data = await fromSupabase("players", query)
     return data || []

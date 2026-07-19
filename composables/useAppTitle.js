@@ -8,11 +8,9 @@ export const useAppTitle = () => {
       return
     }
     try {
-      const supabase = useSupabase()
-      if (!supabase) return
-      const { data } = await supabase.from('settings').select('name').limit(1).single()
-      if (data?.name) {
-        name.value = data.name
+      const { league } = useCurrentLeague()
+      if (league.value?.name) {
+        name.value = league.value.name
       }
     } catch {
       // fallback to i18n value

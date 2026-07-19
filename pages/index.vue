@@ -1,1171 +1,806 @@
 <template>
-  <div class="page-wrap">
+  <div class="portal-page">
+    <!-- Hero -->
+    <section class="portal-hero">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="hero-orb orb-1" />
+        <div class="hero-orb orb-2" />
+        <div class="hero-grid" />
+      </div>
+
+      <div class="hero-content">
+        <img
+          src="/logo.png"
+          alt="Green Ball"
+          width="88"
+          height="88"
+          class="hero-logo"
+        />
+        <h1 class="hero-title">Green Ball</h1>
+        <p class="hero-sub">{{ $t("portal.subtitle") }}</p>
+
+        <div class="hero-features">
+          <span v-for="f in featureChips" :key="f.key" class="feature-chip">
+            <Icon :name="f.icon" size="14" />
+            {{ $t(f.label) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Playable ball strip -->
+      <div class="hero-play">
+        <BallPhysics>
+          <p>{{ $t("portal.playHint") }}</p>
+          <span class="empty-hint">{{ $t("home.dragBall") }}</span>
+        </BallPhysics>
+      </div>
+    </section>
+
     <div class="container">
-      <template v-if="pending">
-        <div class="skeleton-hero" />
-        <div class="skeleton-table">
-          <div v-for="i in 4" :key="i" class="skeleton-row" />
-        </div>
-        <div class="skeleton-grid">
-          <div v-for="i in 8" :key="i" class="skeleton-card" />
-        </div>
-      </template>
-      <template v-else>
-      <!-- ── Champion Celebration ──────────────────────── -->
-      <div v-if="champion" class="hero-card champion-card">
-        <div class="confetti-container">
-          <div v-for="i in 30" :key="i" class="confetti-piece" :style="confettiStyle(i)" />
-        </div>
-        <div class="champion-glow" />
-        <div class="hero-badge champion-badge">
-          <Icon name="mdi:trophy" size="14" />
-          {{ $t("home.champion") }}
-        </div>
-        <div class="champion-team">
-          <NuxtLink :to="`/teams/${champion}`" class="hero-logo-wrap">
-            <template v-if="getTeamLogo(champion)">
-              <NuxtImg
-                :src="getTeamLogo(champion)"
-                :alt="getTeamName(champion)"
-                width="80"
-                height="80"
-                class="hero-logo champion-logo"
-              />
-            </template>
-            <div
-              v-else
-              class="hero-logo-initial champion-initial"
-              :style="{ background: getTeamColor(champion) }"
-            >
-              {{ getTeamName(champion)?.charAt(0) }}
-            </div>
-          </NuxtLink>
-          <span class="champion-name">{{ getTeamName(champion) }}</span>
-          <span class="champion-congrats">{{ $t("home.congrats") }}</span>
-        </div>
-        <NuxtLink :to="`/matches/${finalMatch.slug}`" class="hero-btn">
-          {{ $t("home.viewMatch") }}
-          <Icon
-            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
-            size="15"
-          />
-        </NuxtLink>
+      <!-- Section header -->
+      <div class="section-head">
+        <h2>{{ $t("portal.chooseLeague") }}</h2>
+        <p>{{ $t("portal.chooseLeagueHint") }}</p>
       </div>
 
-      <!-- ── Next Match ─────────────────────────────────── -->
-      <div v-else-if="nextMatch?.slug" class="hero-card">
-        <div v-if="!nextMatchIsLive" class="hero-badge">
-          <Icon name="mdi:clock-outline" size="14" />
-          {{ $t("home.nextMatch") }}
-        </div>
+      <!-- Loading -->
+      <div v-if="pending" class="skeleton-grid">
+        <div v-for="i in 3" :key="i" class="skeleton-card" />
+      </div>
 
-        <div class="hero-teams">
-          <div class="hero-team">
-            <NuxtLink
-              :to="`/teams/${nextMatch.homeTeam}`"
-              class="hero-logo-wrap"
-            >
-              <template v-if="getTeamLogo(nextMatch.homeTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(nextMatch.homeTeam)"
-                  :alt="getTeamName(nextMatch.homeTeam)"
-                  width="64"
-                  height="64"
-                  class="hero-logo"
-                />
-              </template>
+      <!-- Empty -->
+      <SharedUiFeedbackEmptyState
+        v-else-if="error || !leagues.length"
+        :title="$t('portal.noLeagues')"
+        icon="mdi:trophy-outline"
+      />
+
+      <!-- League cards -->
+      <div v-else class="leagues-grid">
+        <button
+          v-for="(league, idx) in leagues"
+          :key="league.id"
+          type="button"
+          class="league-card"
+          :style="{
+            '--card-accent': league.primary_color || 'var(--primary)',
+            '--card-delay': `${idx * 60}ms`,
+          }"
+          @click="navigateTo(`/${league.slug}`)"
+        >
+          <div class="card-accent" />
+          <div class="card-body">
+            <div class="card-logo-wrap">
+              <img
+                v-if="league.logo"
+                :src="league.logo"
+                :alt="league.name"
+                class="card-logo"
+                width="64"
+                height="64"
+              />
               <div
                 v-else
-                class="hero-logo-initial"
-                :style="{ background: getTeamColor(nextMatch.homeTeam) }"
+                class="card-logo-fallback"
+                :style="{ background: league.primary_color || '#22c55e' }"
               >
-                {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
+                <Icon name="mdi:soccer" size="30" />
               </div>
-            </NuxtLink>
-            <span class="hero-team-name">{{
-              getTeamName(nextMatch.homeTeam)
-            }}</span>
+            </div>
+            <div class="card-info">
+              <h3 class="card-name">{{ league.name }}</h3>
+              <p v-if="league.location" class="card-location">
+                <Icon name="mdi:map-marker-outline" size="14" />
+                {{ league.location }}
+              </p>
+              <div class="card-tags">
+                <span v-if="league.season_label" class="card-season">
+                  {{ league.season_label }}
+                </span>
+                <span class="card-live">
+                  <span class="card-live-dot" />
+                  {{ $t("portal.open") }}
+                </span>
+              </div>
+            </div>
           </div>
+          <div class="card-footer">
+            <span>{{ $t("portal.enterLeague") }}</span>
+            <Icon
+              :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+              size="18"
+            />
+          </div>
+        </button>
+      </div>
 
-          <div class="hero-center">
-            <template v-if="nextMatchIsLive">
-              <span class="hero-live">
-                <span class="live-dot" /> {{ $t('match.live') }}
-              </span>
-              <span v-if="nextMatch.homeScore != null" class="hero-live-score">
-                {{ nextMatch.homeScore }} - {{ nextMatch.awayScore }}
-              </span>
-            </template>
-            <template v-else>
-              <span class="hero-time">{{ showTime ? formatMatchTime(nextMatch.date) : '--:--' }}</span>
-              <span class="hero-date">{{ showTime ? formatMatchDate(nextMatch.date) : '' }}</span>
-            </template>
-            <span v-if="nextMatch.venue" class="hero-venue">
-              <Icon name="mdi:map-marker-outline" size="12" />
-              {{ nextMatch.venue }}
+      <!-- Why Green Ball -->
+      <section class="why-section">
+        <div class="section-head">
+          <h2>{{ $t("portal.whyTitle") }}</h2>
+          <p>{{ $t("portal.whyHint") }}</p>
+        </div>
+        <div class="why-grid">
+          <div v-for="item in whyItems" :key="item.key" class="why-card">
+            <span class="why-icon" :style="{ background: item.tint }">
+              <Icon :name="item.icon" size="22" />
             </span>
-          </div>
-
-          <div class="hero-team">
-            <NuxtLink
-              :to="`/teams/${nextMatch.awayTeam}`"
-              class="hero-logo-wrap"
-            >
-              <template v-if="getTeamLogo(nextMatch.awayTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(nextMatch.awayTeam)"
-                  :alt="getTeamName(nextMatch.awayTeam)"
-                  width="64"
-                  height="64"
-                  class="hero-logo"
-                />
-              </template>
-              <div
-                v-else
-                class="hero-logo-initial"
-                :style="{ background: getTeamColor(nextMatch.awayTeam) }"
-              >
-                {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
-              </div>
-            </NuxtLink>
-            <span class="hero-team-name">{{
-              getTeamName(nextMatch.awayTeam)
-            }}</span>
+            <h3>{{ $t(item.title) }}</h3>
+            <p>{{ $t(item.desc) }}</p>
           </div>
         </div>
+      </section>
 
-        <NuxtLink :to="`/matches/${nextMatch.slug}`" class="hero-btn">
-          {{ $t("home.viewMatch") }}
-          <Icon
-            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
-            size="15"
-          />
-        </NuxtLink>
-      </div>
-
-      <!-- ── Empty / No Matches ────────────────────────── -->
-      <BallPhysics v-else>
-        <p>{{ $t("match.noUpcoming") }}</p>
-      </BallPhysics>
-
-      <!-- ── Last Match ────────────────────────────────── -->
-      <div v-if="lastMatch?.slug" class="mt-4">
-        <div class="section-label">
-          <Icon name="mdi:clock-check-outline" size="14" />
-          {{ $t("home.lastMatch") }}
-        </div>
-
-        <NuxtLink :to="`/matches/${lastMatch.slug}`" class="last-card">
-          <div class="last-teams">
-            <div class="last-team">
-              <template v-if="getTeamLogo(lastMatch.homeTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(lastMatch.homeTeam)"
-                  :alt="getTeamName(lastMatch.homeTeam)"
-                  width="28"
-                  height="28"
-                  class="last-logo"
-                />
-              </template>
-              <span
-                v-else
-                class="last-logo-initial"
-                :style="{ background: getTeamColor(lastMatch.homeTeam) }"
-                >{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span
-              >
-              <span class="last-name">{{
-                getTeamName(lastMatch.homeTeam)
-              }}</span>
-            </div>
-
-            <div class="last-score">
-              <span
-                class="last-num"
-                :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }"
-                >{{ lastMatch.homeScore }}</span
-              >
-              <span class="last-sep">–</span>
-              <span
-                class="last-num"
-                :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }"
-                >{{ lastMatch.awayScore }}</span
-              >
-            </div>
-
-            <div class="last-team right">
-              <span class="last-name">{{
-                getTeamName(lastMatch.awayTeam)
-              }}</span>
-              <template v-if="getTeamLogo(lastMatch.awayTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(lastMatch.awayTeam)"
-                  :alt="getTeamName(lastMatch.awayTeam)"
-                  width="28"
-                  height="28"
-                  class="last-logo"
-                />
-              </template>
-              <span
-                v-else
-                class="last-logo-initial"
-                :style="{ background: getTeamColor(lastMatch.awayTeam) }"
-                >{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span
-              >
+      <!-- CTA strip -->
+      <section class="cta-strip">
+        <div class="cta-inner">
+          <div class="cta-text">
+            <Icon name="mdi:cellphone-check" size="28" />
+            <div>
+              <h3>{{ $t("portal.pwaTitle") }}</h3>
+              <p>{{ $t("portal.pwaHint") }}</p>
             </div>
           </div>
-
-          <div class="last-meta">
-            <span
-              ><Icon name="mdi:calendar-outline" size="11" />
-              {{ formatShortDate(lastMatch.date) }}</span
-            >
-            <span v-if="lastMatch.venue"
-              ><Icon name="mdi:map-marker-outline" size="11" />
-              {{ lastMatch.venue }}</span
-            >
-          </div>
-        </NuxtLink>
-      </div>
-
-      <!-- ── Standings ─────────────────────────────────── -->
-      <div class="mt-4">
-        <div class="section-header">
-          <h2 class="section-title">
-            <Icon name="mdi:table" size="18" />
-            {{ $t("nav.standings") }}
-          </h2>
-          <NuxtLink to="/standings" class="section-link">
-            {{ $t("home.fullTable") }}
+          <NuxtLink to="/install" class="cta-btn">
+            {{ $t("portal.installApp") }}
             <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="14"
+              :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+              size="16"
             />
           </NuxtLink>
         </div>
+      </section>
 
-        <div class="row g-2">
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th class="th-team">{{ $t("standings.team") }}</th>
-                <th>{{ $t("standings.played") }}</th>
-                <th>{{ $t("standings.points") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(team, i) in topStandings"
-                :key="team.slug"
-                class="table-row"
-                @click="navigateTo(`/teams/${team.slug}`)"
-              >
-                <td>
-                  <span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{
-                    i + 1
-                  }}</span>
-                </td>
-                <td class="team-cell">
-                  <NuxtImg
-                    v-if="team.logo"
-                    :src="team.logo"
-                    :alt="team.title"
-                    width="22"
-                    height="22"
-                    class="mini-logo"
-                  />
-                  <span
-                    v-else
-                    class="mini-logo-initial"
-                    :style="{ background: team.color }"
-                    >{{ team.title?.charAt(0) }}</span
-                  >
-                  <span>{{ team.title }}</span>
-                </td>
-                <td class="num-cell">{{ team.P }}</td>
-                <td class="pts-cell">{{ team.Pts }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Archived seasons -->
+      <section v-if="archived.length" class="archive-section">
+        <div class="section-head">
+          <h2>أرشيف البطولات</h2>
+          <p>المواسم السابقة</p>
         </div>
-      </div>
-
-      <!-- ── Teams ─────────────────────────────────────── -->
-      <div class="mt-4">
-        <div class="section-header">
-          <h2 class="section-title">
-            <Icon name="mdi:shield-outline" size="18" />
-            {{ $t("nav.teams") }}
-          </h2>
-          <NuxtLink to="/teams" class="section-link">
-            {{ $t("home.allTeams") }}
-            <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="14"
-            />
+        <div class="archive-grid">
+          <NuxtLink
+            v-for="s in archived"
+            :key="s.id"
+            :to="`/${s.league_slug}/seasons/${s.slug}`"
+            class="archive-card"
+          >
+            <div class="archive-trophy">
+              <Icon name="mdi:trophy" size="22" />
+            </div>
+            <div class="archive-body">
+              <span class="archive-league">{{ s.league_name }}</span>
+              <span class="archive-season">{{ s.name }}</span>
+              <span v-if="s.snapshot?.champion" class="archive-champion">
+                <Icon name="mdi:crown" size="14" />
+                {{ getTeamName(s.snapshot, s.snapshot.champion) }}
+              </span>
+            </div>
+            <Icon name="mdi:chevron-left" size="20" class="archive-arrow" />
           </NuxtLink>
         </div>
-
-        <div class="row g-2">
-          <div v-for="team in teams" :key="team.slug" class="col-6 col-md-3">
-            <NuxtLink :to="`/teams/${team.slug}`" class="team-card">
-              <NuxtImg
-                v-if="team.logo"
-                :src="team.logo"
-                :alt="team.title"
-                width="44"
-                height="44"
-                loading="lazy"
-                class="team-card-logo"
-              />
-              <div
-                v-else
-                class="team-card-logo-initial"
-                :style="{ background: team.color }"
-              >
-                {{ team.title?.charAt(0) }}
-              </div>
-              <span class="team-card-name">{{ team.title }}</span>
-              <span class="team-card-pts"
-                >{{ getTeamPoints(team.slug) }}
-                <small>{{ $t("standings.points") }}</small></span
-              >
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </template>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { format, parseISO } from "date-fns";
-import { enUS } from "date-fns/locale";
-import { syrianAr } from "~/utils/syrianAr";
+const { locale, t } = useI18n();
+const { getLeagues } = useLeagues();
+const supabase = useSupabase()
+const leagues = ref([]);
+const archived = ref([]);
+const pending = ref(true);
+const error = ref(null);
 
-const { locale } = useI18n();
-const { fetchMatches, fetchTeams } = useLeagueData();
-const notifCenter = useNotificationCenter()
-const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime('matches', ['INSERT', 'UPDATE'])
-const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
+const getTeamName = (snapshot, slug) => snapshot?.teams?.find(t => t.slug === slug)?.title || slug
 
-const [
-  { data: nextMatch, pending: nextPending, refresh: refreshNext },
-  { data: lastMatch, pending: lastPending, refresh: refreshLast },
-  { data: allMatches, pending: matchesPending, refresh: refreshAll },
-  { data: teams, pending: teamsPending, refresh: refreshTeams },
-  { data: finalMatch, pending: finalPending, refresh: refreshFinal },
-] = await Promise.all([
-  useAsyncData("home-next", () =>
-    fetchMatches({
-      statusIn: ["upcoming", "live"],
-      orderBy: { field: "date", dir: "asc" },
-      limit: 1,
-    }).then((r) => r?.[0] || null),
-  ),
-  useAsyncData("home-last", () =>
-    fetchMatches({
-      status: "played",
-      orderBy: { field: "date", dir: "desc" },
-      limit: 1,
-    }).then((r) => r?.[0] || null),
-  ),
-  useAsyncData("home-all-matches", () => fetchMatches({ status: "played" })),
-  useAsyncData("home-teams", () => fetchTeams()),
-  useAsyncData("home-final", () =>
-    fetchMatches({ group: "F" }).then((r) => r?.[0] || null),
-  ),
-]);
+const featureChips = [
+  { key: "live", icon: "mdi:broadcast", label: "portal.chipLive" },
+  { key: "table", icon: "mdi:table", label: "portal.chipStandings" },
+  { key: "predict", icon: "mdi:crystal-ball", label: "portal.chipPredict" },
+  { key: "push", icon: "mdi:bell-outline", label: "portal.chipPush" },
+];
 
-// ── Skeleton guard: show skeleton until client confirms fresh data ──
-const pageReady = ref(false)
-let refreshTimer = null
-let resultTimer = null
+const whyItems = [
+  {
+    key: "realtime",
+    icon: "mdi:lightning-bolt",
+    tint: "rgba(34,197,94,0.14)",
+    title: "portal.whyRealtime",
+    desc: "portal.whyRealtimeDesc",
+  },
+  {
+    key: "predict",
+    icon: "mdi:gesture-tap",
+    tint: "rgba(59,130,246,0.14)",
+    title: "portal.whyPredict",
+    desc: "portal.whyPredictDesc",
+  },
+  {
+    key: "mobile",
+    icon: "mdi:cellphone",
+    tint: "rgba(168,85,247,0.14)",
+    title: "portal.whyMobile",
+    desc: "portal.whyMobileDesc",
+  },
+  {
+    key: "arabic",
+    icon: "mdi:abjad-arabic",
+    tint: "rgba(245,158,11,0.14)",
+    title: "portal.whyArabic",
+    desc: "portal.whyArabicDesc",
+  },
+];
+
+const locationCount = computed(() => {
+  const set = new Set(
+    (leagues.value || []).map((l) => l.location).filter(Boolean),
+  );
+  return set.size || leagues.value.length;
+});
+
 onMounted(async () => {
-  showTime.value = true
-  // Force fresh data on every page load to avoid stale SSR content
-  await Promise.allSettled([
-    refreshNext(), refreshLast(), refreshAll(), refreshTeams(), refreshFinal(),
-  ])
-  pageReady.value = true
-  // Reactive timer for auto-live status
-  now.value = Date.now()
-  refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
-  // Realtime: auto-refresh when matches change
-  subMatches(() => {
-    refreshNext()
-    refreshLast()
-  })
-  // Fallback poll every 60s in case Realtime misses an update
-  resultTimer = setInterval(() => {
-    refreshNext()
-    refreshLast()
-  }, 60000)
-})
-onUnmounted(() => {
-  if (refreshTimer) clearInterval(refreshTimer)
-  if (resultTimer) clearInterval(resultTimer)
-  unsubMatches()
-})
-
-const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);
-
-// ── Reactive time-based status ──
-const now = ref(0)
-const computeStatus = (dateStr) => {
-  if (!dateStr) return 'upcoming'
-  if (!now.value) return 'upcoming'
-  const matchDate = new Date(dateStr)
-  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000)
-  if (now.value > matchEnd) return 'played'
-  if (now.value >= matchDate) return 'live'
-  return 'upcoming'
-}
-const nextMatchIsLive = computed(() => nextMatch.value ? computeStatus(nextMatch.value.date) === 'live' : false)
-
-const champion = computed(() => {
-  if (!finalMatch.value || finalMatch.value.status !== "played") return null;
-  const home = finalMatch.value.homeScore ?? 0;
-  const away = finalMatch.value.awayScore ?? 0;
-  if (home === away) return null;
-  return home > away ? finalMatch.value.homeTeam : finalMatch.value.awayTeam;
+  try {
+    leagues.value = await getLeagues();
+    if (supabase) {
+      const { data } = await supabase
+        .from('seasons')
+        .select('id, name, slug, snapshot, league_id, archived_at, leagues!inner(slug, name)')
+        .not('is_active', 'eq', true)
+        .not('snapshot', 'is', null)
+        .order('archived_at', { ascending: false })
+      if (data) {
+        archived.value = data.map(s => ({
+          ...s,
+          league_slug: s.leagues?.slug,
+          league_name: s.leagues?.name,
+          leagues: undefined,
+        }))
+      }
+    }
+  } catch {
+    error.value = true;
+  } finally {
+    pending.value = false;
+  }
 });
 
-const teamMap = computed(() => {
-  const m = {};
-  (teams.value || []).forEach((t) => {
-    m[t.slug] = t;
-  });
-  return m;
+useSeoMeta({
+  title: "Green Ball — منصة الدوريات",
+  ogTitle: "Green Ball",
+  ogDescription: () => t("portal.subtitle"),
+  ogImage: "/logo.png",
 });
-const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
-const getTeamLogo = (slug) => (slug ? teamMap.value[slug]?.logo || null : null);
-const getTeamColor = (slug) => teamMap.value[slug]?.color || "#22c55e";
-
-const showTime = ref(false)
-
-const formatMatchTime = (dateStr) => {
-  if (!dateStr) return "--:--";
-  try {
-    return format(parseISO(dateStr), "h:mm a", { locale: dateLocale.value });
-  } catch { return "--:--"; }
-};
-
-const formatMatchDate = (dateStr) => {
-  if (!dateStr) return "";
-  try {
-    return format(parseISO(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
-  } catch { return ""; }
-};
-
-const confettiStyle = (i) => {
-  const colors = ['#f59e0b','#22c55e','#ef4444','#3b82f6','#a855f7','#ec4899','#14b8a6'];
-  const s = (n) => { const x = Math.sin(n) * 10000; return x - Math.floor(x); };
-  return {
-    left: `${s(i * 1) * 100}%`,
-    animationDelay: `${s(i * 7) * 3}s`,
-    animationDuration: `${2 + s(i * 13) * 3}s`,
-    backgroundColor: colors[i % colors.length],
-    width: `${6 + s(i * 5) * 8}px`,
-    height: `${6 + s(i * 11) * 8}px`,
-    borderRadius: s(i * 3) > 0.5 ? '50%' : '2px',
-  };
-};
-
-const formatShortDate = (dateStr) => {
-  if (!dateStr) return "";
-  try {
-    return format(parseISO(dateStr), "d MMM", { locale: dateLocale.value });
-  } catch { return ""; }
-};
-
-const { standingsMap: _standingsMap } = useStandings();
-
-const standingsData = computed(() =>
-  _standingsMap(teams.value || [], allMatches.value || []),
-);
-
-const getTeamPoints = (slug) => standingsData.value[slug]?.Pts ?? 0;
-
-const topStandings = computed(() =>
-  [...(teams.value ?? [])]
-    .map((t) => ({ ...t, ...(standingsData.value[t.slug] ?? { P: 0, Pts: 0, GD: 0 }) }))
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD)
-    .slice(0, 4),
-);
-
-useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") });
 </script>
 
 <style lang="scss" scoped>
-.page-wrap {
-  padding-bottom: calc(var(--bottom-nav-height) + 24px);
+.portal-page {
+  min-height: 100%;
+  padding-bottom: calc(var(--bottom-nav-height, 0px) + 8px);
 }
 
-.container {
-  padding-top: 24px;
+// ── Hero ───────────────────────────────────────────────────
+.portal-hero {
+  position: relative;
+  padding: 36px 16px 8px;
+  overflow: hidden;
 }
 
-// ── Skeleton ────────────────────────────────────────────
-.skeleton-hero {
-  height: 200px;
-  border-radius: 20px;
-  margin-bottom: 20px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
-  background-size: 200% 100%;
-  animation: sh 1.4s linear infinite;
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
-.skeleton-table {
-  display: flex; flex-direction: column; gap: 8px;
-  margin-bottom: 20px;
-}
-.skeleton-row {
-  height: 48px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
-  background-size: 200% 100%;
-  animation: sh 1.4s linear infinite;
-}
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.skeleton-card {
-  height: 100px;
-  border-radius: 14px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
-  background-size: 200% 100%;
-  animation: sh 1.4s linear infinite;
-}
-@keyframes sh { to { background-position: -200% 0; } }
 
-.section-header {
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.55;
+  &.orb-1 {
+    width: 280px;
+    height: 280px;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-60%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--primary) 35%, transparent),
+      transparent 70%
+    );
+  }
+  &.orb-2 {
+    width: 200px;
+    height: 200px;
+    top: 80px;
+    right: 5%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--primary) 18%, transparent),
+      transparent 70%
+    );
+  }
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--primary) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--primary) 8%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, black 30%, transparent 95%);
+  opacity: 0.5;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 10px;
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 20px;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1rem;
-  font-weight: 700;
+.hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+}
+
+.hero-logo {
+  border-radius: 18px;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.hero-title {
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 900;
   color: var(--text-primary);
+  margin: 4px 0 0;
+  letter-spacing: -0.02em;
+}
+
+.hero-sub {
+  font-size: 0.98rem;
+  color: var(--text-muted);
   margin: 0;
+  line-height: 1.5;
+  max-width: 360px;
+}
+
+.hero-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.feature-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
   .iconify {
     color: var(--primary);
   }
 }
 
-.section-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.section-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 10px;
-}
-
-// ── Next Match ─────────────────────────────────────────────
-.hero-card {
-  background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 60%, #e8f5e9 100%);
-  border-radius: 20px;
-  :root.dark & {
-    background: linear-gradient(160deg, #0a1a0f 0%, #0d1f14 60%, #0e1a12 100%);
-  }
-  padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--primary) 1px, transparent 1px),
-      linear-gradient(90deg, var(--primary) 1px, transparent 1px);
-    background-size: 40px 40px;
-    opacity: 0.04;
-  }
-
-  @media (max-width: 480px) {
-    padding: 24px 16px;
-    border-radius: 16px;
-  }
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  border: 1px solid var(--primary-mid);
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
+.hero-play {
   position: relative;
   z-index: 1;
+  max-width: 720px;
+  margin: 0 auto 8px;
 }
 
-.hero-badge-live {
-  background: rgba(22,163,74,0.12);
-  color: #16a34a;
-  border-color: rgba(22,163,74,0.25);
+// ── Layout ─────────────────────────────────────────────────
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px 32px;
 }
 
-.live-dot-sm {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #16a34a;
-  animation: pulse-green 1.5s infinite;
-}
-
-// ── Champion Card ──────────────────────────────────────
-.champion-card {
-  background: linear-gradient(160deg, #fef9c3 0%, #fde047 60%, #fef9c3 100%) !important;
-  :root.dark & {
-    background: linear-gradient(160deg, #1a1500 0%, #2a2200 60%, #1a1500 100%) !important;
-  }
-  padding: 40px 24px !important;
-}
-
-.champion-badge {
-  background: rgba(234,179,8,0.15) !important;
-  color: #ca8a04 !important;
-  border-color: rgba(234,179,8,0.3) !important;
-  z-index: 2 !important;
-}
-
-.champion-glow {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(234,179,8,0.12) 0%, transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.champion-team {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  z-index: 2;
-}
-
-.champion-logo {
-  width: 80px !important;
-  height: 80px !important;
-  border-radius: 16px !important;
-  animation: champ-bounce 2s ease-in-out infinite;
-}
-
-.champion-initial {
-  width: 80px;
-  height: 80px;
-  border-radius: 16px;
-  font-size: 2rem;
-  animation: champ-bounce 2s ease-in-out infinite;
-}
-
-.champion-name {
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  letter-spacing: 0.5px;
-  :root.dark & {
-    color: #fde047;
-  }
-}
-
-.champion-congrats {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ca8a04;
-}
-
-// ── Confetti ─────────────────────────────────────────
-.confetti-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.confetti-piece {
-  position: absolute;
-  top: -10px;
-  animation-name: confetti-fall;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  opacity: 0.9;
-}
-
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-10px) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(400px) rotate(720deg);
-    opacity: 0;
-  }
-}
-
-@keyframes champ-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.hero-teams {
+.pstat {
   display: flex;
   align-items: center;
-  gap: 20px;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-  @media (max-width: 480px) {
-    gap: 12px;
-  }
-}
-
-.hero-team {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.hero-logo {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
-  @media (max-width: 480px) {
-    width: 48px;
-    height: 48px;
-  }
-}
-
-.hero-logo-initial {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  @media (max-width: 480px) {
-    width: 48px;
-    height: 48px;
-    font-size: 1.2rem;
-  }
-}
-
-.hero-team-name {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: center;
-  line-height: 1.2;
-  :root.dark & {
-    color: #fff;
-  }
-  @media (max-width: 480px) {
-    font-size: 0.78rem;
-  }
-}
-
-.hero-center {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 80px;
-}
-
-.hero-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #16a34a;
-  background: rgba(22,163,74,0.1);
-  padding: 6px 16px;
-  border-radius: 8px;
-  letter-spacing: 0.5px;
-}
-
-.live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #16a34a;
-  animation: pulse-green 1.5s infinite;
-}
-
-.hero-live-score {
-  font-size: 1.6rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  letter-spacing: 2px;
-  line-height: 1;
-}
-
-@keyframes pulse-green {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.7); }
-}
-
-.hero-time {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1;
-  :root.dark & {
-    color: #fff;
-  }
-  @media (max-width: 480px) {
-    font-size: 1.4rem;
-  }
-}
-
-.hero-date {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-align: center;
-  :root.dark & {
-    color: rgba(255, 255, 255, 0.55);
-  }
-}
-
-.hero-venue {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  :root.dark & {
-    color: rgba(255, 255, 255, 0.4);
-  }
-}
-
-.hero-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 22px;
-  background: var(--primary);
-  color: #fff;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.15s;
-  position: relative;
-  z-index: 1;
-  &:hover {
-    background: color-mix(in srgb, var(--primary) 85%, #000);
-  }
-}
-
-
-
-// ── Last Match ─────────────────────────────────────────────
-.last-card {
-  display: block;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 16px 20px;
-  text-decoration: none;
-  transition: all 0.15s;
-  &:hover {
-    border-color: var(--primary);
-  }
-  &:active {
-    transform: scale(0.99);
-  }
-}
-
-.last-teams {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.last-team {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  &.right {
-    justify-content: flex-end;
-  }
-}
-
-.last-logo {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-.last-logo-initial {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.last-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 90px;
-  @media (max-width: 480px) {
-    font-size: 0.8rem;
-    max-width: 70px;
-  }
-}
-
-.last-score {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.last-num {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  min-width: 22px;
-  text-align: center;
-  &.winner {
-    color: var(--primary);
-  }
-}
-
-.last-sep {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.last-meta {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-color);
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-}
-
-// ── Standings ──────────────────────────────────────────────
-
-.mini-table {
-  width: 100%;
-  border-collapse: collapse;
-  thead tr {
-    background: var(--bg-elevated);
-    th {
-      padding: 10px 14px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      text-align: center;
-    }
-    th:first-child {
-      width: 36px;
-    }
-    th.th-team {
-      text-align: start;
-    }
-  }
-}
-
-.table-row {
-  cursor: pointer;
-  border-top: 1px solid var(--border-color);
-  transition: background 0.1s;
-  &:hover {
-    background: var(--bg-elevated);
-  }
-  td {
-    padding: 10px 14px;
-    text-align: center;
-  }
-  td:nth-child(2) {
-    text-align: start;
-  }
-}
-
-.pos-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  &.pos-top {
-    background: var(--primary-soft);
-    color: var(--primary);
-  }
-}
-
-.team-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.mini-logo {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  border-radius: 4px;
-}
-.mini-logo-initial {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-}
-.num-cell {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-.pts-cell {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-// ── Teams ──────────────────────────────────────────────────
-.team-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 16px 10px;
+  gap: 10px;
+  padding: 14px 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  text-decoration: none;
-  transition: all 0.15s;
-  height: 100%;
-  &:hover {
-    border-color: var(--primary);
+  .iconify {
+    color: var(--primary);
+    flex-shrink: 0;
   }
-  &:active {
-    transform: scale(0.97);
-    background: var(--bg-elevated);
+  strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
   }
 }
 
-.team-card-logo {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
+.section-head {
+  margin-bottom: 16px;
+  h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
 }
-.team-card-logo-initial {
-  width: 44px;
-  height: 44px;
+
+.skeleton-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.skeleton-card {
+  height: 148px;
+  border-radius: 18px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: sh 1.4s linear infinite;
+}
+
+@keyframes sh {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// ── League cards ───────────────────────────────────────────
+.leagues-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.league-card {
+  width: 100%;
+  text-align: start;
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  background: var(--bg-surface);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  animation: card-in 0.45s ease both;
+  animation-delay: var(--card-delay, 0ms);
+
+  &:hover {
+    border-color: var(--card-accent, var(--primary));
+    box-shadow: 0 8px 28px
+      color-mix(in srgb, var(--card-accent, var(--primary)) 18%, transparent);
+    transform: translateY(-3px);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.995);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-accent {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--card-accent, var(--primary)),
+    color-mix(in srgb, var(--card-accent, var(--primary)) 40%, transparent)
+  );
+}
+
+.card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 18px 14px;
+}
+
+.card-logo-wrap {
+  flex-shrink: 0;
+}
+
+.card-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-logo-fallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 800;
   color: #fff;
 }
-.team-card-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
+
+.card-info {
+  flex: 1;
+  min-width: 0;
 }
-.team-card-pts {
-  font-size: 1rem;
+
+.card-name {
+  font-size: 1.12rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.card-location {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0 0 8px;
   display: flex;
-  align-items: baseline;
-  gap: 2px;
-  small {
-    font-size: 0.62rem;
-    font-weight: 500;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-season {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.card-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.card-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--card-accent, var(--primary));
+  background: color-mix(
+    in srgb,
+    var(--card-accent, var(--primary)) 4%,
+    transparent
+  );
+}
+
+// ── Why section ────────────────────────────────────────────
+.why-section {
+  margin-top: 40px;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.why-card {
+  padding: 18px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  h3 {
+    margin: 12px 0 6px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
     color: var(--text-muted);
   }
+}
+
+.why-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+}
+
+// ── CTA ────────────────────────────────────────────────────
+.cta-strip {
+  margin-top: 28px;
+}
+
+.cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      ellipse 80% 120% at 0% 50%,
+      color-mix(in srgb, var(--primary) 16%, transparent),
+      transparent 55%
+    ),
+    var(--bg-surface);
+  border: 1px solid var(--border-color);
+}
+
+.cta-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  .iconify {
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+  h3 {
+    margin: 0 0 2px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    transform 0.12s;
+  &:hover {
+    background: color-mix(in srgb, var(--primary) 85%, #000);
+  }
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.archive-section { margin-top: 32px; }
+.archive-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.archive-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  text-decoration: none;
+  transition: all 0.15s;
+  &:hover { border-color: var(--primary); background: var(--primary-soft); }
+}
+.archive-trophy {
+  width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+  color: #f59e0b;
+}
+.archive-body {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+}
+.archive-league {
+  font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.archive-season {
+  font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
+}
+.archive-champion {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.75rem; font-weight: 600; color: #f59e0b;
+}
+.archive-arrow {
+  flex-shrink: 0; color: var(--text-muted);
 }
 </style>

@@ -2,14 +2,18 @@
   <Transition name="pwa-slide">
     <div v-if="visible" class="pwa-notice">
       <div class="pwa-content">
-        <!-- In-app browser (Facebook, Messenger, Instagram, etc.) -->
+        <!-- In-app browser (Facebook, Messenger, Instagram, WhatsApp…) -->
         <template v-if="isInApp">
-          <div class="pwa-icon">
+          <div class="pwa-icon warn">
             <Icon name="mdi:open-in-new" size="22" />
           </div>
           <div class="pwa-text">
-            <strong>{{ $t("pwa.inapp") }}</strong>
+            <strong>{{ $t("pwa.install") }}</strong>
+            <span>{{ $t("pwa.inapp") }}</span>
           </div>
+          <NuxtLink to="/install" class="pwa-install-btn" @click="dismiss">
+            {{ $t("pwa.inapp_btn") }}
+          </NuxtLink>
         </template>
 
         <!-- iOS -->
@@ -25,6 +29,9 @@
               {{ $t("pwa.ios_hint_after") }}
             </span>
           </div>
+          <NuxtLink to="/install" class="pwa-install-btn" @click="dismiss">
+            {{ $t("pwa.install_btn") }}
+          </NuxtLink>
         </template>
 
         <!-- Android / Chrome — prompt available -->
@@ -56,6 +63,9 @@
             <strong>{{ $t("pwa.install") }}</strong>
             <span>{{ $t("pwa.android_manual_hint") }}</span>
           </div>
+          <NuxtLink to="/install" class="pwa-install-btn" @click="dismiss">
+            {{ $t("pwa.install_btn") }}
+          </NuxtLink>
         </template>
 
         <button
@@ -70,72 +80,55 @@
   </Transition>
 </template>
 
-<script setup lang="ts">
-const visible = ref(false);
-const platform = ref<"ios" | "android" | "desktop">("desktop");
-const installing = ref(false);
-const isInApp = ref(false);
+<script setup>
+const visible = ref(false)
+const platform = ref('desktop')
+const installing = ref(false)
+const isInApp = ref(false)
 
-const { isInstallable, install, dismiss: pwaCancel } = usePwaInstall();
-
-const isStandalone = () =>
-  window.matchMedia("(display-mode: standalone)").matches ||
-  !!(window.navigator as any).standalone;
-
-const detectPlatform = (): "ios" | "android" | "desktop" => {
-  const ua = navigator.userAgent;
-  if (/iphone|ipad|ipod/i.test(ua)) return "ios";
-  if (/android/i.test(ua)) return "android";
-  return "desktop";
-};
-
-const detectInAppBrowser = (): boolean => {
-  const ua = navigator.userAgent;
-  if (/WhatsApp/i.test(ua)) return true;
-  return /FBAN|FBAV|Messenger|FB_IAB|FB4A|Instagram|MicroMessenger|Line/i.test(
-    ua,
-  );
-};
+const { isInstallable, install } = usePwaInstall()
+const { isInAppBrowser, detectPlatform, isStandaloneMode } = useInAppBrowser()
 
 const dismiss = () => {
-  visible.value = false;
-  // do NOT call pwaCancel() — it sets localStorage and kills the listener forever
-  // just hide the banner for this session
-};
+  visible.value = false
+}
 
 const handleInstall = async () => {
-  installing.value = true;
+  installing.value = true
   try {
-    const accepted = await install();
-    if (accepted) visible.value = false;
+    const accepted = await install()
+    if (accepted) visible.value = false
   } finally {
-    installing.value = false;
+    installing.value = false
   }
-};
+}
+
+const route = useRoute()
 
 onMounted(() => {
-  if (isStandalone()) return;
+  if (isStandaloneMode()) return
 
-  const inApp = detectInAppBrowser();
-  if (inApp) {
-    isInApp.value = true;
-    visible.value = true;
-    return;
+  // Don't show banner on the install page itself
+  if (route.path === '/install') return
+
+  if (isInAppBrowser()) {
+    isInApp.value = true
+    visible.value = true
+    return
   }
 
-  const p = detectPlatform();
-  if (p === "desktop") return;
+  const p = detectPlatform()
+  if (p === 'desktop') return
 
-  platform.value = p;
-  visible.value = true;
-});
+  platform.value = p
+  visible.value = true
+})
 
-// upgrade from manual hint to install button once prompt becomes available
 watch(isInstallable, (val) => {
-  if (val && platform.value === "android") {
-    visible.value = true;
+  if (val && platform.value === 'android' && !isInApp.value) {
+    visible.value = true
   }
-});
+})
 </script>
 
 <style scoped>
@@ -175,6 +168,10 @@ watch(isInstallable, (val) => {
   align-items: center;
   justify-content: center;
 }
+.pwa-icon.warn {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
 
 .pwa-text {
   display: flex;
@@ -206,12 +203,12 @@ watch(isInstallable, (val) => {
 
 .pwa-install-btn {
   flex-shrink: 0;
-  padding: 7px 18px;
+  padding: 7px 14px;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -219,6 +216,7 @@ watch(isInstallable, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
   transition: opacity 0.15s;
 }
 

@@ -42,7 +42,7 @@
             :key="p.slug"
             class="rank-row"
             :class="`rank-${i}`"
-            @click="navigateTo(`/players/${p.slug}`)"
+            @click="navigateTo(leaguePath(`/players/${p.slug}`))"
           >
             <div class="rank-pos">
               <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
@@ -96,7 +96,7 @@
             v-for="(p, i) in motmLeaders"
             :key="p.slug"
             class="rank-row"
-            @click="navigateTo(`/players/${p.slug}`)"
+            @click="navigateTo(leaguePath(`/players/${p.slug}`))"
           >
             <div class="rank-pos">
               <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
@@ -155,7 +155,7 @@
                   v-for="(p, i) in cardLeaders.yellows"
                   :key="'y-'+p.slug"
                   class="rank-row"
-                  @click="navigateTo(`/players/${p.slug}`)"
+                  @click="navigateTo(leaguePath(`/players/${p.slug}`))"
                 >
                   <div class="rank-pos">
                     <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
@@ -190,7 +190,7 @@
                   v-for="(p, i) in cardLeaders.reds"
                   :key="'r-'+p.slug"
                   class="rank-row"
-                  @click="navigateTo(`/players/${p.slug}`)"
+                  @click="navigateTo(leaguePath(`/players/${p.slug}`))"
                 >
                   <div class="rank-pos">
                     <span v-if="i < 3" class="medal" :class="`medal-${['gold','silver','bronze'][i]}`">
@@ -246,6 +246,7 @@
 
 <script setup>
 const { locale } = useI18n();
+const { leaguePath } = useCurrentLeague();
 const { name: appTitle } = useAppTitle();
 const { fetchPlayers, fetchMatches, fetchTeams } = useLeagueData();
 

@@ -115,8 +115,8 @@ INSERT INTO players (slug, title, team, number, position, goals, appearances) VA
   ('nasser-ali',      'ناصر علي',    'alriyadh',   1, 'حارس',  0, 3);
 
 -- 4. Settings
-INSERT INTO settings (id, name, season, "groups", "teamsPerGroup")
-VALUES (1, 'دوري القرية السنوي', '2026', '["A","B","C","D"]', 4)
+INSERT INTO settings (id, season, "groups", "teamsPerGroup")
+VALUES (1, '2026', '["A","B","C","D"]', 4)
 ON CONFLICT (id) DO NOTHING;
 
 -- 5. Active season

@@ -4,15 +4,17 @@
       <div class="footer-top">
         <!-- Brand col -->
         <div class="footer-brand">
-          <NuxtLink to="/" class="footer-logo-wrap">
+          <NuxtLink :to="logoLink" class="footer-logo-wrap">
             <img
-              src="/logo.png"
+              v-if="leagueLogoUrl"
+              :src="leagueLogoUrl"
               width="48"
               height="48"
               class="footer-icon"
               alt="Logo"
             />
-            <span class="footer-league-name">{{ appTitle || $t("leagueName") }}</span>
+            <span v-if="showSkeleton" class="skeleton-text skeleton-footer-title" />
+            <span v-else-if="displayTitle" class="footer-league-name">{{ displayTitle }}</span>
           </NuxtLink>
           <p class="footer-tagline">{{ $t("footer.tagline") }}</p>
         </div>
@@ -32,38 +34,59 @@
           </nav>
         </div>
 
-        <!-- Season info -->
+        <!-- Season / platform info -->
         <div class="footer-info-col">
-          <h3 class="footer-col-title">{{ $t("footer.season") }}</h3>
+          <h3 class="footer-col-title">
+            {{ isLeagueRoute ? $t("footer.season") : $t("footer.platform") }}
+          </h3>
           <ul class="footer-info-list">
-            <li>
-              <Icon name="mdi:trophy-outline" size="15" aria-hidden="true" />
-              <span>{{ appTitle || $t("leagueName") }} {{ config.public.season
-}}</span>
-            </li>
-            <li>
-              <Icon
-                name="mdi:account-group-outline"
-                size="15"
-                aria-hidden="true"
-              />
-              <span>{{ $t("footer.teamsCount") }} {{ teamCount }}</span>
-            </li>
-            <li>
-              <a
-                href="https://www.google.com/maps/place/%D9%85%D9%84%D8%B9%D8%A8+%D8%A7%D9%84%D8%AC%D8%B1%D9%88%D9%8A%D8%A9%E2%80%AD/@34.8514887,36.0881449,314m/data=!3m1!1e3!4m6!3m5!1s0x1523d10384af6bdd:0x1179146945d4b95c!8m2!3d34.8520553!4d36.087112!16s%2Fg%2F11jz9zyqct?entry=ttu&g_ep=EgoyMDI2MDUzMS4wIKXMDSoASAFQAw%3D%3D"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="footer-location-link"
-              >
+            <template v-if="isLeagueRoute">
+              <li>
+                <Icon name="mdi:trophy-outline" size="15" aria-hidden="true" />
+                <span>{{ displayTitle }} {{ config.public.season }}</span>
+              </li>
+              <li>
                 <Icon
-                  name="mdi:map-marker-outline"
+                  name="mdi:account-group-outline"
                   size="15"
                   aria-hidden="true"
                 />
-                <span>{{ $t("footer.location") }}</span>
-              </a>
-            </li>
+                <span>{{ $t("footer.teamsCount") }} {{ teamCount }}</span>
+              </li>
+              <li v-if="leagueLocation">
+                <span class="footer-location-link">
+                  <Icon name="mdi:map-marker-outline" size="15" aria-hidden="true" />
+                  <span>{{ leagueLocation }}</span>
+                </span>
+              </li>
+            </template>
+            <template v-else>
+              <li>
+                <Icon name="mdi:soccer" size="15" aria-hidden="true" />
+                <span>{{ $t("footer.platformDesc") }}</span>
+              </li>
+              <li>
+                <Icon name="mdi:broadcast" size="15" aria-hidden="true" />
+                <span>{{ $t("footer.liveUpdates") }}</span>
+              </li>
+              <li>
+                <NuxtLink to="/install" class="footer-location-link">
+                  <Icon name="mdi:cellphone-arrow-down" size="15" aria-hidden="true" />
+                  <span>{{ $t("footer.installApp") }}</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <a
+                  href="https://wa.me/963933446665"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="footer-location-link"
+                >
+                  <Icon name="mdi:whatsapp" size="15" aria-hidden="true" />
+                  <span>{{ $t("footer.contact") }}</span>
+                </a>
+              </li>
+            </template>
           </ul>
         </div>
       </div>
@@ -71,7 +94,7 @@
       <!-- Bottom bar -->
       <div class="footer-bottom">
         <span class="footer-copy">
-          © {{ currentYear }} {{ appTitle || $t("leagueName") }}
+          © {{ currentYear }} {{ displayTitle }}
         </span>
         <span class="footer-built">
           <a
@@ -90,24 +113,54 @@
 <script setup>
 const config = useRuntimeConfig();
 const currentYear = new Date().getFullYear();
-const { name: appTitle } = useAppTitle();
+const { league, isLeagueRoute, leaguePath, leagueSlug, pending } = useCurrentLeague();
+
+const displayTitle = computed(() => {
+  if (!isLeagueRoute.value) return 'Green Ball'
+  if (league.value?.name) return league.value.name
+  return ''
+})
+
+const showSkeleton = computed(() => isLeagueRoute.value && pending.value)
+
+const leagueLogoUrl = computed(() => {
+  if (isLeagueRoute.value) return league.value?.logo || ''
+  return '/logo.png'
+})
+
+const leagueLocation = computed(() => league.value?.location || null)
+
+const logoLink = computed(() => {
+  if (isLeagueRoute.value) return leaguePath().replace(/\/+$/, '') || '/'
+  return '/'
+})
 
 const { fetchTeams } = useLeagueData();
 const { data: teamCount } = await useAsyncData(
-  "footer-team-count",
+  `footer-team-count-${leagueSlug.value || 'portal'}`,
   async () => {
     const teams = await fetchTeams();
     return teams?.length || 0;
   },
 );
 
-const navItems = [
-  { key: "standings", label: "nav.standings", to: "/standings" },
-  { key: "fixtures", label: "nav.fixtures", to: "/fixtures" },
-  { key: "bracket", label: "nav.bracket", to: "/bracket" },
-  { key: "teams", label: "nav.teams", to: "/teams" },
-  { key: "stats", label: "nav.stats", to: "/stats" },
-];
+const navItems = computed(() => {
+  if (!isLeagueRoute.value) {
+    return [
+      { key: "home", label: "nav.home", to: "/" },
+      { key: "install", label: "footer.installApp", to: "/install" },
+      { key: "account", label: "footer.account", to: "/account" },
+    ]
+  }
+  const base = leaguePath().replace(/\/+$/, '')
+  return [
+    { key: "standings", label: "nav.standings", to: `${base}/standings` },
+    { key: "fixtures", label: "nav.fixtures", to: `${base}/fixtures` },
+    { key: "bracket", label: "nav.bracket", to: `${base}/bracket` },
+    { key: "teams", label: "nav.teams", to: `${base}/teams` },
+    { key: "stats", label: "nav.stats", to: `${base}/stats` },
+  ]
+})
 </script>
 
 <style lang="scss" scoped>
@@ -315,5 +368,25 @@ const navItems = [
   &:hover {
     text-decoration: underline;
   }
+}
+.skeleton-footer-title {
+  display: inline-block;
+  width: 160px;
+  height: 1.2rem;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    animation: sk-shimmer 1.5s infinite;
+  }
+}
+@keyframes sk-shimmer {
+  100% { transform: translateX(100%); }
 }
 </style>

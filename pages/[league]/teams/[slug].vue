@@ -21,7 +21,7 @@
         class="team-hero"
         :style="team.color ? `background: linear-gradient(145deg, ${team.color}18, var(--bg-page))` : ''"
       >
-        <button class="back-btn" @click="navigateTo('/teams')">
+        <button class="back-btn" @click="navigateTo(leaguePath('/teams'))">
           <Icon :name="locale === 'ar' ? 'mdi:arrow-right' : 'mdi:arrow-left'" size="18" />
           {{ $t('nav.teams') }}
         </button>
@@ -71,7 +71,7 @@
             v-for="player in players"
             :key="player.slug"
             class="player-card"
-            @click="navigateTo(`/players/${player.slug}`)"
+            @click="navigateTo(leaguePath(`/players/${player.slug}`))"
           >
             <div class="player-avatar">
               <NuxtImg
@@ -118,7 +118,7 @@
             v-for="m in managers"
             :key="m.id"
             class="manager-card"
-            @click="navigateTo(`/managers/${m.id}`)"
+            @click="navigateTo(leaguePath(`/managers/${m.id}`))"
           >
             <div class="manager-avatar">
               <NuxtImg
@@ -149,7 +149,7 @@
             v-for="match in recentMatches"
             :key="match.slug"
             class="match-row"
-            @click="navigateTo(`/matches/${match.slug}`)"
+            @click="navigateTo(leaguePath(`/matches/${match.slug}`))"
           >
             <span class="match-opp-logo">
               <NuxtImg
@@ -189,7 +189,7 @@
             v-for="match in upcomingMatches"
             :key="match.slug"
             class="match-row upcoming"
-            @click="navigateTo(`/matches/${match.slug}`)"
+            @click="navigateTo(leaguePath(`/matches/${match.slug}`))"
           >
             <span class="match-opp-logo">
               <NuxtImg
@@ -218,6 +218,7 @@ import { format, parseISO } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { syrianAr } from '~/utils/syrianAr';
 
+const { leaguePath } = useCurrentLeague();
 const route = useRoute();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();

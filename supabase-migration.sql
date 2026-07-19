@@ -379,8 +379,8 @@ INSERT INTO players (slug, title, team, number, position, goals, assists, appear
 -- SETTINGS
 -- ═══════════════════════════════════════════════════════════════
 
-INSERT INTO settings (id, name, season, "groups", "teamsPerGroup")
-VALUES (1, 'دوري القرية السنوي', '2026', '["A","B","C","D"]', 4)
+INSERT INTO settings (id, season, "groups", "teamsPerGroup")
+VALUES (1, '2026', '["A","B","C","D"]', 4)
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════

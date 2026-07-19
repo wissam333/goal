@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-definePageMeta({ layout: "admin" });
+definePageMeta({ layout: "admin-layer1" });
 const supabase = useSupabase();
 
 const users = ref([]);

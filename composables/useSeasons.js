@@ -1,27 +1,48 @@
-export const useSeasons = () => {
+export const useSeasons = (leagueId = null) => {
   const supabase = useSupabase()
-  const admin = useAdminData()
+  const route = useRoute()
+  const admin = useAdminData(leagueId)
+  const _id = computed(() => leagueId || useCurrentLeague().leagueId.value)
+
+  const _resolveLeague = async () => {
+    let lid = _id.value
+    if (!lid && route.params.league) {
+      const { data } = await supabase.from('leagues').select('id').eq('slug', route.params.league).maybeSingle()
+      if (data) lid = data.id
+    }
+    return lid
+  }
 
   const getSeasons = async () => {
     if (!supabase) return []
-    const { data } = await supabase.from("seasons").select("*").order("created_at", { ascending: false })
+    const lid = await _resolveLeague()
+    let q = supabase.from("seasons").select("*").order("created_at", { ascending: false })
+    if (lid) q = q.eq("league_id", lid)
+    const { data } = await q
     return data || []
   }
 
   const getSeason = async (slug) => {
     if (!supabase) return null
-    const { data } = await supabase.from("seasons").select("*").eq("slug", slug).single()
+    const lid = await _resolveLeague()
+    let q = supabase.from("seasons").select("*").eq("slug", slug)
+    if (lid) q = q.eq("league_id", lid)
+    const { data } = await q.maybeSingle()
     return data
   }
 
   const getActiveSeason = async () => {
     if (!supabase) return null
-    const { data } = await supabase.from("seasons").select("*").eq("is_active", true).maybeSingle()
+    const lid = await _resolveLeague()
+    let q = supabase.from("seasons").select("*").eq("is_active", true)
+    if (lid) q = q.eq("league_id", lid)
+    const { data } = await q.maybeSingle()
     return data
   }
 
   const startNewSeason = async (name) => {
     if (!supabase) throw new Error("Supabase not available")
+    const lid = await _resolveLeague()
 
     const [teams, players, allMatches, settings] = await Promise.all([
       admin.getTeams(),
@@ -71,29 +92,48 @@ export const useSeasons = () => {
       if (updateErr) throw updateErr
     }
 
-    for (const bucket of ["match-photos", "team-logos", "player-photos", "ads"]) {
-      await deleteStorageBucket(bucket)
-    }
+    let vq = supabase.from("votes").delete()
+    if (lid) vq = vq.eq("league_id", lid)
+    vq = vq.neq("id", "00000000-0000-0000-0000-000000000000")
+    await vq
 
-    await supabase.from("votes").delete().neq("id", "00000000-0000-0000-0000-000000000000")
-    await supabase.from("match_predictions").delete().neq("id", "00000000-0000-0000-0000-000000000000")
-    await supabase.from("players").delete().neq("slug", "")
-    await supabase.from("matches").delete().neq("slug", "")
-    await supabase.from("teams").update({ logo: null }).neq("slug", "")
+    let pq = supabase.from("match_predictions").delete()
+    if (lid) pq = pq.eq("league_id", lid)
+    pq = pq.neq("id", "00000000-0000-0000-0000-000000000000")
+    await pq
+
+    let plq = supabase.from("players").delete()
+    if (lid) plq = plq.eq("league_id", lid)
+    plq = plq.neq("slug", "")
+    await plq
+
+    let mq = supabase.from("matches").delete()
+    if (lid) mq = mq.eq("league_id", lid)
+    mq = mq.neq("slug", "")
+    await mq
+
+    let tq = supabase.from("teams").update({ logo: null })
+    if (lid) tq = tq.eq("league_id", lid)
+    tq = tq.neq("slug", "")
+    await tq
 
     await supabase.from("settings").upsert({
-      id: 1,
-      name: name,
+      id: settings?.id || 1,
       season: name,
       groups: ["A", "B"],
       teamsPerGroup: 4,
       ad: null,
+      league_id: lid,
     })
+
+    if (lid) {
+      await supabase.from('leagues').update({ season_label: name }).eq('id', lid)
+    }
 
     const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
     const { data: newSeason, error: insertErr } = await supabase
       .from("seasons")
-      .insert({ name, slug, is_active: true, started_at: new Date().toISOString() })
+      .insert({ name, slug, is_active: true, started_at: new Date().toISOString(), league_id: lid })
       .select()
       .single()
     if (insertErr) throw insertErr

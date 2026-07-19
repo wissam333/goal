@@ -1,22 +1,20 @@
 <template>
   <header class="navbar" :class="{ scrolled: isScrolled }">
     <div class="navbar-inner container">
-      <NuxtLink to="/" class="navbar-logo">
-        <img
-          src="/logo.png"
-          class="brand-icon"
-          alt="Logo"
-          width="50"
-          height="50"
-        />
+      <NuxtLink :to="logoLink" class="navbar-logo">
+        <img v-if="showLogo" :src="logoUrl" class="brand-icon" alt="Logo" width="50" height="50" />
         <div class="brand-text">
-          <span class="brand-name">{{ appTitle || $t("leagueName") }}</span>
-          <span class="brand-season">{{ config.public.season }}</span>
+          <span v-if="showSkeleton" class="skeleton-text skeleton-title" />
+          <span v-else class="brand-name">{{ displayTitle }}</span>
+          <span v-if="currentLeague?.season_label" class="brand-season">{{ currentLeague.season_label }}</span>
         </div>
+      </NuxtLink>
+      <NuxtLink v-if="isLeagueRoute" to="/" class="navbar-portal-link" title="جميع الدوريات">
+        <Icon name="mdi:apps" size="20" />
       </NuxtLink>
 
       <!-- Desktop nav links -->
-      <nav class="navbar-links" aria-label="main navigation">
+      <nav v-if="isLeagueRoute" class="navbar-links" aria-label="main navigation">
         <NuxtLink
           v-for="item in navItems"
           :key="item.key"
@@ -121,23 +119,26 @@
         @click="mobileOpen = false"
       >
         <div class="mobile-nav" @click.stop>
-          <NuxtLink
-            v-for="item in navItems"
-            :key="item.key"
-            :to="item.to"
-            class="mobile-nav-item"
-            :class="{ active: route.path === item.to }"
-            @click="mobileOpen = false"
-          >
-            <Icon :name="item.icon" size="18" aria-hidden="true" />
-            <span>{{ $t(item.label) }}</span>
-            <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="16"
-              class="mobile-nav-arrow"
-              aria-hidden="true"
-            />
-          </NuxtLink>
+          <template v-if="isLeagueRoute">
+            <NuxtLink
+              v-for="item in navItems"
+              :key="item.key"
+              :to="item.to"
+              class="mobile-nav-item"
+              :class="{ active: route.path === item.to }"
+              @click="mobileOpen = false"
+            >
+              <Icon :name="item.icon" size="18" aria-hidden="true" />
+              <span>{{ $t(item.label) }}</span>
+              <Icon
+                :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
+                size="16"
+                class="mobile-nav-arrow"
+                aria-hidden="true"
+              />
+            </NuxtLink>
+            <div class="mobile-nav-divider" />
+          </template>
 
           <div class="mobile-nav-divider" />
 
@@ -222,8 +223,33 @@ const config = useRuntimeConfig();
 const { name: appTitle } = useAppTitle();
 const auth = useAuth();
 const { t } = useI18n();
+const { league, leagueSlug, isLeagueRoute, leaguePath, pending } = useCurrentLeague();
 
 const { user, profile, loading: authLoading } = auth;
+
+const currentLeague = league
+const showSkeleton = computed(() => isLeagueRoute.value && pending.value)
+
+const displayTitle = computed(() => {
+  if (!isLeagueRoute.value) return 'Green Ball'
+  if (currentLeague.value?.name) return currentLeague.value.name
+  return ''
+})
+
+const logoUrl = computed(() => {
+  if (isLeagueRoute.value) return currentLeague.value?.logo || ''
+  return '/logo.png'
+})
+
+const showLogo = computed(() => {
+  if (isLeagueRoute.value) return !!currentLeague.value?.logo
+  return true
+})
+
+const logoLink = computed(() => {
+  if (isLeagueRoute.value) return leaguePath()
+  return '/'
+})
 
 const isScrolled = ref(false);
 const mobileOpen = ref(false);
@@ -307,34 +333,17 @@ onMounted(() => {
   onUnmounted(() => document.removeEventListener("click", onClickOutside));
 });
 
-const navItems = [
-  { key: "home", label: "nav.home", icon: "mdi:home-outline", to: "/" },
-  {
-    key: "standings",
-    label: "nav.standings",
-    icon: "mdi:table",
-    to: "/standings",
-  },
-  {
-    key: "fixtures",
-    label: "nav.fixtures",
-    icon: "mdi:calendar-outline",
-    to: "/fixtures",
-  },
-  {
-    key: "bracket",
-    label: "nav.bracket",
-    icon: "mdi:tournament",
-    to: "/bracket",
-  },
-  {
-    key: "teams",
-    label: "nav.teams",
-    icon: "mdi:shield-outline",
-    to: "/teams",
-  },
-  { key: "stats", label: "nav.stats", icon: "mdi:chart-bar", to: "/stats" },
-];
+const navItems = computed(() => {
+  const base = isLeagueRoute.value ? leaguePath().replace(/\/+$/, '') : ''
+  return [
+    { key: "home", label: "nav.home", icon: "mdi:home-outline", to: base || "/" },
+    { key: "standings", label: "nav.standings", icon: "mdi:table", to: `${base}/standings` },
+    { key: "fixtures", label: "nav.fixtures", icon: "mdi:calendar-outline", to: `${base}/fixtures` },
+    { key: "bracket", label: "nav.bracket", icon: "mdi:tournament", to: `${base}/bracket` },
+    { key: "teams", label: "nav.teams", icon: "mdi:shield-outline", to: `${base}/teams` },
+    { key: "stats", label: "nav.stats", icon: "mdi:chart-bar", to: `${base}/stats` },
+  ]
+})
 
 const toggleColorMode = () => {
   theme.toggleMode();
@@ -705,6 +714,43 @@ onMounted(() => {
   height: 1px;
   background: var(--border-color);
   margin: 4px 14px;
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+.skeleton-text {
+  display: inline-block;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+  vertical-align: middle;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1) 30%, transparent 60%);
+    animation: sk-shimmer 1.8s ease-in-out infinite;
+  }
+}
+.skeleton-title {
+  width: 130px;
+  height: 1.1rem;
+}
+@keyframes sk-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.navbar-portal-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  &:hover { background: var(--primary-soft); color: var(--primary); }
 }
 
 // ── Transitions ───────────────────────────────────────────────────────────────

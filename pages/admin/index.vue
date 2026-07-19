@@ -1,519 +1,252 @@
 <template>
   <div>
     <SharedUiHeaderPage
-      title="لوحة التحكم"
-      icon="mdi:view-dashboard-outline"
+      title="الدوريات"
+      icon="mdi:format-list-group"
       :is-rtl="true"
-    />
-
-    <!-- Skeleton -->
-    <template v-if="loading">
-      <div class="sk-stats">
-        <div v-for="i in 4" :key="i" class="sk-stat" />
-      </div>
-      <div class="sk-actions">
-        <div v-for="i in 3" :key="i" class="sk-action" />
-      </div>
-    </template>
-
-    <!-- Content -->
-    <template v-else>
-      <SharedUiCardsStats :stats="dashboardStats" :columns="4" class="mb-4" />
-      <div class="quick-actions">
-        <NuxtLink
-          v-for="action in quickActions"
-          :key="action.to"
-          :to="action.to"
-          class="qa-card"
+    >
+      <template #actions>
+        <SharedUiButtonBase
+          variant="primary"
+          icon-left="mdi:plus-circle-outline"
+          @click="openCreate"
         >
-          <div class="qa-icon" :style="{ background: action.color }">
-            <Icon :name="action.icon" size="24" />
-          </div>
-          <div class="qa-info">
-            <span class="qa-label">{{ action.label }}</span>
-            <span class="qa-count">{{ action.count }}</span>
-          </div>
-        </NuxtLink>
-      </div>
+          إضافة دوري
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiHeaderPage>
 
-      <!-- ── Teams Standings ─────────────────────────────── -->
-      <div class="section-header">
-        <h3 class="section-title">
-          <Icon name="mdi:shield-outline" size="18" />
-          ترتيب الفرق
-        </h3>
-        <div class="section-controls">
-          <select v-model="groupFilter" class="group-filter-select">
-            <option value="">جميع المجموعات</option>
-            <option v-for="g in groupOptions" :key="g" :value="g">
-              المجموعة {{ g }}
-            </option>
-          </select>
+    <SharedUiTableDataTable
+      :columns="columns"
+      :data="list"
+      :loading="loading"
+      empty-text="لا توجد دوريات"
+      empty-description="لم تتم إضافة أي دوري بعد."
+      empty-icon="mdi:format-list-group"
+    >
+      <template #cell-name="{ row }">
+        <div class="d-flex align-items-center gap-2 league-row" @click="selectLeague(row)">
+          <img v-if="row.logo" :src="row.logo" class="l-logo-img" />
+          <div v-else class="l-logo-placeholder">{{ row.name?.charAt(0) }}</div>
+          <div>
+            <div class="fw-700">{{ row.name }}</div>
+            <div v-if="row.description" class="text-muted text-sm">{{ row.description }}</div>
+          </div>
+        </div>
+      </template>
+      <template #cell-status="{ row }">
+        <span v-if="row.is_active" class="status-badge active">نشط</span>
+        <span v-else class="status-badge inactive">غير نشط</span>
+      </template>
+      <template #cell-actions="{ row }">
+        <SharedUiButtonBase
+          variant="ghost"
+          icon-left="mdi:pencil-outline"
+          size="sm"
+          @click="openEdit(row)"
+        />
+        <SharedUiButtonBase
+          variant="ghost"
+          icon-left="mdi:delete-outline"
+          size="sm"
+          class="text-danger"
+          @click="handleDelete(row)"
+        />
+      </template>
+    </SharedUiTableDataTable>
+
+    <SharedUiDialogAppModal
+      v-model="showModal"
+      :title="isEdit ? 'تعديل الدوري' : 'دوري جديد'"
+      max-width="520px"
+    >
+      <div class="form-grid">
+        <AdminImageUpload
+          v-model="form.logo"
+          label="شعار الدوري"
+          :upload="(blob) => admin.uploadToStorage(blob, 'league-logos')"
+        />
+        <AdminImageUpload
+          v-model="form.cover_image"
+          label="صورة الغلاف"
+          :upload="(blob) => admin.uploadToStorage(blob, 'league-covers')"
+        />
+        <SharedUiFormBaseInput
+          v-model="form.name"
+          label="الاسم"
+          placeholder="اسم الدوري"
+          required
+        />
+        <SharedUiFormBaseInput
+          v-model="form.slug"
+          label="الرابط (slug)"
+          placeholder="al-jarwiyya"
+          hint="يُستخدم في رابط الدوري"
+        />
+        <label class="input-label">الوصف</label>
+        <textarea
+          v-model="form.description"
+          class="form-textarea"
+          placeholder="وصف قصير"
+          rows="2"
+        />
+        <SharedUiFormBaseInput
+          v-model="form.location"
+          label="الموقع"
+          placeholder="مثال: ملعب القرية"
+        />
+        <div class="form-row-inline">
+          <label class="checkbox-label">
+            <input v-model="form.is_active" type="checkbox" />
+            نشط
+          </label>
+          <SharedUiFormBaseInput
+            v-model.number="form.sort_order"
+            label="الترتيب"
+            type="number"
+            min="0"
+            class="sort-input"
+          />
         </div>
       </div>
-
-      <div class="table-card">
-        <table class="standings-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th class="th-team">الفريق</th>
-              <th>ل</th>
-              <th>ف</th>
-              <th>ت</th>
-              <th>خ</th>
-              <th>له</th>
-              <th>عليه</th>
-              <th>فارق</th>
-              <th class="th-pts">نقاط</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(t, i) in sortedTeams" :key="t.slug">
-              <td class="td-rank">{{ i + 1 }}</td>
-              <td class="td-team">
-                <div class="td-team-inner">
-                  <NuxtImg
-                    v-if="t.logo"
-                    :src="t.logo"
-                    :alt="t.title"
-                    width="22"
-                    height="22"
-                    class="td-logo"
-                  />
-                  <span
-                    v-else
-                    class="td-logo-init"
-                    :style="{ background: t.color }"
-                    >{{ t.title?.charAt(0) }}</span
-                  >
-                  <span class="td-name">{{ t.title }}</span>
-                </div>
-              </td>
-              <td class="td-num">{{ t.stats.P }}</td>
-              <td class="td-num">{{ t.stats.W }}</td>
-              <td class="td-num">{{ t.stats.D }}</td>
-              <td class="td-num">{{ t.stats.L }}</td>
-              <td class="td-num">{{ t.stats.GF }}</td>
-              <td class="td-num">{{ t.stats.GA }}</td>
-              <td class="td-num" :class="gdClass(t.stats.GD)">
-                {{ t.stats.GD > 0 ? "+" : "" }}{{ t.stats.GD }}
-              </td>
-              <td class="td-pts">{{ t.stats.Pts }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-if="!sortedTeams.length" class="table-empty">
-          <Icon name="mdi:shield-off-outline" size="32" />
-          <span>لا توجد فرق</span>
-        </div>
-      </div>
-    </template>
+      <template #actions>
+        <SharedUiButtonBase variant="outline" @click="showModal = false">إلغاء</SharedUiButtonBase>
+        <SharedUiButtonBase
+          variant="primary"
+          :loading="saving"
+          :disabled="!form.name.trim()"
+          @click="handleSave"
+        >
+          حفظ
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
   </div>
 </template>
 
 <script setup>
-definePageMeta({ layout: "admin" });
-const admin = useAdminData();
+definePageMeta({ layout: "admin-layer1" })
 
-const teams = ref([]);
-const players = ref([]);
-const matches = ref([]);
-const settings = ref(null);
-const loading = ref(true);
-const groupFilter = ref("");
-const groupOptions = ref([]);
+const { getAllLeagues, saveLeague, deleteLeague } = useLeagues()
+const admin = useAdminData()
+
+const list = ref([])
+const loading = ref(true)
+const showModal = ref(false)
+const isEdit = ref(false)
+const saving = ref(false)
+
+const columns = [
+  { key: 'name', label: 'الاسم', sortable: true },
+  { key: 'slug', label: 'الرابط' },
+  { key: 'status', label: 'الحالة' },
+  { key: 'sort_order', label: 'الترتيب', sortable: true },
+  { key: 'actions', label: '', width: '100px' },
+]
+
+const form = reactive({
+  id: null, name: '', slug: '', description: '',
+  location: '', cover_image: '', logo: '',
+  is_active: true, sort_order: 0,
+})
 
 onMounted(async () => {
-  teams.value = await admin.getTeams();
-  players.value = await admin.getPlayers();
-  matches.value = await admin.getMatches();
-  settings.value = await admin.getSettings();
-  groupOptions.value = settings.value?.groups || [];
-  loading.value = false;
-});
+  list.value = await getAllLeagues()
+  loading.value = false
+})
 
-const dashboardStats = computed(() => [
-  {
-    key: "teams",
-    label: "الفرق",
-    value: teams.value.length,
-    icon: "mdi:shield-outline",
-    color: "primary",
-  },
-  {
-    key: "players",
-    label: "اللاعبون",
-    value: players.value.length,
-    icon: "mdi:account-group-outline",
-    color: "success",
-  },
-  {
-    key: "matches",
-    label: "المباريات",
-    value: matches.value.length,
-    icon: "mdi:calendar-outline",
-    color: "warning",
-  },
-  {
-    key: "played",
-    label: "المُقامة",
-    value: matches.value.filter((m) => m.status === "played").length,
-    icon: "mdi:check-circle-outline",
-    color: "info",
-  },
-]);
+function openCreate() {
+  isEdit.value = false
+  Object.assign(form, { id: null, name: '', slug: '', description: '', location: '', cover_image: '', logo: '', is_active: true, sort_order: 0 })
+  showModal.value = true
+}
 
-const quickActions = computed(() => [
-  {
-    to: "/admin/teams",
-    icon: "mdi:shield-plus-outline",
-    label: "إدارة الفرق",
-    count: teams.value.length,
-    color: "var(--primary)",
-  },
-  {
-    to: "/admin/matches",
-    icon: "mdi:calendar-plus-outline",
-    label: "إدارة المباريات",
-    count: matches.value.length,
-    color: "#f97316",
-  },
-  {
-    to: "/admin/settings",
-    icon: "mdi:cog-outline",
-    label: "الإعدادات",
-    count: settings.value?.season || "2026",
-    color: "#8b5cf6",
-  },
-]);
+function openEdit(l) {
+  isEdit.value = true
+  Object.assign(form, {
+    id: l.id, name: l.name, slug: l.slug,
+    description: l.description || '', location: l.location || '',
+    cover_image: l.cover_image || '', logo: l.logo || '',
+    is_active: l.is_active ?? true, sort_order: l.sort_order ?? 0,
+  })
+  showModal.value = true
+}
 
-const { standingsMap } = useStandings();
+function selectLeague(l) {
+  navigateTo(`/admin/${l.slug}/teams`)
+}
 
-const standings = computed(() =>
-  standingsMap(teams.value, matches.value.filter((x) => x.status === "played")),
-);
+async function handleSave() {
+  if (!form.name.trim()) return
+  saving.value = true
+  try {
+    const payload = { ...form }
+    if (!payload.id) delete payload.id
+    await saveLeague(payload)
+    showModal.value = false
+    list.value = await getAllLeagues()
+  } catch (e) {
+    alert(e.message || 'فشل الحفظ')
+  } finally {
+    saving.value = false
+  }
+}
 
-const sortedTeams = computed(() => {
-  const filtered = groupFilter.value
-    ? teams.value.filter((t) => t.group === groupFilter.value)
-    : teams.value;
-  return [...filtered]
-    .map((t) => ({
-      ...t,
-      stats: standings.value[t.slug] || {
-        P: 0,
-        W: 0,
-        D: 0,
-        L: 0,
-        GF: 0,
-        GA: 0,
-        GD: 0,
-        Pts: 0,
-      },
-    }))
-    .sort(
-      (a, b) =>
-        b.stats.Pts - a.stats.Pts ||
-        b.stats.GD - a.stats.GD ||
-        b.stats.GF - a.stats.GF ||
-        a.title?.localeCompare(b.title),
-    );
-});
+async function handleDelete(l) {
+  if (!confirm(`حذف الدوري "${l.name}"؟ لا يمكن التراجع.`)) return
+  try {
+    await deleteLeague(l.id)
+    list.value = await getAllLeagues()
+  } catch (e) {
+    alert(e.message || 'فشل الحذف')
+  }
+}
 
-const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "");
+
 </script>
 
 <style lang="scss" scoped>
-/* page-wrap removed — layout provides container padding */
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 28px;
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
-}
-.qa-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px;
-  background: var(--bg-surface);
-  border-radius: 14px;
-  text-decoration: none;
-  border: 1px solid var(--border-color);
-  transition: all 0.15s;
-  &:hover {
-    border-color: var(--primary);
-    transform: translateY(-1px);
-  }
-}
-.qa-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  color: #fff;
-  flex-shrink: 0;
-}
-.qa-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.qa-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.qa-count {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-// ── Skeleton ───────────────────────────────────────────────────────────────────
-.sk-stats,
-.sk-actions {
-  display: grid;
-  gap: 12px;
-}
-.sk-stats {
-  grid-template-columns: repeat(4, 1fr);
-  margin-bottom: 24px;
-}
-.sk-actions {
-  grid-template-columns: repeat(2, 1fr);
-  margin-bottom: 28px;
-}
-.sk-stat,
-.sk-action {
-  background: var(--bg-elevated);
-  border-radius: 14px;
-  position: relative;
-  overflow: hidden;
-}
-.sk-stat {
-  height: 100px;
-}
-.sk-action {
-  height: 84px;
-}
-.sk-stat::after,
-.sk-action::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background-image: linear-gradient(
-    90deg,
-    transparent 0,
-    rgba(255 255 255 / 0.08) 20%,
-    rgba(255 255 255 / 0.15) 60%,
-    transparent
-  );
-  animation: sk-shimmer 1.8s infinite;
-}
-@keyframes sk-shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-@media (max-width: 480px) {
-  .sk-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .sk-actions {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ── Standings Table ────────────────────────────────────────────────────────────
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-.section-controls {
-  display: flex;
-  gap: 8px;
-}
-.group-filter-select {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 0.85rem;
+.league-row {
   cursor: pointer;
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
+  &:hover { opacity: 0.8; }
 }
-.table-card {
-  background: var(--bg-surface);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  overflow-x: auto;
-  margin-bottom: 24px;
-
-  @media (max-width: 576px) {
-    border-radius: 0;
-    border-inline: none;
-  }
+.l-logo-img {
+  width: 40px; height: 40px; border-radius: 8px; object-fit: cover;
 }
-.standings-table {
-  width: 100%;
-  border-collapse: collapse;
-  th {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    padding: 10px 6px;
-    text-align: center;
+.l-logo-placeholder {
+  width: 40px; height: 40px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--primary-soft); color: var(--primary);
+  font-size: 0.9rem; font-weight: 800; flex-shrink: 0;
+}
+.fw-700 { font-weight: 700; }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 0.78rem; }
+.text-danger { color: #ef4444; }
+.status-badge {
+  display: inline-flex; padding: 3px 10px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700;
+  &.active { background: var(--primary-soft); color: var(--primary); }
+  &.inactive { background: var(--bg-elevated); color: var(--text-muted); }
+}
+.form-grid { display: flex; flex-direction: column; gap: 12px; }
+.form-row-inline {
+  display: flex; align-items: flex-end; gap: 16px;
+  .checkbox-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
     white-space: nowrap;
-    border-bottom: 1px solid var(--border-color);
-    user-select: none;
   }
-  th.th-team {
-    text-align: right;
-    min-width: 130px;
-
-    @media (max-width: 576px) {
-      position: sticky;
-      inset-inline-start: 0;
-      z-index: 2;
-      background: var(--bg-surface);
-      min-width: 120px;
-    }
-  }
-  th.th-pts {
-    color: var(--primary);
-  }
-  td {
-    padding: 10px 6px;
-    font-size: 0.85rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-  }
-  td.td-rank {
-    font-weight: 700;
-    color: var(--text-muted);
-    width: 28px;
-  }
-  td.td-team {
-    text-align: right;
-    min-width: 130px;
-
-    @media (max-width: 576px) {
-      position: sticky;
-      inset-inline-start: 0;
-      z-index: 1;
-      background: var(--bg-surface);
-      min-width: 120px;
-    }
-  }
-  .td-team-inner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .td-logo,
-  .td-logo-init {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    flex-shrink: 0;
-
-    @media (max-width: 576px) {
-      width: 18px;
-      height: 18px;
-    }
-  }
-  .td-logo-init {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 700;
-  }
-  .td-name {
-    font-weight: 600;
-    color: var(--text-primary);
-
-    @media (max-width: 576px) {
-      font-size: 0.8rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 80px;
-    }
-  }
-  .td-num {
-    font-variant-numeric: tabular-nums;
-    color: var(--text-primary);
-
-    @media (max-width: 576px) {
-      font-size: 0.78rem;
-      padding: 8px 4px;
-    }
-  }
-  td.td-pts {
-    font-weight: 800;
-    color: var(--primary);
-    font-size: 0.95rem;
-
-    @media (max-width: 576px) {
-      font-size: 0.88rem;
-    }
-  }
-  tbody tr:last-child td {
-    border-bottom: none;
-  }
-  tbody tr:hover {
-    background: var(--bg-hover);
-  }
-
-  @media (max-width: 576px) {
-    td, th {
-      padding: 8px 4px;
-    }
-    td.td-rank {
-      width: 22px;
-      font-size: 0.78rem;
-    }
-  }
+  .sort-input { max-width: 100px; }
 }
-.gd-pos {
-  color: var(--success) !important;
+.input-label {
+  display: block; font-size: 0.85rem; font-weight: 600;
+  color: var(--text-primary); margin-bottom: 4px;
 }
-.gd-neg {
-  color: var(--danger) !important;
-}
-.table-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 32px;
-  color: var(--text-muted);
+.form-textarea {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+  border-radius: 10px; font-size: 0.9rem; background: var(--bg-page);
+  color: var(--text-primary); resize: vertical;
+  &:focus { outline: none; border-color: var(--primary); }
 }
 </style>
