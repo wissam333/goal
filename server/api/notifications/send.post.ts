@@ -88,14 +88,14 @@ export default defineEventHandler(async (event) => {
         successCount += result.successCount
         failureCount += result.failureCount
 
-        // Remove invalid tokens
+        // Remove failed tokens
         for (let j = 0; j < result.responses.length; j++) {
           const resp = result.responses[j]
-          if (resp.error?.code === 'messaging/invalid-registration-token' ||
-              resp.error?.code === 'messaging/registration-token-not-registered') {
+          if (resp.error) {
             const token = batch[j]
             try {
-              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=like.*${encodeURIComponent(token)}`, {
+              // Match either full URL (old subscriptions) or raw token
+              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?or=(endpoint.eq.${encodeURIComponent(token)},endpoint.like.*${encodeURIComponent(token)})`, {
                 method: 'DELETE',
                 headers: {
                   apikey: config.public.supabaseKey,
