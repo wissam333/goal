@@ -14,6 +14,12 @@ function getFirebaseAdmin(config) {
   return getMessaging()
 }
 
+function extractFcmToken(endpoint, keys) {
+  if (keys?.type === 'fcm' || !endpoint.includes('/fcm/send/')) return endpoint
+  const match = endpoint.match(/\/fcm\/send\/(.+)/)
+  return match ? match[1] : null
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
@@ -29,7 +35,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
     }
 
-    // Fetch all FCM subscriptions
+    // Fetch all subscriptions
     const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?select=endpoint,keys`, {
       headers: {
         apikey: config.public.supabaseKey,
@@ -49,10 +55,10 @@ export default defineEventHandler(async (event) => {
       return { ok: true, sent: 0, message: 'No subscribers.' }
     }
 
-    // Filter FCM subscriptions only
+    // Extract FCM tokens from subscriptions (old: URL format, new: raw token)
     const tokens = subscriptions
-      .filter(s => s.keys?.type === 'fcm' && s.endpoint)
-      .map(s => s.endpoint)
+      .map(s => extractFcmToken(s.endpoint, s.keys))
+      .filter(Boolean)
 
     if (!tokens.length) {
       return { ok: true, sent: 0, message: 'No FCM tokens.' }
@@ -89,7 +95,7 @@ export default defineEventHandler(async (event) => {
               resp.error?.code === 'messaging/registration-token-not-registered') {
             const token = batch[j]
             try {
-              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(token)}`, {
+              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=like.*${encodeURIComponent(token)}`, {
                 method: 'DELETE',
                 headers: {
                   apikey: config.public.supabaseKey,

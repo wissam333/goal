@@ -5,8 +5,8 @@ export default defineNuxtPlugin({
     if (import.meta.client) {
       setTimeout(async () => {
         try {
-          const { subscribe } = usePushNotifications()
-          await subscribe()
+          const push = usePushNotifications()
+          await push.subscribe()
         } catch {}
       }, 2000)
     }
