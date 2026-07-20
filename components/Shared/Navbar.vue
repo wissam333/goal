@@ -23,7 +23,7 @@
           :class="{
             active:
               route.path === item.to ||
-              (item.to !== '/' && route.path.startsWith(item.to)),
+              (item.key !== 'home' && item.to !== '/' && route.path.startsWith(item.to)),
           }"
         >
           <Icon :name="item.icon" size="16" aria-hidden="true" />

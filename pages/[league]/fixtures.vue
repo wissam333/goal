@@ -106,7 +106,7 @@
                         :class="{ winner: isWinner(match, match.homeTeam) }"
                         >{{
                           match.status === "played"
-                            ? (match.homeScore ?? 0)
+                            ? openPlayScore(match, "home")
                             : ""
                         }}</span
                       >
@@ -124,7 +124,7 @@
                         :class="{ winner: isWinner(match, match.awayTeam) }"
                         >{{
                           match.status === "played"
-                            ? (match.awayScore ?? 0)
+                            ? openPlayScore(match, "away")
                             : ""
                         }}</span
                       >
@@ -137,6 +137,7 @@
                   </div>
                   <div class="tl-card-footer">
                     <span class="tl-round">{{ matchGroupLabel(match) }}</span>
+                    <span v-if="scoreBadge(match)" class="tl-result-badge">{{ scoreBadge(match) }}</span>
                   </div>
                 </div>
               </div>
@@ -170,7 +171,7 @@
                   class="lv-score"
                   :class="{ winner: isWinner(match, match.homeTeam) }"
                   >{{
-                    match.status === "played" ? (match.homeScore ?? 0) : ""
+                    match.status === "played" ? openPlayScore(match, "home") : ""
                   }}</span
                 >
               </div>
@@ -184,10 +185,11 @@
                   class="lv-score"
                   :class="{ winner: isWinner(match, match.awayTeam) }"
                   >{{
-                    match.status === "played" ? (match.awayScore ?? 0) : ""
+                    match.status === "played" ? openPlayScore(match, "away") : ""
                   }}</span
                 >
               </div>
+              <div v-if="scoreBadge(match)" class="lv-result-badge">{{ scoreBadge(match) }}</div>
             </div>
             <div class="lv-status">
               <template v-if="match.status === 'live'"
@@ -284,12 +286,24 @@ const filteredMatches = computed(() => {
   return matches.value.filter((m) => m.status === activeFilter.value);
 });
 
+const { isTeamWinner, getOpenPlayScore, formatScoreParts } = useMatchResult();
+
 const isWinner = (match, teamSlug) => {
   if (match.status !== "played") return false;
-  const isHome = match.homeTeam === teamSlug;
-  const scored = isHome ? match.homeScore : match.awayScore;
-  const conceded = isHome ? match.awayScore : match.homeScore;
-  return (scored ?? 0) > (conceded ?? 0);
+  return isTeamWinner(match, teamSlug);
+};
+
+const openPlayScore = (match, side) => {
+  const s = getOpenPlayScore(match);
+  return side === "home" ? (s.home ?? 0) : (s.away ?? 0);
+};
+
+const scoreBadge = (match) => {
+  if (match.status !== "played") return "";
+  const parts = formatScoreParts(match);
+  if (parts.pens) return `${parts.pens} ${parts.badge}`.trim();
+  if (parts.method === "aet") return parts.badge;
+  return "";
 };
 
 const KNOCKOUT_LABELS = {
@@ -716,6 +730,7 @@ useSeoMeta({
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 5px 14px;
   border-top: 1px solid var(--border-color);
 }
@@ -724,6 +739,13 @@ useSeoMeta({
   font-size: 0.68rem;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+.tl-result-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ca8a04;
+  white-space: nowrap;
 }
 
 // ── View toggle ─────────────────────────────────────────────────────────────────
@@ -809,6 +831,13 @@ useSeoMeta({
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+.lv-result-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ca8a04;
+  margin-top: 2px;
 }
 .lv-row {
   display: flex;

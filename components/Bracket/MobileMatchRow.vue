@@ -7,11 +7,16 @@
     >
       <span class="mmr-name">{{ getTeamName(match.homeTeam) }}</span>
       <span class="mmr-score" :class="{ 'mmr-score-win': isWinner(match, match.homeTeam) }">
-        {{ match.homeScore ?? '–' }}
+        {{ openHome }}
       </span>
     </div>
 
-    <div class="mmr-vs">VS</div>
+    <div class="mmr-vs">
+      <span>VS</span>
+      <span v-if="parts.pens || parts.method === 'aet'" class="mmr-extra">
+        {{ parts.pens ? `${parts.pens} ${parts.badge}` : parts.badge }}
+      </span>
+    </div>
 
     <!-- Away: score toward center, name outer edge -->
     <div
@@ -19,7 +24,7 @@
       :class="[isRtl ? 'mmr-away-rtl' : 'mmr-away-ltr', { 'mmr-win': isWinner(match, match.awayTeam) }]"
     >
       <span class="mmr-score" :class="{ 'mmr-score-win': isWinner(match, match.awayTeam) }">
-        {{ match.awayScore ?? '–' }}
+        {{ openAway }}
       </span>
       <span class="mmr-name">{{ getTeamName(match.awayTeam) }}</span>
     </div>
@@ -30,12 +35,18 @@
 const { locale } = useI18n();
 const isRtl = computed(() => locale.value === 'ar');
 
-defineProps({
+const props = defineProps({
   match:       { type: Object,   required: true },
   getTeamName: { type: Function, required: true },
   isWinner:    { type: Function, required: true },
   final:       { type: Boolean,  default: false },
 });
+
+const { getOpenPlayScore, formatScoreParts } = useMatchResult();
+const open = computed(() => getOpenPlayScore(props.match));
+const openHome = computed(() => open.value.home ?? '–');
+const openAway = computed(() => open.value.away ?? '–');
+const parts = computed(() => formatScoreParts(props.match));
 </script>
 
 <style lang="scss" scoped>
@@ -116,13 +127,24 @@ defineProps({
 }
 
 .mmr-vs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.5px;
   flex-shrink: 0;
-  width: 28px;
+  min-width: 36px;
   text-align: center;
+}
+
+.mmr-extra {
+  font-size: 0.58rem;
+  color: #ca8a04;
+  text-transform: none;
+  white-space: nowrap;
 }
 </style>

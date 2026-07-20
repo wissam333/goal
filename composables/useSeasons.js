@@ -64,6 +64,11 @@ export const useSeasons = (leagueId = null) => {
           awayTeam: m.awayTeam,
           homeScore: m.homeScore ?? 0,
           awayScore: m.awayScore ?? 0,
+          homeScoreAET: m.homeScoreAET ?? null,
+          awayScoreAET: m.awayScoreAET ?? null,
+          homePenalties: m.homePenalties ?? null,
+          awayPenalties: m.awayPenalties ?? null,
+          resultMethod: m.resultMethod || "ft",
           group: m.group,
         })),
       champion: null,
@@ -73,13 +78,14 @@ export const useSeasons = (leagueId = null) => {
 
     const finalMatch = allMatches.find(m => m.group === "FINAL" && m.status === "played")
     if (finalMatch) {
-      const { homeTeam, awayTeam, homeScore, awayScore } = finalMatch
-      if ((homeScore ?? 0) > (awayScore ?? 0)) {
-        snapshot.champion = homeTeam
-        snapshot.runnerUp = awayTeam
-      } else if ((awayScore ?? 0) > (homeScore ?? 0)) {
-        snapshot.champion = awayTeam
-        snapshot.runnerUp = homeTeam
+      const { getWinnerSlug } = useMatchResult()
+      const winner = getWinnerSlug(finalMatch)
+      if (winner === finalMatch.homeTeam) {
+        snapshot.champion = finalMatch.homeTeam
+        snapshot.runnerUp = finalMatch.awayTeam
+      } else if (winner === finalMatch.awayTeam) {
+        snapshot.champion = finalMatch.awayTeam
+        snapshot.runnerUp = finalMatch.homeTeam
       }
     }
 

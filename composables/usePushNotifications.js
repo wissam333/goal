@@ -1,12 +1,3 @@
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i)
-  return outputArray
-}
-
 export const usePushNotifications = () => {
   const supported = import.meta.client && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
 
@@ -20,20 +11,19 @@ export const usePushNotifications = () => {
     return result
   }
 
-  async function getPushSubscription() {
+  async function getFcmToken() {
     if (!supported) return null
     try {
+      const { $fcmMessaging } = useNuxtApp()
+      if (!$fcmMessaging) return null
+      const { getToken } = await import('firebase/messaging')
       const reg = await navigator.serviceWorker.ready
       const vapidKey = useRuntimeConfig().public.firebaseVapidKey
-      if (!vapidKey) return null
-      let subscription = await reg.pushManager.getSubscription()
-      if (!subscription) {
-        subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
-        })
-      }
-      return subscription.toJSON()
+      const token = await getToken($fcmMessaging, {
+        vapidKey,
+        serviceWorkerRegistration: reg,
+      })
+      return token
     } catch {
       return null
     }
@@ -41,31 +31,35 @@ export const usePushNotifications = () => {
 
   async function subscribe() {
     if (!supported || permission.value !== 'granted') return null
-    const sub = await getPushSubscription()
-    if (!sub?.endpoint) return null
+    const token = await getFcmToken()
+    if (!token) return null
     try {
       await $fetch('/api/notifications/subscribe', {
         method: 'POST',
-        body: sub,
+        body: { fcmToken: token, keys: { type: 'fcm' } },
       })
       subscribed.value = true
     } catch {
       return null
     }
-    return sub.endpoint
+    return token
   }
 
   async function unsubscribe() {
-    try {
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.getSubscription()
-      if (sub) {
-        const json = sub.toJSON()
+    const token = await getFcmToken()
+    if (token) {
+      try {
         await $fetch('/api/notifications/unsubscribe', {
           method: 'POST',
-          body: { endpoint: json.endpoint },
-        }).catch(() => {})
-        await sub.unsubscribe()
+          body: { endpoint: token },
+        })
+      } catch {}
+    }
+    try {
+      const { $fcmMessaging } = useNuxtApp()
+      if ($fcmMessaging) {
+        const { deleteToken } = await import('firebase/messaging')
+        await deleteToken($fcmMessaging)
       }
     } catch {}
     subscribed.value = false
@@ -73,12 +67,17 @@ export const usePushNotifications = () => {
 
   async function checkSubscription() {
     if (!supported) return
-    try {
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.getSubscription()
-      subscribed.value = !!sub
-    } catch {
-      subscribed.value = false
+    const token = await getFcmToken()
+    if (token) {
+      try {
+        const res = await $fetch('/api/notifications/check', {
+          method: 'POST',
+          body: { fcmToken: token },
+        })
+        subscribed.value = res?.subscribed === true
+      } catch {
+        subscribed.value = false
+      }
     }
   }
 

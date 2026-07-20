@@ -85,7 +85,7 @@
                   <span class="gm-team gm-home">{{ getTeamName(m.homeTeam) }}</span>
                   <span class="gm-score">
                     <template v-if="m.status === 'played'">
-                      {{ m.homeScore }}–{{ m.awayScore }}
+                      {{ formatScore(m) }}
                     </template>
                     <template v-else>
                       <Icon name="mdi:calendar-clock-outline" size="13" />
@@ -268,12 +268,11 @@ const hasKnockout = computed(
   () => quarterfinals.value.length > 0 || semifinals.value.length > 0 || finals.value.length > 0,
 );
 
+const { isTeamWinner, formatScore } = useMatchResult();
+
 const isWinner = (match, teamSlug) => {
   if (match.status !== "played") return false;
-  const isHome = match.homeTeam === teamSlug;
-  const scored = isHome ? match.homeScore : match.awayScore;
-  const conceded = isHome ? match.awayScore : match.homeScore;
-  return (scored ?? 0) > (conceded ?? 0);
+  return isTeamWinner(match, teamSlug);
 };
 
 useSeoMeta({

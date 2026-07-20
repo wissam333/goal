@@ -53,7 +53,7 @@
       </template>
       <template #cell-score="{ row }">
         <span v-if="row.computedStatus === 'played'" class="score-text">
-          {{ row.homeScore }} - {{ row.awayScore }}
+          {{ formatScore(row) }}
         </span>
         <span v-else class="text-muted">—</span>
       </template>
@@ -103,38 +103,119 @@
             placeholder="اختر الفريق"
           />
           <template v-if="form.date && computeStatus(form.date) !== 'upcoming'">
-            <div class="scoreboard">
-              <div class="score-team score-home">
-                <span
-                  class="score-team-dot"
-                  :style="{ background: getTeamColor(form.homeTeam) }"
-                ></span>
-                <span class="score-team-name">{{
-                  getTeamTitle(form.homeTeam)
-                }}</span>
+            <div class="scoreboard-block">
+              <div class="score-section-label">نتيجة الوقت الأصلي (90 دقيقة)</div>
+              <div class="scoreboard">
+                <div class="score-team score-home">
+                  <span
+                    class="score-team-dot"
+                    :style="{ background: getTeamColor(form.homeTeam) }"
+                  ></span>
+                  <span class="score-team-name">{{
+                    getTeamTitle(form.homeTeam)
+                  }}</span>
+                </div>
+                <div class="score-inputs">
+                  <SharedUiFormBaseInput
+                    v-model="form.homeScore"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                  />
+                  <span class="score-dash">–</span>
+                  <SharedUiFormBaseInput
+                    v-model="form.awayScore"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                <div class="score-team score-away">
+                  <span
+                    class="score-team-dot"
+                    :style="{ background: getTeamColor(form.awayTeam) }"
+                  ></span>
+                  <span class="score-team-name">{{
+                    getTeamTitle(form.awayTeam)
+                  }}</span>
+                </div>
               </div>
-              <div class="score-inputs">
-                <SharedUiFormBaseInput
-                  v-model="form.homeScore"
-                  type="number"
-                  placeholder="0"
-                />
-                <span class="score-dash">–</span>
-                <SharedUiFormBaseInput
-                  v-model="form.awayScore"
-                  type="number"
-                  placeholder="0"
-                />
+
+              <div class="result-method-block">
+                <div class="score-section-label">كيف انتهت المباراة؟</div>
+                <div class="result-method-tabs" role="tablist">
+                  <button
+                    type="button"
+                    class="result-method-tab"
+                    :class="{ active: form.resultMethod === 'ft' }"
+                    @click="form.resultMethod = 'ft'"
+                  >
+                    الوقت الأصلي
+                  </button>
+                  <button
+                    type="button"
+                    class="result-method-tab"
+                    :class="{ active: form.resultMethod === 'aet' }"
+                    @click="form.resultMethod = 'aet'"
+                  >
+                    وقت إضافي
+                  </button>
+                  <button
+                    type="button"
+                    class="result-method-tab"
+                    :class="{ active: form.resultMethod === 'pen' }"
+                    @click="form.resultMethod = 'pen'"
+                  >
+                    ركلات ترجيح
+                  </button>
+                </div>
               </div>
-              <div class="score-team score-away">
-                <span
-                  class="score-team-dot"
-                  :style="{ background: getTeamColor(form.awayTeam) }"
-                ></span>
-                <span class="score-team-name">{{
-                  getTeamTitle(form.awayTeam)
-                }}</span>
-              </div>
+
+              <template v-if="form.resultMethod === 'aet' || form.resultMethod === 'pen'">
+                <div class="score-section-label">
+                  النتيجة بعد الوقت الإضافي
+                  <span class="score-hint">(المجموع الكلي شامل الـ 90 دقيقة)</span>
+                </div>
+                <div class="scoreboard scoreboard-sub">
+                  <div class="score-inputs">
+                    <SharedUiFormBaseInput
+                      v-model="form.homeScoreAET"
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                    />
+                    <span class="score-dash">–</span>
+                    <SharedUiFormBaseInput
+                      v-model="form.awayScoreAET"
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </template>
+
+              <template v-if="form.resultMethod === 'pen'">
+                <div class="score-section-label">ركلات الترجيح</div>
+                <div class="scoreboard scoreboard-sub scoreboard-pen">
+                  <div class="score-inputs">
+                    <SharedUiFormBaseInput
+                      v-model="form.homePenalties"
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                    />
+                    <span class="score-dash">–</span>
+                    <SharedUiFormBaseInput
+                      v-model="form.awayPenalties"
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                  <span class="pen-badge">ر.ت.</span>
+                </div>
+              </template>
             </div>
           </template>
           <template v-if="form.homeTeam && form.awayTeam">
@@ -570,6 +651,15 @@ definePageMeta({ layout: "admin-layer2" });
 
 const admin = useAdminData();
 const { awardPoints } = usePredictionPoints();
+const {
+  formatScore,
+  getWinnerSlug,
+  getOpenPlayScore,
+  getOpenPlayGoalTotal,
+  getOpenPlayTeamGoals,
+  buildResultFields,
+  validateResultForm,
+} = useMatchResult();
 const siteUrl = useRuntimeConfig().public.siteUrl;
 
 const teams = ref([]);
@@ -650,7 +740,15 @@ async function sendNotif(type) {
     }
 
     sendingNotif.value = true;
+    const resultErr = validateResultForm(form);
+    if (resultErr) {
+      showAlert("error", "خطأ", resultErr);
+      sendingNotif.value = false;
+      return;
+    }
+
     const matchDate = form.date ? new Date(form.date).toISOString() : null;
+    const resultFields = buildResultFields(form, { isUpcoming: false });
     const matchObj = {
       slug: editingMatch.value?.slug || generateSlug(),
       title: generateTitle(),
@@ -660,8 +758,7 @@ async function sendNotif(type) {
       status: "played",
       homeTeam: form.homeTeam,
       awayTeam: form.awayTeam,
-      homeScore: Number(form.homeScore) || 0,
-      awayScore: Number(form.awayScore) || 0,
+      ...resultFields,
       goalScorers: goalScorers.value.map((g) => ({
         player: g.player,
         team: g.team,
@@ -690,7 +787,7 @@ async function sendNotif(type) {
       }
 
       const title = "✅ انتهت المباراة";
-      const body = `انتهت مباراة ${homeTitle} ${matchObj.homeScore} - ${matchObj.awayScore} ${awayTitle}`;
+      const body = `انتهت مباراة ${homeTitle} ${formatScore(matchObj)} ${awayTitle}`;
       notifCenter.add({ title, body, url: matchUrl });
       await $fetch("/api/notifications/send", {
         method: "POST",
@@ -722,9 +819,20 @@ async function sendNotif(type) {
     return;
   }
 
+  if (computeStatus(form.date) !== "upcoming") {
+    const resultErr = validateResultForm(form);
+    if (resultErr) {
+      showAlert("error", "خطأ", resultErr);
+      return;
+    }
+  }
+
   sendingNotif.value = true;
   const matchDate = form.date ? new Date(form.date).toISOString() : null;
   const matchStatus = computeStatus(matchDate);
+  const resultFields = buildResultFields(form, {
+    isUpcoming: matchStatus === "upcoming",
+  });
   const matchObj = {
     slug: editingMatch.value?.slug || generateSlug(),
     title: generateTitle(),
@@ -734,8 +842,7 @@ async function sendNotif(type) {
     status: matchStatus,
     homeTeam: form.homeTeam,
     awayTeam: form.awayTeam,
-    homeScore: matchStatus !== "upcoming" ? Number(form.homeScore) : null,
-    awayScore: matchStatus !== "upcoming" ? Number(form.awayScore) : null,
+    ...resultFields,
     goalScorers: goalScorers.value.map((g) => ({
       player: g.player,
       team: g.team,
@@ -763,7 +870,7 @@ async function sendNotif(type) {
     }
 
     const title = "✅ نتيجة المباراة";
-    const body = `${homeTitle} ${matchObj.homeScore ?? 0} - ${matchObj.awayScore ?? 0} ${awayTitle}`;
+    const body = `${homeTitle} ${formatScore(matchObj)} ${awayTitle}`;
     notifCenter.add({ title, body, url: matchUrl });
     await $fetch("/api/notifications/send", {
       method: "POST",
@@ -804,15 +911,20 @@ function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
     notifBody = `انطلقت مباراة ${matchTitle}`;
   } else if (oldMatch.status !== "played" && newStatus === "played") {
     notifTitle = "✅ انتهت المباراة";
-    notifBody = `${matchTitle} (${matchObj.homeScore} - ${matchObj.awayScore})`;
+    notifBody = `${matchTitle} (${formatScore(matchObj)})`;
   } else if (
     oldMatch.status === "played" &&
     newStatus === "played" &&
     (oldMatch.homeScore !== matchObj.homeScore ||
-      oldMatch.awayScore !== matchObj.awayScore)
+      oldMatch.awayScore !== matchObj.awayScore ||
+      oldMatch.homeScoreAET !== matchObj.homeScoreAET ||
+      oldMatch.awayScoreAET !== matchObj.awayScoreAET ||
+      oldMatch.homePenalties !== matchObj.homePenalties ||
+      oldMatch.awayPenalties !== matchObj.awayPenalties ||
+      oldMatch.resultMethod !== matchObj.resultMethod)
   ) {
     notifTitle = "🔄 تم تحديث النتيجة";
-    notifBody = `تحديث نتيجة ${matchTitle}: ${matchObj.homeScore} - ${matchObj.awayScore}`;
+    notifBody = `تحديث نتيجة ${matchTitle}: ${formatScore(matchObj)}`;
   }
 
   if (!notifTitle) return;
@@ -840,6 +952,11 @@ const form = reactive({
   awayTeam: "",
   homeScore: null,
   awayScore: null,
+  homeScoreAET: null,
+  awayScoreAET: null,
+  homePenalties: null,
+  awayPenalties: null,
+  resultMethod: "ft",
   motmWinner: "",
 });
 
@@ -851,6 +968,11 @@ const defaultForm = () => ({
   awayTeam: "",
   homeScore: null,
   awayScore: null,
+  homeScoreAET: null,
+  awayScoreAET: null,
+  homePenalties: null,
+  awayPenalties: null,
+  resultMethod: "ft",
   motmWinner: "",
 });
 
@@ -916,36 +1038,42 @@ const addGoalScorer = (team) => {
   });
 };
 
-const totalGoals = computed(
-  () => (Number(form.homeScore) || 0) + (Number(form.awayScore) || 0),
-);
+const totalGoals = computed(() => getOpenPlayGoalTotal(form));
 
-// Auto-create empty goal scorer rows when score is set
-watch([() => form.homeScore, () => form.awayScore], ([newHome, newAway]) => {
-  if (!form.homeTeam || !form.awayTeam) return;
-  const nh = Number(newHome) || 0;
-  const na = Number(newAway) || 0;
-  while (
-    goalScorers.value.filter((g) => g.team === form.homeTeam).length < nh
-  ) {
-    goalScorers.value.push({
-      player: "",
-      team: form.homeTeam,
-      minute: "",
-      _key: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-    });
-  }
-  while (
-    goalScorers.value.filter((g) => g.team === form.awayTeam).length < na
-  ) {
-    goalScorers.value.push({
-      player: "",
-      team: form.awayTeam,
-      minute: "",
-      _key: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-    });
-  }
-});
+// Auto-create empty goal scorer rows when open-play score changes (FT or AET)
+watch(
+  [
+    () => form.homeScore,
+    () => form.awayScore,
+    () => form.homeScoreAET,
+    () => form.awayScoreAET,
+    () => form.resultMethod,
+  ],
+  () => {
+    if (!form.homeTeam || !form.awayTeam) return;
+    const { home: nh, away: na } = getOpenPlayTeamGoals(form);
+    while (
+      goalScorers.value.filter((g) => g.team === form.homeTeam).length < nh
+    ) {
+      goalScorers.value.push({
+        player: "",
+        team: form.homeTeam,
+        minute: "",
+        _key: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+      });
+    }
+    while (
+      goalScorers.value.filter((g) => g.team === form.awayTeam).length < na
+    ) {
+      goalScorers.value.push({
+        player: "",
+        team: form.awayTeam,
+        minute: "",
+        _key: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+      });
+    }
+  },
+);
 
 const onPlayerSelect = (index, playerSlug) => {
   if (playerSlug) {
@@ -1090,15 +1218,17 @@ function computeStandingsForGroup(group) {
     const h = table[m.homeTeam];
     const a = table[m.awayTeam];
     if (!h || !a) continue;
-    const hg = Number(m.homeScore);
-    const ag = Number(m.awayScore);
+    const open = getOpenPlayScore(m);
+    const hg = open.home ?? 0;
+    const ag = open.away ?? 0;
     h.gf += hg;
     h.ga += ag;
     a.gf += ag;
     a.ga += hg;
-    if (hg > ag) {
+    const winner = getWinnerSlug(m);
+    if (winner === m.homeTeam) {
       h.pts += 3;
-    } else if (hg < ag) {
+    } else if (winner === m.awayTeam) {
       a.pts += 3;
     } else {
       h.pts += 1;
@@ -1123,9 +1253,8 @@ function getQualifiedTeams() {
 function getStageWinners(stage) {
   return matches.value
     .filter((m) => m.group === stage && m.homeScore != null)
-    .map((m) =>
-      Number(m.homeScore) > Number(m.awayScore) ? m.homeTeam : m.awayTeam,
-    );
+    .map((m) => getWinnerSlug(m))
+    .filter(Boolean);
 }
 
 function getStageParticipants(stage) {
@@ -1379,6 +1508,11 @@ const openEditModal = (match) => {
   form.awayTeam = match.awayTeam;
   form.homeScore = match.homeScore;
   form.awayScore = match.awayScore;
+  form.homeScoreAET = match.homeScoreAET ?? null;
+  form.awayScoreAET = match.awayScoreAET ?? null;
+  form.homePenalties = match.homePenalties ?? null;
+  form.awayPenalties = match.awayPenalties ?? null;
+  form.resultMethod = match.resultMethod || "ft";
   form.motmWinner = match.motmWinner || "";
   if (match.goalScorers?.length) {
     goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers)).map(
@@ -1423,7 +1557,18 @@ const handleSave = async () => {
   const matchDate = form.date ? new Date(form.date).toISOString() : null;
   const matchStatus = computeStatus(matchDate);
 
+  if (matchStatus !== "upcoming") {
+    const resultErr = validateResultForm(form);
+    if (resultErr) {
+      showAlert("error", "خطأ", resultErr);
+      return;
+    }
+  }
+
   saving.value = true;
+  const resultFields = buildResultFields(form, {
+    isUpcoming: matchStatus === "upcoming",
+  });
   const matchObj = {
     slug: editingMatch.value?.slug || generateSlug(),
     title: generateTitle(),
@@ -1433,8 +1578,7 @@ const handleSave = async () => {
     status: matchStatus,
     homeTeam: form.homeTeam,
     awayTeam: form.awayTeam,
-    homeScore: matchStatus !== "upcoming" ? Number(form.homeScore) : null,
-    awayScore: matchStatus !== "upcoming" ? Number(form.awayScore) : null,
+    ...resultFields,
     motmWinner: form.motmWinner || null,
     photos: editingMatch.value?.photos || [],
     videos: editingMatch.value?.videos || [],
@@ -1703,8 +1847,30 @@ const handleDelete = async (match) => {
 }
 
 /* Scoreboard */
-.scoreboard {
+.scoreboard-block {
   grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.score-section-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.score-hint {
+  font-weight: 500;
+  opacity: 0.8;
+  font-size: 0.72rem;
+}
+
+.scoreboard {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1713,6 +1879,61 @@ const handleDelete = async (match) => {
   background: var(--bg-elevated);
   border-radius: 12px;
   border: 1px solid var(--border-color);
+}
+
+.scoreboard-sub {
+  padding: 12px;
+}
+
+.scoreboard-pen {
+  border-color: rgba(234, 179, 8, 0.35);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.08), var(--bg-elevated));
+}
+
+.pen-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ca8a04;
+  background: rgba(234, 179, 8, 0.15);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.result-method-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-method-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.result-method-tab {
+  flex: 1;
+  min-width: 100px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
 }
 
 .score-team {

@@ -14,7 +14,7 @@ export default defineNuxtConfig({
 
   pwa: {
     registerType: "autoUpdate",
-    includeAssets: ["logo.png", "favicon.svg"],
+    includeAssets: ["logo.png", "favicon.svg", "notification-icon.png", "notification-badge.png"],
     manifest: {
       name: "Green Ball",
       short_name: "Green Ball",
@@ -164,7 +164,11 @@ export default defineNuxtConfig({
       siteUrl:
         process.env.NUXT_PUBLIC_SITE_URL ||
         "https://goal.wissam-n-najjom.workers.dev",
+      firebaseApiKey: process.env.FIREBASE_API_KEY || "",
+      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
       firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "",
+      firebaseAppId: process.env.FIREBASE_APP_ID || "",
+      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
       firebaseVapidKey: process.env.FIREBASE_VAPID_KEY || "",
       leagueName: "دوري القرية السنوي",
       season: "2026",

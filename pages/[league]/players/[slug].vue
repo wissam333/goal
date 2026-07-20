@@ -319,22 +319,23 @@ const getOpponentSlug = (match) =>
 const getOpponentName = (match) =>
   teamMap.value[getOpponentSlug(match)]?.title || getOpponentSlug(match);
 
-const getTeamScore = (match) =>
-  match.homeTeam === player.value?.team
-    ? (match.homeScore ?? 0)
-    : (match.awayScore ?? 0);
+const { getOpenPlayScore, getWinnerSlug } = useMatchResult();
 
-const getOppScore = (match) =>
-  match.homeTeam === player.value?.team
-    ? (match.awayScore ?? 0)
-    : (match.homeScore ?? 0);
+const getTeamScore = (match) => {
+  const s = getOpenPlayScore(match);
+  return match.homeTeam === player.value?.team ? (s.home ?? 0) : (s.away ?? 0);
+};
+
+const getOppScore = (match) => {
+  const s = getOpenPlayScore(match);
+  return match.homeTeam === player.value?.team ? (s.away ?? 0) : (s.home ?? 0);
+};
 
 const getResult = (match) => {
-  const ts = getTeamScore(match);
-  const os = getOppScore(match);
-  if (ts > os) return "W";
-  if (ts === os) return "D";
-  return "L";
+  const winner = getWinnerSlug(match);
+  const team = player.value?.team;
+  if (!winner) return "D";
+  return winner === team ? "W" : "L";
 };
 
 // Date formatting

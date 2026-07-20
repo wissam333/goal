@@ -2,7 +2,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { fcmToken } = body
   if (!fcmToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing fcmToken' })
+    return { ok: false, subscribed: false }
   }
 
   const config = useRuntimeConfig()
@@ -16,8 +16,7 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  if (!res.ok) throw createError({ statusCode: 500, statusMessage: 'Check failed' })
+  if (!res.ok) return { ok: false, subscribed: false }
   const data = await res.json()
-  if (!data?.length) throw createError({ statusCode: 404, statusMessage: 'Not subscribed' })
-  return { ok: true }
+  return { ok: true, subscribed: data?.length > 0 }
 })

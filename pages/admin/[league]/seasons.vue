@@ -95,7 +95,7 @@
         <div class="group-matches">
           <div v-for="m in getGroupMatches(group)" :key="m.homeTeam + m.awayTeam" class="gm-row">
             <span class="gm-team">{{ getTeamName(m.homeTeam) }}</span>
-            <span class="gm-score">{{ m.homeScore }}–{{ m.awayScore }}</span>
+            <span class="gm-score">{{ formatScore(m) }}</span>
             <span class="gm-team gm-team-away">{{ getTeamName(m.awayTeam) }}</span>
           </div>
           <div v-if="!getGroupMatches(group).length" class="gm-empty">لا توجد مباريات</div>
@@ -119,12 +119,13 @@
               <div class="ko-teams">
                 <div class="ko-team" :class="{ 'ko-win': isKnockoutWinner(m, m.homeTeam) }">
                   <span class="ko-name">{{ getTeamName(m.homeTeam) }}</span>
-                  <span class="ko-score" :class="{ 'ko-score-win': isKnockoutWinner(m, m.homeTeam) }">{{ m.homeScore }}</span>
+                  <span class="ko-score" :class="{ 'ko-score-win': isKnockoutWinner(m, m.homeTeam) }">{{ openPlayScore(m, 'home') }}</span>
                 </div>
                 <div class="ko-team" :class="{ 'ko-win': isKnockoutWinner(m, m.awayTeam) }">
-                  <span class="ko-score" :class="{ 'ko-score-win': isKnockoutWinner(m, m.awayTeam) }">{{ m.awayScore }}</span>
+                  <span class="ko-score" :class="{ 'ko-score-win': isKnockoutWinner(m, m.awayTeam) }">{{ openPlayScore(m, 'away') }}</span>
                   <span class="ko-name">{{ getTeamName(m.awayTeam) }}</span>
                 </div>
+                <div v-if="scoreBadge(m)" class="ko-result-badge">{{ scoreBadge(m) }}</div>
               </div>
             </div>
           </div>
@@ -261,12 +262,28 @@ const knockoutRounds = computed(() => {
 
 const knockoutMatches = computed(() => snapshotMatches.value.filter(m => ["QF", "SF", "F"].includes(m.group)))
 
+const {
+  isTeamWinner,
+  formatScore,
+  getOpenPlayScore,
+  formatScoreParts,
+} = useMatchResult()
+
 const isKnockoutWinner = (match, teamSlug) => {
   if (!match) return false
-  const isHome = match.homeTeam === teamSlug
-  const scored = isHome ? match.homeScore : match.awayScore
-  const conceded = isHome ? match.awayScore : match.homeScore
-  return (scored ?? 0) > (conceded ?? 0)
+  return isTeamWinner(match, teamSlug)
+}
+
+const openPlayScore = (match, side) => {
+  const s = getOpenPlayScore(match)
+  return side === 'home' ? (s.home ?? '–') : (s.away ?? '–')
+}
+
+const scoreBadge = (match) => {
+  const parts = formatScoreParts(match)
+  if (parts.pens) return `${parts.pens} ${parts.badge}`.trim()
+  if (parts.method === 'aet') return parts.badge
+  return ''
 }
 
 const formatDate = (d) => {
@@ -472,6 +489,13 @@ const handleStartSeason = async () => {
   flex-shrink: 0; font-size: 0.85rem; font-weight: 700;
   color: var(--text-muted); min-width: 24px; text-align: center;
   &.ko-score-win { color: var(--primary); font-weight: 800; }
+}
+.ko-result-badge {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ca8a04;
 }
 
 // ── Modal ──

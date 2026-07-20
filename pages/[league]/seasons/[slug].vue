@@ -69,7 +69,7 @@
         <div class="group-matches">
           <div v-for="m in groupMatches(group)" :key="m.homeTeam + m.awayTeam" class="gm-row">
             <span class="gm-team">{{ teamName(m.homeTeam) }}</span>
-            <span class="gm-score">{{ m.homeScore }}–{{ m.awayScore }}</span>
+            <span class="gm-score">{{ formatScore(m) }}</span>
             <span class="gm-team gm-team-away">{{ teamName(m.awayTeam) }}</span>
           </div>
           <div v-if="!groupMatches(group).length" class="gm-empty">لا توجد مباريات</div>
@@ -82,7 +82,7 @@
         <div v-for="m in knockoutMatches" :key="m.homeTeam + m.awayTeam" class="ko-match">
           <div class="ko-teams">
             <span class="ko-team" :class="{ 'ko-winner': winner(m, m.homeTeam) }">{{ teamName(m.homeTeam) }}</span>
-            <span class="ko-score">{{ m.homeScore }}–{{ m.awayScore }}</span>
+            <span class="ko-score">{{ formatScore(m) }}</span>
             <span class="ko-team" :class="{ 'ko-winner': winner(m, m.awayTeam) }">{{ teamName(m.awayTeam) }}</span>
           </div>
           <span class="ko-round-badge">{{ m.group }}</span>
@@ -106,11 +106,9 @@ const groupTeams = computed(() => snapshot.value?.teams || [])
 const groupMatchesArr = computed(() => snapshot.value?.matches || [])
 const knockoutMatches = computed(() => groupMatchesArr.value.filter(m => ['QF', 'SF', 'F'].includes(m.group)))
 
+const { isTeamWinner, formatScore, getWinnerSlug, getOpenPlayScore, getTeamOutcome } = useMatchResult()
 const teamName = (slug) => groupTeams.value.find(t => t.slug === slug)?.title || slug
-const winner = (m, team) => {
-  if (m.homeScore == null || m.awayScore == null) return false
-  return (team === m.homeTeam && m.homeScore > m.awayScore) || (team === m.awayTeam && m.awayScore > m.homeScore)
-}
+const winner = (m, team) => isTeamWinner(m, team)
 
 const groupMatches = (group) => groupMatchesArr.value.filter(m => m.group === group)
 
@@ -125,10 +123,12 @@ const standings = (group) => {
     const h = map[m.homeTeam]; const a = map[m.awayTeam]
     if (!h || !a) continue
     h.P++; a.P++
-    h.GF += m.homeScore; h.GA += m.awayScore
-    a.GF += m.awayScore; a.GA += m.homeScore
-    if (m.homeScore > m.awayScore) { h.W++; h.Pts += 3; a.L++ }
-    else if (m.awayScore > m.homeScore) { a.W++; a.Pts += 3; h.L++ }
+    const open = getOpenPlayScore(m)
+    h.GF += open.home || 0; h.GA += open.away || 0
+    a.GF += open.away || 0; a.GA += open.home || 0
+    const w = getWinnerSlug(m)
+    if (w === m.homeTeam) { h.W++; h.Pts += 3; a.L++ }
+    else if (w === m.awayTeam) { a.W++; a.Pts += 3; h.L++ }
     else { h.D++; a.D++; h.Pts++; a.Pts++ }
   }
   return Object.values(map).map(s => ({ ...s, GD: s.GF - s.GA })).sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF)

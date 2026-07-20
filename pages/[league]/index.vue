@@ -93,7 +93,7 @@
                 <span class="live-dot" /> {{ $t('match.live') }}
               </span>
               <span v-if="nextMatch.homeScore != null" class="hero-live-score">
-                {{ nextMatch.homeScore }} - {{ nextMatch.awayScore }}
+                {{ formatScore(nextMatch) }}
               </span>
             </template>
             <template v-else>
@@ -216,15 +216,16 @@
             <div class="last-score">
               <span
                 class="last-num"
-                :class="{ winner: lastMatch.homeScore > lastMatch.awayScore }"
-                >{{ lastMatch.homeScore }}</span
+                :class="{ winner: isTeamWinner(lastMatch, lastMatch.homeTeam) }"
+                >{{ openPlayScore(lastMatch, 'home') }}</span
               >
               <span class="last-sep">–</span>
               <span
                 class="last-num"
-                :class="{ winner: lastMatch.awayScore > lastMatch.homeScore }"
-                >{{ lastMatch.awayScore }}</span
+                :class="{ winner: isTeamWinner(lastMatch, lastMatch.awayTeam) }"
+                >{{ openPlayScore(lastMatch, 'away') }}</span
               >
+              <span v-if="scoreBadge(lastMatch)" class="last-result-badge">{{ scoreBadge(lastMatch) }}</span>
             </div>
 
             <div class="last-team right">
@@ -524,12 +525,29 @@ const countdownText = computed(() => {
   return locale.value === 'ar' ? `${mins}د` : `${mins}m`
 })
 
+const {
+  isTeamWinner,
+  getWinnerSlug,
+  getOpenPlayScore,
+  formatScore,
+  formatScoreParts,
+} = useMatchResult();
+
+const openPlayScore = (match, side) => {
+  const s = getOpenPlayScore(match);
+  return side === "home" ? (s.home ?? 0) : (s.away ?? 0);
+};
+
+const scoreBadge = (match) => {
+  const parts = formatScoreParts(match);
+  if (parts.pens) return `${parts.pens} ${parts.badge}`.trim();
+  if (parts.method === "aet") return parts.badge;
+  return "";
+};
+
 const champion = computed(() => {
   if (!finalMatch.value || finalMatch.value.status !== "played") return null;
-  const home = finalMatch.value.homeScore ?? 0;
-  const away = finalMatch.value.awayScore ?? 0;
-  if (home === away) return null;
-  return home > away ? finalMatch.value.homeTeam : finalMatch.value.awayTeam;
+  return getWinnerSlug(finalMatch.value);
 });
 
 const teamMap = computed(() => {
@@ -1116,6 +1134,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .last-num {
@@ -1133,6 +1152,18 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-size: 1rem;
   color: var(--text-muted);
   font-weight: 400;
+}
+
+.last-result-badge {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ca8a04;
+  white-space: nowrap;
 }
 
 .last-meta {

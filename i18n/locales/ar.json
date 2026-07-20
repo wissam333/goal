@@ -111,7 +111,22 @@
     "h2h": "المواجهات المباشرة",
     "venue": "الملعب",
     "viewDetails": "عرض التفاصيل",
-    "cards": "البطاقات"
+    "cards": "البطاقات",
+    "resultFt": "الوقت الأصلي",
+    "resultAet": "وقت إضافي",
+    "resultPen": "ركلات ترجيح",
+    "afterExtraTime": "ب.و.إ",
+    "onPenalties": "ر.ت.",
+    "endedAet": "انتهت بالوقت الإضافي",
+    "endedPen": "انتهت بركلات الترجيح",
+    "regulationScore": "نتيجة الوقت الأصلي",
+    "aetScore": "النتيجة بعد الوقت الإضافي",
+    "penScore": "ركلات الترجيح",
+    "howDecided": "كيف انتهت المباراة؟",
+    "winner": "الفائز",
+    "wonOnPens": "فاز بركلات الترجيح",
+    "wonOnAet": "فاز بالوقت الإضافي",
+    "penaltiesShort": "ركلات الترجيح"
   },
   "home": {
     "nextMatch": "المباراة القادمة",

@@ -164,7 +164,7 @@
             <span class="match-opp-name">{{ getOpponentName(match) }}</span>
 
             <div class="match-score-block">
-              <span class="ms-score">{{ getTeamScore(match) }} – {{ getOppScore(match) }}</span>
+              <span class="ms-score">{{ formatScore(match) }}</span>
               <span class="ms-result" :class="`result-${getResult(match).toLowerCase()}`">
                 {{ getResult(match) }}
               </span>
@@ -274,17 +274,21 @@ const upcomingMatches = computed(() =>
     .slice(0, 3)
 );
 
-// Stats calculation
+const { getTeamOutcome, getOpenPlayScore, formatScore } = useMatchResult();
+
+// Stats calculation — W/D/L respects penalties / AET
 const teamStats = computed(() => {
   let W = 0, D = 0, L = 0, GF = 0, GA = 0;
   teamMatches.value.filter(m => m.status === 'played').forEach(m => {
     const isHome = m.homeTeam === slug.value;
-    const scored = isHome ? (m.homeScore || 0) : (m.awayScore || 0);
-    const conceded = isHome ? (m.awayScore || 0) : (m.homeScore || 0);
+    const open = getOpenPlayScore(m);
+    const scored = isHome ? (open.home || 0) : (open.away || 0);
+    const conceded = isHome ? (open.away || 0) : (open.home || 0);
     GF += scored; GA += conceded;
-    if (scored > conceded) W++;
-    else if (scored === conceded) D++;
-    else L++;
+    const outcome = getTeamOutcome(m, slug.value);
+    if (outcome === 'W') W++;
+    else if (outcome === 'D') D++;
+    else if (outcome === 'L') L++;
   });
   const Pts = W * 3 + D;
   return [
@@ -305,19 +309,17 @@ const getOpponentName = (match) =>
 const getOpponentLogo = (match) =>
   teamMap.value[getOpponentSlug(match)]?.logo || null;
 
-const getTeamScore = (match) =>
-  match.homeTeam === slug.value ? (match.homeScore ?? 0) : (match.awayScore ?? 0);
-
-const getOppScore = (match) =>
-  match.homeTeam === slug.value ? (match.awayScore ?? 0) : (match.homeScore ?? 0);
-
-const getResult = (match) => {
-  const ts = getTeamScore(match);
-  const os = getOppScore(match);
-  if (ts > os) return 'W';
-  if (ts === os) return 'D';
-  return 'L';
+const getTeamScore = (match) => {
+  const s = getOpenPlayScore(match);
+  return match.homeTeam === slug.value ? (s.home ?? 0) : (s.away ?? 0);
 };
+
+const getOppScore = (match) => {
+  const s = getOpenPlayScore(match);
+  return match.homeTeam === slug.value ? (s.away ?? 0) : (s.home ?? 0);
+};
+
+const getResult = (match) => getTeamOutcome(match, slug.value) || 'D';
 
 // Date formatting
 const dateFnsLocale = computed(() => locale.value === 'ar' ? syrianAr : enUS);

@@ -5,7 +5,7 @@ export const usePredictionPoints = () => {
   const awardPoints = async (matchSlug) => {
     const { data: match } = await supabase
       .from("matches")
-      .select("homeTeam, awayTeam, homeScore, awayScore, motmWinner, status")
+      .select("homeTeam, awayTeam, homeScore, awayScore, homeScoreAET, awayScoreAET, homePenalties, awayPenalties, resultMethod, motmWinner, status")
       .eq("slug", matchSlug)
       .single()
 
@@ -15,13 +15,10 @@ export const usePredictionPoints = () => {
     const allIds = new Set()
 
     // 1. Award points for correct match predictions (winner or draw)
-    const homeScore = Number(match.homeScore)
-    const awayScore = Number(match.awayScore)
-
-    let predictedTeam = null
-    if (homeScore > awayScore) predictedTeam = match.homeTeam
-    else if (awayScore > homeScore) predictedTeam = match.awayTeam
-    else predictedTeam = "__draw__"
+    // Uses final winner including pens — not a false draw after shootout
+    const { getPredictionOutcome } = useMatchResult()
+    const predictedTeam = getPredictionOutcome(match)
+    if (!predictedTeam) return { awarded: 0 }
 
     const { data: predictions } = await supabase
       .from("match_predictions")

@@ -3,26 +3,36 @@
     <div class="kmc-row" :class="{ 'kmc-win': isWinner(match, match.homeTeam) }">
       <span class="kmc-name">{{ getTeamName(match.homeTeam) }}</span>
       <span class="kmc-chip" :class="{ 'kmc-chip-win': isWinner(match, match.homeTeam) }">
-        {{ match.homeScore ?? '–' }}
+        {{ openHome }}
       </span>
     </div>
     <div class="kmc-divider" />
     <div class="kmc-row" :class="{ 'kmc-win': isWinner(match, match.awayTeam) }">
       <span class="kmc-name">{{ getTeamName(match.awayTeam) }}</span>
       <span class="kmc-chip" :class="{ 'kmc-chip-win': isWinner(match, match.awayTeam) }">
-        {{ match.awayScore ?? '–' }}
+        {{ openAway }}
       </span>
+    </div>
+    <div v-if="parts.pens || parts.method === 'aet'" class="kmc-extra">
+      <span v-if="parts.pens">{{ parts.pens }} {{ parts.badge }}</span>
+      <span v-else>{{ parts.badge }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   match:       { type: Object,   required: true },
   getTeamName: { type: Function, required: true },
   isWinner:    { type: Function, required: true },
   final:       { type: Boolean,  default: false },
 });
+
+const { getOpenPlayScore, formatScoreParts } = useMatchResult();
+const open = computed(() => getOpenPlayScore(props.match));
+const openHome = computed(() => open.value.home ?? '–');
+const openAway = computed(() => open.value.away ?? '–');
+const parts = computed(() => formatScoreParts(props.match));
 </script>
 
 <style lang="scss" scoped>
@@ -100,6 +110,15 @@ defineProps({
   height: 1px;
   background: var(--border-color);
   margin: 3px 0;
+}
+
+.kmc-extra {
+  margin-top: 4px;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ca8a04;
+  letter-spacing: 0.2px;
 }
 
   @media (max-width: 520px) {

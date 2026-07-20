@@ -1,4 +1,6 @@
 export const useStandings = () => {
+  const { getTeamOutcome, getOpenPlayScore } = useMatchResult()
+
   const calculateStandings = (teamList, allMatches) => {
     if (!teamList || !allMatches) return []
     return teamList
@@ -18,17 +20,22 @@ export const useStandings = () => {
 
         sorted.forEach((m) => {
           const isHome = m.homeTeam === team.slug
-          const scored = isHome ? (m.homeScore || 0) : (m.awayScore || 0)
-          const conceded = isHome ? (m.awayScore || 0) : (m.homeScore || 0)
+          // GF/GA from open-play (regulation or AET totals) — never pens
+          const open = getOpenPlayScore(m)
+          const scored = isHome ? (open.home || 0) : (open.away || 0)
+          const conceded = isHome ? (open.away || 0) : (open.home || 0)
           GF += scored
           GA += conceded
-          if (scored > conceded) {
+
+          // W/D/L from final winner (includes penalties)
+          const outcome = getTeamOutcome(m, team.slug)
+          if (outcome === "W") {
             W++
             formResults.push("W")
-          } else if (scored === conceded) {
+          } else if (outcome === "D") {
             D++
             formResults.push("D")
-          } else {
+          } else if (outcome === "L") {
             L++
             formResults.push("L")
           }

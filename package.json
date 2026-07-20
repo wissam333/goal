@@ -21,6 +21,7 @@
     "@vueuse/nuxt": "^14.1.0",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^4.1.0",
+    "firebase": "^12.16.0",
     "firebase-admin": "^14.2.0",
     "nuxt": "^3.16.2",
     "vee-validate": "^4.15.1",

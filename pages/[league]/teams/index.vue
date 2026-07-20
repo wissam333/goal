@@ -133,7 +133,9 @@ const error = computed(() => teamsError.value);
 const teams = computed(() => teamsData.value || []);
 const matches = computed(() => matchesData.value || []);
 
-// Calculate per-team stats
+const { getTeamOutcome, getOpenPlayScore } = useMatchResult();
+
+// Calculate per-team stats — W/D/L respects penalties / AET
 const calculateTeamStats = (team) => {
   const teamMatches = matches.value.filter(
     (m) => (m.homeTeam === team.slug || m.awayTeam === team.slug) && m.homeScore != null,
@@ -148,17 +150,19 @@ const calculateTeamStats = (team) => {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .forEach((m) => {
       const isHome = m.homeTeam === team.slug;
-      const scored = isHome ? m.homeScore || 0 : m.awayScore || 0;
-      const conceded = isHome ? m.awayScore || 0 : m.homeScore || 0;
+      const open = getOpenPlayScore(m);
+      const scored = isHome ? open.home || 0 : open.away || 0;
+      const conceded = isHome ? open.away || 0 : open.home || 0;
       GF += scored;
       GA += conceded;
-      if (scored > conceded) {
+      const outcome = getTeamOutcome(m, team.slug);
+      if (outcome === "W") {
         W++;
         form.push("W");
-      } else if (scored === conceded) {
+      } else if (outcome === "D") {
         D++;
         form.push("D");
-      } else {
+      } else if (outcome === "L") {
         L++;
         form.push("L");
       }

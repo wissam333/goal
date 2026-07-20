@@ -56,8 +56,17 @@
           <!-- Home -->
           <div
             class="hero-team home"
+            :class="{
+              'is-winner': liveStatus !== 'upcoming' && isTeamWinner(match, match.homeTeam),
+              'is-loser': liveStatus !== 'upcoming' && matchWinner && !isTeamWinner(match, match.homeTeam),
+            }"
             @click="navigateTo(`/teams/${match.homeTeam}`)"
           >
+            <span
+              v-if="liveStatus !== 'upcoming' && isTeamWinner(match, match.homeTeam)"
+              class="winner-crown"
+              aria-hidden="true"
+            >🏆</span>
             <div class="hero-logo">
               <NuxtImg
                 v-if="homeTeam?.logo"
@@ -79,20 +88,58 @@
           <!-- Score -->
           <div class="hero-score">
             <template v-if="liveStatus !== 'upcoming'">
-              <div class="score-circle">
+              <div class="score-circle" :class="{ 'has-winner': !!matchWinner }">
                 <span
                   class="score-num"
-                  :class="{ winner: match.homeScore > match.awayScore }"
+                  :class="{ winner: isTeamWinner(match, match.homeTeam) }"
                 >
-                  {{ match.homeScore ?? 0 }}
+                  {{ scoreParts.mainHome ?? 0 }}
                 </span>
                 <span class="score-dash">–</span>
                 <span
                   class="score-num"
-                  :class="{ winner: match.awayScore > match.homeScore }"
+                  :class="{ winner: isTeamWinner(match, match.awayTeam) }"
                 >
-                  {{ match.awayScore ?? 0 }}
+                  {{ scoreParts.mainAway ?? 0 }}
                 </span>
+              </div>
+              <div v-if="scoreParts.badge || scoreParts.pens || matchWinner" class="score-extra">
+                <span v-if="scoreParts.method === 'aet'" class="score-method-badge">
+                  {{ $t("match.endedAet") }}
+                </span>
+                <span v-else-if="scoreParts.method === 'pen'" class="score-method-badge pen">
+                  {{ $t("match.endedPen") }}
+                </span>
+
+                <!-- Penalty shootout breakdown with winner highlight -->
+                <div v-if="scoreParts.pens" class="score-pens-board">
+                  <span class="pens-label">{{ $t("match.penaltiesShort") }}</span>
+                  <div class="pens-nums">
+                    <span
+                      class="pens-num"
+                      :class="{ win: isTeamWinner(match, match.homeTeam) }"
+                    >{{ scoreParts.pensHome }}</span>
+                    <span class="pens-dash">–</span>
+                    <span
+                      class="pens-num"
+                      :class="{ win: isTeamWinner(match, match.awayTeam) }"
+                    >{{ scoreParts.pensAway }}</span>
+                  </div>
+                </div>
+                <span v-else-if="scoreParts.subtitle" class="score-subtitle">
+                  {{ scoreParts.subtitle }}
+                </span>
+
+                <div v-if="matchWinnerTitle" class="score-winner-banner">
+                  <Icon name="mdi:trophy" size="14" />
+                  <span>{{ $t("match.winner") }}: {{ matchWinnerTitle }}</span>
+                  <span v-if="scoreParts.method === 'pen'" class="winner-how">
+                    ({{ $t("match.wonOnPens") }})
+                  </span>
+                  <span v-else-if="scoreParts.method === 'aet'" class="winner-how">
+                    ({{ $t("match.wonOnAet") }})
+                  </span>
+                </div>
               </div>
             </template>
             <template v-else>
@@ -118,8 +165,17 @@
           <!-- Away -->
           <div
             class="hero-team away"
+            :class="{
+              'is-winner': liveStatus !== 'upcoming' && isTeamWinner(match, match.awayTeam),
+              'is-loser': liveStatus !== 'upcoming' && matchWinner && !isTeamWinner(match, match.awayTeam),
+            }"
             @click="navigateTo(`/teams/${match.awayTeam}`)"
           >
+            <span
+              v-if="liveStatus !== 'upcoming' && isTeamWinner(match, match.awayTeam)"
+              class="winner-crown"
+              aria-hidden="true"
+            >🏆</span>
             <div class="hero-logo">
               <NuxtImg
                 v-if="awayTeam?.logo"
@@ -751,6 +807,7 @@ const route = useRoute();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();
 const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
+const { isTeamWinner, formatScoreParts, formatScore, getWinnerSlug, getTeamOutcome } = useMatchResult();
 const auth = useAuth();
 const slug = computed(() => route.params.slug);
 const authModalOpen = ref(false);
@@ -1120,11 +1177,15 @@ const h2h = computed(() => {
     draws = 0,
     awayWins = 0;
   meetings.forEach((m) => {
-    const hs = m.homeTeam === ht ? m.homeScore : m.awayScore;
-    const as = m.homeTeam === ht ? m.awayScore : m.homeScore;
-    if (hs > as) homeWins++;
-    else if (hs === as) draws++;
-    else awayWins++;
+    const outcome = getTeamOutcome(m, m.homeTeam === ht ? ht : at);
+    if (outcome === 'W') {
+      if (m.homeTeam === ht) homeWins++;
+      else awayWins++;
+    } else if (outcome === 'D') draws++;
+    else if (outcome === 'L') {
+      if (m.homeTeam === ht) awayWins++;
+      else homeWins++;
+    }
   });
   return { total: meetings.length, homeWins, draws, awayWins };
 });
@@ -1178,17 +1239,30 @@ watch(() => match.value?.videos, (videos) => {
   resolveVideos(videos)
 }, { immediate: true })
 
+const scoreParts = computed(() =>
+  formatScoreParts(match.value, locale.value),
+);
+
+const matchWinner = computed(() =>
+  match.value ? getWinnerSlug(match.value) : null,
+);
+
+const matchWinnerTitle = computed(() => {
+  if (!matchWinner.value) return "";
+  if (matchWinner.value === match.value?.homeTeam) {
+    return homeTeam.value?.title || match.value.homeTeam;
+  }
+  return awayTeam.value?.title || match.value?.awayTeam || "";
+});
+
 // ── Share ──────────────────────────────────────────────────────────────────────
 const shareText = () => {
   if (!match.value) return "";
-  const hs = match.value.homeScore ?? 0;
-  const as = match.value.awayScore ?? 0;
+  const score = formatScore(match.value, locale.value);
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
   const name = appTitle.name || "دوري القرية";
-  return locale.value === "ar"
-    ? `${ht} ${hs}–${as} ${at} 🏆 | ${name}`
-    : `${ht} ${hs}–${as} ${at} 🏆 | ${name}`;
+  return `${ht} ${score} ${at} 🏆 | ${name}`;
 };
 
 const supportsShare = computed(
@@ -1425,9 +1499,37 @@ useSeoMeta({
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s, transform 0.2s;
+
   &:hover .hero-logo {
     transform: scale(1.05);
   }
+
+  &.is-winner {
+    .hero-team-name {
+      color: var(--primary);
+      font-weight: 800;
+    }
+    .hero-logo {
+      box-shadow: 0 0 0 3px var(--primary);
+    }
+  }
+
+  &.is-loser {
+    opacity: 0.55;
+  }
+}
+
+.winner-crown {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  line-height: 1;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .hero-logo {
@@ -1440,7 +1542,7 @@ useSeoMeta({
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   img {
     width: 100%;
     height: 100%;
@@ -1491,8 +1593,10 @@ useSeoMeta({
 
 .hero-score {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 }
 
 .score-circle {
@@ -1528,6 +1632,111 @@ useSeoMeta({
   font-size: 2rem;
   color: var(--border-color);
   line-height: 1;
+}
+
+.score-extra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+  text-align: center;
+}
+
+.score-method-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.2px;
+
+  &.pen {
+    color: #ca8a04;
+    background: rgba(234, 179, 8, 0.15);
+  }
+}
+
+.score-pens {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.score-pens-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.28);
+}
+
+.pens-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ca8a04;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pens-nums {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: ltr;
+}
+
+.pens-num {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text-muted);
+  min-width: 1.2em;
+  text-align: center;
+
+  &.win {
+    color: var(--primary);
+  }
+}
+
+.pens-dash {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.score-winner-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  max-width: 260px;
+  text-align: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.winner-how {
+  font-weight: 600;
+  opacity: 0.85;
+  font-size: 0.7rem;
+}
+
+.score-subtitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 // Countdown

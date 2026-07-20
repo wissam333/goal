@@ -20,6 +20,14 @@ function extractFcmToken(endpoint, keys) {
   return match ? match[1] : null
 }
 
+function toAbsoluteUrl(pathOrUrl, siteUrl) {
+  if (!pathOrUrl) return ''
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl
+  const base = (siteUrl || '').replace(/\/$/, '')
+  const path = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`
+  return base ? `${base}${path}` : path
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
@@ -65,14 +73,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const messaging = getFirebaseAdmin(config)
-    const msg = {
-      data: {
-        title,
-        body: messageBody || '',
-        url: url || '/',
-        icon: icon || '/favicon.svg',
-      },
-    }
+    const siteUrl = config.public.siteUrl || ''
+    const notifTitle = String(title)
+    const notifBody = String(messageBody || '')
+    const notifUrl = toAbsoluteUrl(url || '/', siteUrl) || '/'
+    // PNG icons only — SVG is ignored/blank on Windows/Android notification trays
+    const iconUrl = toAbsoluteUrl(icon || '/notification-icon.png', siteUrl)
+    const badgeUrl = toAbsoluteUrl('/notification-badge.png', siteUrl)
 
     let successCount = 0
     let failureCount = 0
@@ -81,7 +88,31 @@ export default defineEventHandler(async (event) => {
     for (let i = 0; i < tokens.length; i += 500) {
       const batch = tokens.slice(i, i + 500)
       try {
-        const result = await messaging.sendEachForMulticast({ tokens: batch, ...msg })
+        // Data-only message so the service worker fully controls display.
+        // Top-level `notification` causes empty auto-shown system notifications
+        // when a custom SW (not firebase-messaging) handles the push event.
+        const result = await messaging.sendEachForMulticast({
+          tokens: batch,
+          data: {
+            title: notifTitle,
+            body: notifBody,
+            url: notifUrl,
+            icon: iconUrl,
+            badge: badgeUrl,
+            tag: `league-${Date.now()}`,
+          },
+          webpush: {
+            headers: {
+              Urgency: 'high',
+              TTL: '86400',
+            },
+            // Do NOT set webpush.notification — that triggers a browser auto-display
+            // (often empty) in addition to the SW showNotification call.
+            fcmOptions: {
+              link: notifUrl,
+            },
+          },
+        })
         successCount += result.successCount
         failureCount += result.failureCount
 
@@ -107,7 +138,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    return { ok: true, sent: successCount, total: tokens.length, errors: errors.length ? errors : undefined }
+    return { ok: true, sent: successCount, total: tokens.length, failed: failureCount, errors: errors.length ? errors : undefined }
   } catch (err) {
     throw createError({
       statusCode: err.statusCode || 500,

@@ -90,6 +90,7 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer, manual dark/ligh
 - Auto-refresh match results: 60s fallback poll + Realtime for instant updates
 - Prediction results always visible on match detail page (even after match starts, voting locked)
 - Prediction points: `usePredictionPoints.js` awards points for correct outcome/MOTM predictions via Supabase RPC
+- **Extra time & penalties**: matches support `homeScoreAET`/`awayScoreAET`, `homePenalties`/`awayPenalties`, `resultMethod` (`ft`|`aet`|`pen`). Shared logic in `composables/useMatchResult.js`. Admin form has method tabs + conditional score inputs. Standings still use regulation scores only. Knockout winners / predictions use final winner including pens. Run `supabase-et-penalties-migration.sql` on Supabase before deploy.
 
 ### Notifications & Realtime
 - Push notification system: Web Push via `@vite-pwa/nuxt` injectManifest, custom SW (`sw/sw.js`), VAPID keys, Nitro API routes, `usePushNotifications` + `useNotificationCenter` composables, `NotificationsPushPrompt` + `NotificationsNotificationBell` UI components, admin auto-trigger on match saves
@@ -113,6 +114,7 @@ Village Football League site. Nuxt 3.21.2, Supabase data layer, manual dark/ligh
 - **PWA HTML cache fix**: Removed `html` from `injectManifest.globPatterns` — SW no longer pre-caches HTML pages, preventing stale SSR content. Static assets (JS, CSS, images) still cached
 
 ## Known Issues
+- **Must run** `supabase-et-penalties-migration.sql` in Supabase SQL Editor before using AET/pen fields in production (otherwise saves fail on unknown columns)
 - Cloudflare Pages SSR: Supabase queries return empty (no errors) — likely runtime issue with `@supabase/supabase-js` in Workers environment. Vercel SSR works fine.
 - Team logos: `alnasr.svg` and `alqadsia.svg` missing in `public/teams/` (will show fallback initials)
 - `useSupabase.js` static `_client` cache: first call returning `null` permanently prevents Supabase from reconnecting
