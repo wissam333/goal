@@ -254,7 +254,7 @@ const semifinals = computed(() =>
 
 const finals = computed(() =>
   matches.value
-    .filter((m) => m.group === "F")
+    .filter((m) => m.group === "FINAL")
     .sort((a, b) => new Date(a.date) - new Date(b.date)),
 );
 

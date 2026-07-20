@@ -146,7 +146,7 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)');window.__VAPID_KEY="${(process.env.VAPID_PUBLIC_KEY || "").replace(/"/g, '\\"')}"}})()`,
+          innerHTML: `(function(){var d=document.documentElement;var m=localStorage.getItem('league-dark-mode');if(m==='true'||(m===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark')}var p=localStorage.getItem('league-primary-color');if(p){var r=parseInt(p.slice(1,3),16),g=parseInt(p.slice(3,5),16),b=parseInt(p.slice(5,7),16);d.style.setProperty('--primary',p);d.style.setProperty('--primary-soft','rgba('+r+','+g+','+b+',0.1)');d.style.setProperty('--primary-mid','rgba('+r+','+g+','+b+',0.2)')}})()`,
           tagPosition: "head",
           type: "text/javascript",
         },
@@ -155,7 +155,8 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || "",
+    firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY || "",
+    firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
     supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || "",
     public: {
       supabaseUrl: process.env.SUPABASE_URL || "",
@@ -163,7 +164,12 @@ export default defineNuxtConfig({
       siteUrl:
         process.env.NUXT_PUBLIC_SITE_URL ||
         "https://goal.wissam-n-najjom.workers.dev",
-      vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
+      firebaseApiKey: process.env.FIREBASE_API_KEY || "",
+      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
+      firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "",
+      firebaseAppId: process.env.FIREBASE_APP_ID || "",
+      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
+      firebaseVapidKey: process.env.FIREBASE_VAPID_KEY || "",
       leagueName: "دوري القرية السنوي",
       season: "2026",
     },

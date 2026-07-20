@@ -66,7 +66,7 @@ self.addEventListener("push", (event) => {
         await storeNotification(data);
         const options = {
           body: data.body || "",
-          icon: data.icon || "/logo.png",
+          icon: data.icon || "/favicon.svg",
           badge: data.badge || "/favicon.svg",
           data: data.data || {},
           actions: data.actions || [],
@@ -103,7 +103,7 @@ self.addEventListener("push", (event) => {
         }
       } catch {
         await self.registration.showNotification(event.data.text(), {
-          icon: "/logo.png",
+          icon: "/favicon.svg",
         });
       }
     })(),

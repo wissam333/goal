@@ -1,3 +1,19 @@
+import { initializeApp, getApps, cert } from 'firebase-admin/app'
+import { getMessaging } from 'firebase-admin/messaging'
+
+function getFirebaseAdmin(config) {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId: config.public.firebaseProjectId,
+        privateKey: (config.firebasePrivateKey || '').replace(/\\n/g, '\n'),
+        clientEmail: config.firebaseClientEmail,
+      }),
+    })
+  }
+  return getMessaging()
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
@@ -13,6 +29,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 500, statusMessage: 'Supabase not configured' })
     }
 
+    // Fetch all FCM subscriptions
     const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?select=endpoint,keys`, {
       headers: {
         apikey: config.public.supabaseKey,
@@ -23,7 +40,7 @@ export default defineEventHandler(async (event) => {
     if (!res.ok) {
       throw createError({
         statusCode: 500,
-        statusMessage: `Failed to query push_subscriptions: ${res.status}. Run SQL migration first.`,
+        statusMessage: `Failed to query push_subscriptions: ${res.status}`,
       })
     }
 
@@ -32,71 +49,62 @@ export default defineEventHandler(async (event) => {
       return { ok: true, sent: 0, message: 'No subscribers.' }
     }
 
-    const payload = {
-      title,
-      body: messageBody || '',
-      icon: icon || '/logo.png',
-      badge: '/favicon.svg',
-      data: { url: url || '/' },
+    // Filter FCM subscriptions only
+    const tokens = subscriptions
+      .filter(s => s.keys?.type === 'fcm' && s.endpoint)
+      .map(s => s.endpoint)
+
+    if (!tokens.length) {
+      return { ok: true, sent: 0, message: 'No FCM tokens.' }
     }
 
-    let sent = 0
-    const errors = []
-
-    // Try web-push (works on Node.js/Vercel), fall back to Web Crypto (Cloudflare Workers)
-    try {
-      const webPush = await import('web-push').then(m => m.default || m)
-      webPush.setVapidDetails(
-        'mailto:admin@example.com',
-        config.public.vapidPublicKey,
-        config.vapidPrivateKey
-      )
-      await Promise.allSettled(
-        subscriptions.map(async (sub) => {
-          try {
-            await webPush.sendNotification(
-              { endpoint: sub.endpoint, keys: sub.keys },
-              JSON.stringify(payload),
-              { TTL: 86400 }
-            )
-            sent++
-          } catch (e) {
-            if (e.statusCode === 410 || e.statusCode === 404) {
-              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
-                method: 'DELETE',
-                headers: { apikey: config.public.supabaseKey, Authorization: `Bearer ${serviceKey}` },
-              })
-            } else {
-              errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} status=${e.statusCode || 0}`)
-            }
-          }
-        })
-      )
-    } catch {
-      // web-push not available (Cloudflare Workers) — use Web Crypto fallback
-      const origin = new URL(subscriptions[0].endpoint).origin
-      const vapidAuth = await createVapidAuth(config.vapidPrivateKey, config.public.vapidPublicKey, origin)
-      await Promise.allSettled(
-        subscriptions.map(async (sub) => {
-          try {
-            const result = await sendPush(sub, payload, vapidAuth)
-            if (result.ok) { sent++ }
-            else if (result.status === 410 || result.status === 404) {
-              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, {
-                method: 'DELETE',
-                headers: { apikey: config.public.supabaseKey, Authorization: `Bearer ${serviceKey}` },
-              })
-            } else {
-              errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} status=${result.status}`)
-            }
-          } catch (e) {
-            errors.push(`ep=${(sub.endpoint || '').slice(0, 50)} err=${e?.message || e}`)
-          }
-        })
-      )
+    const messaging = getFirebaseAdmin(config)
+    const message = {
+      data: {
+        title,
+        body: messageBody || '',
+        url: url || '/',
+        icon: icon || '/favicon.svg',
+      },
     }
 
-    return { ok: true, sent, total: subscriptions.length, errors: errors.length ? errors : undefined }
+    let successCount = 0
+    let failureCount = 0
+
+    // Send in batches of 500 (FCM limit)
+    for (let i = 0; i < tokens.length; i += 500) {
+      const batch = tokens.slice(i, i + 500)
+      try {
+        const result = await messaging.sendEachForMulticast({
+          tokens: batch,
+          ...message,
+        })
+        successCount += result.successCount
+        failureCount += result.failureCount
+
+        // Remove invalid tokens
+        for (let j = 0; j < result.responses.length; j++) {
+          const resp = result.responses[j]
+          if (resp.error?.code === 'messaging/invalid-registration-token' ||
+              resp.error?.code === 'messaging/registration-token-not-registered') {
+            const token = batch[j]
+            try {
+              await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(token)}`, {
+                method: 'DELETE',
+                headers: {
+                  apikey: config.public.supabaseKey,
+                  Authorization: `Bearer ${serviceKey}`,
+                },
+              })
+            } catch {}
+          }
+        }
+      } catch {
+        failureCount += batch.length
+      }
+    }
+
+    return { ok: true, sent: successCount, total: tokens.length }
   } catch (err) {
     throw createError({
       statusCode: err.statusCode || 500,

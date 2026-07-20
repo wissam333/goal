@@ -1160,11 +1160,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   }
 }
 
-.stat-pill-leader {
-  @media (max-width: 640px) {
-    grid-column: 1 / -1;
-  }
-}
 
 .stat-pill {
   display: flex;
@@ -1307,9 +1302,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  // white-space: nowrap;
+  // overflow: hidden;
+  // text-overflow: ellipsis;
 }
 
 .quick-arrow {

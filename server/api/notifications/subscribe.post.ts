@@ -1,8 +1,8 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { subscription } = body
-  if (!subscription?.endpoint) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing subscription' })
+  const { fcmToken } = body
+  if (!fcmToken) {
+    throw createError({ statusCode: 400, statusMessage: 'Missing fcmToken' })
   }
 
   const config = useRuntimeConfig()
@@ -15,13 +15,13 @@ export default defineEventHandler(async (event) => {
 
   const auth = serviceKey ? `Bearer ${serviceKey}` : `Bearer ${anonKey}`
 
-  // Delete any existing subscription for this endpoint (cleanup)
-  await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(subscription.endpoint)}`, {
+  // Clean up old subscription for this FCM token
+  await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(fcmToken)}`, {
     method: 'DELETE',
     headers: { apikey: anonKey, Authorization: auth },
   })
 
-  // Insert new subscription
+  // Insert new FCM subscription
   const res = await fetch(`${supabaseUrl}/rest/v1/push_subscriptions`, {
     method: 'POST',
     headers: {
@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
       Authorization: auth,
     },
     body: JSON.stringify({
-      endpoint: subscription.endpoint,
-      keys: subscription.keys || {},
+      endpoint: fcmToken,
+      keys: { type: 'fcm' },
       user_agent: getHeader(event, 'user-agent') || null,
     }),
   })

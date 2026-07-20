@@ -1,23 +1,46 @@
+let fbApp = null
+let fbMessaging = null
+let firebaseInitPromise = null
+
+function initFirebase() {
+  if (fbMessaging || typeof window === 'undefined') return
+  if (firebaseInitPromise) return firebaseInitPromise
+  firebaseInitPromise = (async () => {
+    try {
+      const config = useRuntimeConfig().public
+      const { initializeApp } = await import('firebase/app')
+      const { getMessaging, onMessage } = await import('firebase/messaging')
+      fbApp = initializeApp({
+        apiKey: config.firebaseApiKey,
+        authDomain: config.firebaseAuthDomain,
+        projectId: config.firebaseProjectId,
+        appId: config.firebaseAppId,
+        messagingSenderId: config.firebaseMessagingSenderId,
+      })
+      fbMessaging = getMessaging(fbApp)
+      onMessage(fbMessaging, (payload) => {
+        try {
+          const nc = useNotificationCenter()
+          nc.add({
+            title: payload.notification?.title || 'Green Ball',
+            body: payload.notification?.body || '',
+            url: payload.data?.url || '/',
+          })
+        } catch {}
+      })
+    } catch (e) {
+      firebaseInitPromise = null
+      throw e
+    }
+  })()
+  return firebaseInitPromise
+}
+
 export const usePushNotifications = () => {
-  const supported = import.meta.client && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+  const supported = import.meta.client && 'Notification' in window && 'serviceWorker' in navigator
 
   const permission = ref(import.meta.client && typeof Notification !== 'undefined' ? Notification.permission : 'default')
   const subscribed = ref(false)
-  const swReady = ref(false)
-
-  async function getReg() {
-    if (!supported) return null
-    try {
-      const reg = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise(r => setTimeout(() => r(null), 5000)),
-      ])
-      swReady.value = !!reg
-      return reg
-    } catch {
-      return null
-    }
-  }
 
   async function requestPermission() {
     if (!supported) return 'denied'
@@ -26,52 +49,75 @@ export const usePushNotifications = () => {
     return result
   }
 
-  async function getSubscription() {
-    const reg = await getReg()
-    if (!reg) return null
-    return reg.pushManager.getSubscription()
+  async function getFcmToken() {
+    if (!supported) return null
+    try {
+      await initFirebase()
+      if (!fbMessaging) return null
+      const { getToken } = await import('firebase/messaging')
+      const token = await getToken(fbMessaging, {
+        vapidKey: useRuntimeConfig().public.firebaseVapidKey,
+      })
+      return token
+    } catch {
+      return null
+    }
   }
 
   async function subscribe() {
     if (!supported || permission.value !== 'granted') return null
-    const key = window.__VAPID_KEY
-    if (!key) return null
-    const reg = await getReg()
-    if (!reg) return null
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(key),
-    })
-    await $fetch('/api/notifications/subscribe', {
-      method: 'POST',
-      body: { subscription: sub.toJSON() },
-    })
-    subscribed.value = true
-    return sub
+    const token = await getFcmToken()
+    if (!token) return null
+    try {
+      await $fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        body: { fcmToken: token },
+      })
+      subscribed.value = true
+    } catch {
+      return null
+    }
+    return token
   }
 
   async function unsubscribe() {
-    const sub = await getSubscription()
-    if (sub) {
-      await sub.unsubscribe()
-      await $fetch('/api/notifications/unsubscribe', {
-        method: 'POST',
-        body: { endpoint: sub.endpoint },
-      })
+    const token = await getFcmToken()
+    if (token) {
+      try {
+        await $fetch('/api/notifications/unsubscribe', {
+          method: 'POST',
+          body: { endpoint: token },
+        })
+      } catch {}
+    }
+    if (fbMessaging) {
+      try {
+        const { deleteToken } = await import('firebase/messaging')
+        await deleteToken(fbMessaging)
+      } catch {}
     }
     subscribed.value = false
   }
 
-  if (supported && import.meta.client) {
-    getSubscription().then(sub => { subscribed.value = !!sub })
+  async function checkSubscription() {
+    if (!supported) return
+    const token = await getFcmToken()
+    if (token) {
+      try {
+        await $fetch('/api/notifications/check', {
+          method: 'POST',
+          body: { fcmToken: token },
+        })
+        subscribed.value = true
+      } catch {
+        subscribed.value = false
+      }
+    }
   }
 
-  return { supported, permission, subscribed, swReady, requestPermission, subscribe, unsubscribe }
-}
+  if (supported && import.meta.client) {
+    checkSubscription()
+  }
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = atob(base64)
-  return Uint8Array.from([...rawData].map(ch => ch.charCodeAt(0)))
+  return { supported, permission, subscribed, requestPermission, subscribe, unsubscribe }
 }

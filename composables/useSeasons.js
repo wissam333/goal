@@ -71,7 +71,7 @@ export const useSeasons = (leagueId = null) => {
       groups: settings?.groups || ["A", "B"],
     }
 
-    const finalMatch = allMatches.find(m => m.group === "F" && m.status === "played")
+    const finalMatch = allMatches.find(m => m.group === "FINAL" && m.status === "played")
     if (finalMatch) {
       const { homeTeam, awayTeam, homeScore, awayScore } = finalMatch
       if ((homeScore ?? 0) > (awayScore ?? 0)) {

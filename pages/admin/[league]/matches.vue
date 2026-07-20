@@ -48,7 +48,7 @@
       <template #cell-group="{ value }">
         <span v-if="value === 'QF'" class="round-badge">ربع النهائي</span>
         <span v-else-if="value === 'SF'" class="round-badge">نصف النهائي</span>
-        <span v-else-if="value === 'F'" class="round-badge final">النهائي</span>
+        <span v-else-if="value === 'FINAL'" class="round-badge final">النهائي</span>
         <span v-else class="round-badge group">المجموعة {{ value }}</span>
       </template>
       <template #cell-score="{ row }">
@@ -1025,7 +1025,7 @@ const getMatchTitle = (match) => {
       ? "ربع النهائي: "
       : match.group === "SF"
         ? "نصف النهائي: "
-        : match.group === "F"
+        : match.group === "FINAL"
           ? "النهائي: "
           : "";
   return `${prefix}${home.title} vs ${away.title}`;
@@ -1072,7 +1072,7 @@ const groupOptions = computed(() => {
     ...groups,
     { label: "ربع النهائي", value: "QF" },
     { label: "نصف النهائي", value: "SF" },
-    { label: "النهائي", value: "F" },
+    { label: "النهائي", value: "FINAL" },
   ];
 });
 
@@ -1141,7 +1141,7 @@ const filteredTeamOptions = computed(() => {
   if (!form.group)
     return teams.value.map((t) => ({ label: t.title, value: t.slug }));
 
-  const isGroupStage = !["QF", "SF", "F"].includes(form.group);
+  const isGroupStage = !["QF", "SF", "FINAL"].includes(form.group);
   if (isGroupStage) {
     return teams.value
       .filter((t) => t.group === form.group)
@@ -1154,7 +1154,7 @@ const filteredTeamOptions = computed(() => {
   } else if (form.group === "SF") {
     const winners = getStageWinners("QF");
     eligible = winners.length ? winners : getStageParticipants("QF");
-  } else if (form.group === "F") {
+  } else if (form.group === "FINAL") {
     const winners = getStageWinners("SF");
     eligible = winners.length ? winners : getStageParticipants("SF");
   }
@@ -1345,7 +1345,7 @@ const generateSlug = () => {
       ? "qf"
       : form.group === "SF"
         ? "sf"
-        : form.group === "F"
+        : form.group === "FINAL"
           ? "f"
           : `g${(form.group || "a").toLowerCase()}`;
   return `${prefix}-${form.homeTeam}-vs-${form.awayTeam}`;
@@ -1485,7 +1485,7 @@ const generateTitle = () => {
       ? "ربع النهائي: "
       : form.group === "SF"
         ? "نصف النهائي: "
-        : form.group === "F"
+        : form.group === "FINAL"
           ? "النهائي: "
           : "";
   return `${prefix}${home.title} vs ${away.title}`;
