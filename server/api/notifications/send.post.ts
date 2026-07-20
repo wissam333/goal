@@ -55,17 +55,17 @@ export default defineEventHandler(async (event) => {
       return { ok: true, sent: 0, message: 'No subscribers.' }
     }
 
-    // Extract FCM tokens from subscriptions (old: URL format, new: raw token)
+    // Extract FCM tokens
     const tokens = subscriptions
       .map(s => extractFcmToken(s.endpoint, s.keys))
       .filter(Boolean)
 
     if (!tokens.length) {
-      return { ok: true, sent: 0, message: 'No FCM tokens.' }
+      return { ok: true, sent: 0, message: 'No FCM tokens.', sample: subscriptions[0]?.endpoint?.slice(0, 80) }
     }
 
     const messaging = getFirebaseAdmin(config)
-    const message = {
+    const msg = {
       data: {
         title,
         body: messageBody || '',
@@ -76,25 +76,21 @@ export default defineEventHandler(async (event) => {
 
     let successCount = 0
     let failureCount = 0
+    const errors = []
 
-    // Send in batches of 500 (FCM limit)
     for (let i = 0; i < tokens.length; i += 500) {
       const batch = tokens.slice(i, i + 500)
       try {
-        const result = await messaging.sendEachForMulticast({
-          tokens: batch,
-          ...message,
-        })
+        const result = await messaging.sendEachForMulticast({ tokens: batch, ...msg })
         successCount += result.successCount
         failureCount += result.failureCount
 
-        // Remove failed tokens
         for (let j = 0; j < result.responses.length; j++) {
           const resp = result.responses[j]
           if (resp.error) {
+            if (errors.length < 3) errors.push({ code: resp.error.code, msg: resp.error.message })
             const token = batch[j]
             try {
-              // Match either full URL (old subscriptions) or raw token
               await fetch(`${supabaseUrl}/rest/v1/push_subscriptions?or=(endpoint.eq.${encodeURIComponent(token)},endpoint.like.*${encodeURIComponent(token)})`, {
                 method: 'DELETE',
                 headers: {
@@ -105,12 +101,13 @@ export default defineEventHandler(async (event) => {
             } catch {}
           }
         }
-      } catch {
+      } catch (e) {
         failureCount += batch.length
+        errors.push({ phase: 'batch', msg: e.message })
       }
     }
 
-    return { ok: true, sent: successCount, total: tokens.length }
+    return { ok: true, sent: successCount, total: tokens.length, errors: errors.length ? errors : undefined }
   } catch (err) {
     throw createError({
       statusCode: err.statusCode || 500,
