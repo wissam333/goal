@@ -56,10 +56,10 @@ function togglePublish(e) {
   emitUpdate({ published: e.target.checked })
 }
 
-const roundKeys = ['QF', 'SF', 'FINAL']
+const roundKeys = ['R16', 'QF', 'SF', 'FINAL']
 
 function roundLabel(key) {
-  return key === 'QF' ? 'ربع النهائي' : key === 'SF' ? 'نصف النهائي' : 'النهائي'
+  return key === 'R16' ? 'دور الـ 16' : key === 'QF' ? 'ربع النهائي' : key === 'SF' ? 'نصف النهائي' : 'النهائي'
 }
 
 function roundSlots(round) {

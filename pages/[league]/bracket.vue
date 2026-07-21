@@ -107,7 +107,7 @@
         <!-- ══════════════ KNOCKOUT STAGE ══════════════ -->
         <div v-else class="bracket-content">
           <BracketTree
-            v-if="draw?.published"
+            v-if="bracketRounds.length"
             :rounds="bracketRounds"
             :get-team-name="getTeamName"
             :league-path="leaguePath"
@@ -202,7 +202,7 @@ const [
 const draw = computed(() => settingsData.value?.knockout_draw || null)
 const { buildBracket } = useKnockoutBracket();
 const bracketRounds = computed(() => {
-  if (!draw.value || !draw.value.published) return []
+  if (!draw.value || !draw.value.slots?.length) return []
   return buildBracket({ draw: draw.value, teams: teams.value || [], matches: matches.value || [], locale: locale.value }).rounds
 })
 

@@ -166,7 +166,7 @@ export const useAdminData = (leagueId = null) => {
     const payload = { ...settings }
     const lid = await _resolveLeague()
     if (lid) payload.league_id = lid
-    const { error } = await supabase.from("settings").upsert(payload, { onConflict: "id" })
+    const { error } = await supabase.from("settings").upsert(payload)
     if (error) throw error
   }
 

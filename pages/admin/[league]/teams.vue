@@ -856,10 +856,17 @@ const handleSave = async () => {
 
     if (modal.isEdit) {
       const supabase = useSupabase()
+      const oldSlug = modal.editingSlug
+      const newSlug = form.slug
+      if (oldSlug !== newSlug) {
+        await supabase.from('matches').update({ homeTeam: newSlug }).eq('homeTeam', oldSlug)
+        await supabase.from('matches').update({ awayTeam: newSlug }).eq('awayTeam', oldSlug)
+        await supabase.from('players').update({ team: newSlug }).eq('team', oldSlug)
+      }
       const { error } = await supabase
         .from('teams')
         .update(teamObj)
-        .eq('slug', modal.editingSlug)
+        .eq('slug', oldSlug)
       if (error) throw error
     } else {
       await admin.saveTeam(teamObj)

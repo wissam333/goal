@@ -3,7 +3,7 @@ function normalizeRound(group) {
   return group
 }
 
-const KNOCKOUT_ROUNDS = ['QF', 'SF', 'FINAL']
+const KNOCKOUT_ROUNDS = ['R16', 'QF', 'SF', 'FINAL']
 
 export function isKnockoutRound(group) {
   return KNOCKOUT_ROUNDS.includes(normalizeRound(group))
@@ -164,7 +164,7 @@ export function useKnockoutBracket() {
   const { getGroupStandings } = useStandings()
 
   function buildBracket({ draw, teams, matches, locale }) {
-    if (!draw || !draw.published || !draw.slots || !draw.slots.length) {
+    if (!draw || !draw.slots || !draw.slots.length) {
       return { published: false, rounds: [] }
     }
 
@@ -200,7 +200,7 @@ export function useKnockoutBracket() {
       }
     })
 
-    const roundOrder = { QF: 0, SF: 1, FINAL: 2 }
+    const roundOrder = { R16: -1, QF: 0, SF: 1, FINAL: 2 }
     const roundMap = {}
     slots.forEach(s => {
       if (!roundMap[s.round]) roundMap[s.round] = []

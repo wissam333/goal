@@ -38,6 +38,7 @@ const props = defineProps({
 const isRtl = computed(() => locale.value === 'ar')
 
 const stageLabels = {
+  R16: 'bracket.round16',
   QF: 'bracket.quarterfinal',
   SF: 'bracket.semifinal',
   FINAL: 'bracket.final',

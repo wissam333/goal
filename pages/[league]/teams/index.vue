@@ -188,6 +188,7 @@ const teamsWithStats = computed(() =>
 );
 
 // Summary stats
+const playedMatches = computed(() => matches.value.filter(m => m.status === 'played'))
 const summaryStats = computed(() => [
   {
     key: "teams",
@@ -200,14 +201,14 @@ const summaryStats = computed(() => [
     key: "played",
     label: "standings.played",
     icon: "mdi:soccer-field",
-    value: matches.value.length,
+    value: playedMatches.value.length,
     color: "success",
   },
   {
     key: "goals",
     label: "stats.totalGoals",
     icon: "mdi:soccer",
-    value: matches.value.reduce(
+    value: playedMatches.value.reduce(
       (sum, m) => sum + (m.homeScore || 0) + (m.awayScore || 0),
       0,
     ),
@@ -217,12 +218,12 @@ const summaryStats = computed(() => [
     key: "avg",
     label: "stats.avgGoals",
     icon: "mdi:chart-bar",
-    value: matches.value.length
+    value: playedMatches.value.length
       ? (
-          matches.value.reduce(
+          playedMatches.value.reduce(
             (s, m) => s + (m.homeScore || 0) + (m.awayScore || 0),
             0,
-          ) / matches.value.length
+          ) / playedMatches.value.length
         ).toFixed(1)
       : "0",
     color: "info",
