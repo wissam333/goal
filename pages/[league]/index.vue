@@ -11,417 +11,530 @@
         </div>
       </template>
       <template v-else>
-      <!-- ── Champion Celebration ──────────────────────── -->
-      <div v-if="champion" class="hero-card champion-card">
-        <div class="confetti-container">
-          <div v-for="i in 30" :key="i" class="confetti-piece" :style="confettiStyle(i)" />
-        </div>
-        <div class="champion-glow" />
-        <div class="hero-badge champion-badge">
-          <Icon name="mdi:trophy" size="14" />
-          {{ $t("home.champion") }}
-        </div>
-        <div class="champion-team">
-          <NuxtLink :to="leaguePath(`/teams/${champion}`)" class="hero-logo-wrap">
-            <template v-if="getTeamLogo(champion)">
-              <NuxtImg
-                :src="getTeamLogo(champion)"
-                :alt="getTeamName(champion)"
-                width="80"
-                height="80"
-                class="hero-logo champion-logo"
-              />
-            </template>
+        <!-- ── Champion Celebration ──────────────────────── -->
+        <div v-if="champion" class="hero-card champion-card">
+          <div class="confetti-container">
             <div
-              v-else
-              class="hero-logo-initial champion-initial"
-              :style="{ background: getTeamColor(champion) }"
-            >
-              {{ getTeamName(champion)?.charAt(0) }}
-            </div>
-          </NuxtLink>
-          <span class="champion-name">{{ getTeamName(champion) }}</span>
-          <span class="champion-congrats">{{ $t("home.congrats") }}</span>
-        </div>
-        <NuxtLink :to="leaguePath(`/matches/${finalMatch.slug}`)" class="hero-btn">
-          {{ $t("home.viewMatch") }}
-          <Icon
-            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
-            size="15"
-          />
-        </NuxtLink>
-      </div>
-
-      <!-- ── Next Match ─────────────────────────────────── -->
-      <div v-else-if="nextMatch?.slug" class="hero-card">
-        <div v-if="!nextMatchIsLive" class="hero-badge">
-          <Icon name="mdi:clock-outline" size="14" />
-          {{ $t("home.nextMatch") }}
-        </div>
-
-        <div class="hero-teams">
-          <div class="hero-team">
+              v-for="i in 30"
+              :key="i"
+              class="confetti-piece"
+              :style="confettiStyle(i)"
+            />
+          </div>
+          <div class="champion-glow" />
+          <div class="hero-badge champion-badge">
+            <Icon name="mdi:trophy" size="14" />
+            {{ $t("home.champion") }}
+          </div>
+          <div class="champion-team">
             <NuxtLink
-              :to="leaguePath(`/teams/${nextMatch.homeTeam}`)"
+              :to="leaguePath(`/teams/${champion}`)"
               class="hero-logo-wrap"
             >
-              <template v-if="getTeamLogo(nextMatch.homeTeam)">
+              <template v-if="getTeamLogo(champion)">
                 <NuxtImg
-                  :src="getTeamLogo(nextMatch.homeTeam)"
-                  :alt="getTeamName(nextMatch.homeTeam)"
-                  width="64"
-                  height="64"
-                  class="hero-logo"
+                  :src="getTeamLogo(champion)"
+                  :alt="getTeamName(champion)"
+                  width="80"
+                  height="80"
+                  class="hero-logo champion-logo"
                 />
               </template>
               <div
                 v-else
-                class="hero-logo-initial"
-                :style="{ background: getTeamColor(nextMatch.homeTeam) }"
+                class="hero-logo-initial champion-initial"
+                :style="{ background: getTeamColor(champion) }"
               >
-                {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
+                {{ getTeamName(champion)?.charAt(0) }}
               </div>
             </NuxtLink>
-            <span class="hero-team-name">{{
-              getTeamName(nextMatch.homeTeam)
-            }}</span>
+            <span class="champion-name">{{ getTeamName(champion) }}</span>
+            <span class="champion-congrats">{{ $t("home.congrats") }}</span>
           </div>
-
-          <div class="hero-center">
-            <template v-if="nextMatchIsLive">
-              <span class="hero-live">
-                <span class="live-dot" /> {{ $t('match.live') }}
-              </span>
-              <span v-if="nextMatch.homeScore != null" class="hero-live-score">
-                {{ formatScore(nextMatch) }}
-              </span>
-            </template>
-            <template v-else>
-              <span class="hero-time">{{ showTime ? formatMatchTime(nextMatch.date) : '--:--' }}</span>
-              <span class="hero-date">{{ showTime ? formatMatchDate(nextMatch.date) : '' }}</span>
-              <span v-if="showTime && countdownText" class="hero-countdown">{{ countdownText }}</span>
-            </template>
-            <span v-if="nextMatch.venue" class="hero-venue">
-              <Icon name="mdi:map-marker-outline" size="12" />
-              {{ nextMatch.venue }}
-            </span>
-          </div>
-
-          <div class="hero-team">
-            <NuxtLink
-              :to="leaguePath(`/teams/${nextMatch.awayTeam}`)"
-              class="hero-logo-wrap"
-            >
-              <template v-if="getTeamLogo(nextMatch.awayTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(nextMatch.awayTeam)"
-                  :alt="getTeamName(nextMatch.awayTeam)"
-                  width="64"
-                  height="64"
-                  class="hero-logo"
-                />
-              </template>
-              <div
-                v-else
-                class="hero-logo-initial"
-                :style="{ background: getTeamColor(nextMatch.awayTeam) }"
-              >
-                {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
-              </div>
-            </NuxtLink>
-            <span class="hero-team-name">{{
-              getTeamName(nextMatch.awayTeam)
-            }}</span>
-          </div>
-        </div>
-
-        <NuxtLink :to="leaguePath(`/matches/${nextMatch.slug}`)" class="hero-btn">
-          {{ $t("home.viewMatch") }}
-          <Icon
-            :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
-            size="15"
-          />
-        </NuxtLink>
-      </div>
-
-      <!-- ── Empty / No Matches ────────────────────────── -->
-      <BallPhysics v-else>
-        <span class="empty-icon" aria-hidden="true">⚽</span>
-        <p>{{ $t("match.noUpcoming") }}</p>
-        <span class="empty-hint">{{ $t("home.dragBall") }}</span>
-      </BallPhysics>
-
-      <!-- ── League snapshot ───────────────────────────── -->
-      <div class="stats-strip mt-4">
-        <div class="stat-pill">
-          <Icon name="mdi:shield-outline" size="16" />
-          <div class="stat-pill-body">
-            <span class="stat-pill-val">{{ leagueStats.teams }}</span>
-            <span class="stat-pill-label">{{ $t("home.stats.teams") }}</span>
-          </div>
-        </div>
-        <div class="stat-pill">
-          <Icon name="mdi:soccer" size="16" />
-          <div class="stat-pill-body">
-            <span class="stat-pill-val">{{ leagueStats.played }}</span>
-            <span class="stat-pill-label">{{ $t("home.stats.played") }}</span>
-          </div>
-        </div>
-        <div class="stat-pill">
-          <Icon name="mdi:soccer-field" size="16" />
-          <div class="stat-pill-body">
-            <span class="stat-pill-val">{{ leagueStats.goals }}</span>
-            <span class="stat-pill-label">{{ $t("home.stats.goals") }}</span>
-          </div>
-        </div>
-        <div class="stat-pill stat-pill-leader">
-          <Icon name="mdi:trophy-outline" size="16" />
-          <div class="stat-pill-body">
-            <span class="stat-pill-val" :title="leagueStats.leader || ''">{{ leagueStats.leader || '—' }}</span>
-            <span class="stat-pill-label">{{ $t("home.stats.leader") }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Last Match ────────────────────────────────── -->
-      <div v-if="lastMatch?.slug" class="mt-4">
-        <div class="section-label">
-          <Icon name="mdi:clock-check-outline" size="14" />
-          {{ $t("home.lastMatch") }}
-        </div>
-
-        <NuxtLink :to="leaguePath(`/matches/${lastMatch.slug}`)" class="last-card">
-          <div class="last-teams">
-            <div class="last-team">
-              <template v-if="getTeamLogo(lastMatch.homeTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(lastMatch.homeTeam)"
-                  :alt="getTeamName(lastMatch.homeTeam)"
-                  width="28"
-                  height="28"
-                  class="last-logo"
-                />
-              </template>
-              <span
-                v-else
-                class="last-logo-initial"
-                :style="{ background: getTeamColor(lastMatch.homeTeam) }"
-                >{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span
-              >
-              <span class="last-name">{{
-                getTeamName(lastMatch.homeTeam)
-              }}</span>
-            </div>
-
-            <div class="last-score">
-              <span
-                class="last-num"
-                :class="{ winner: isTeamWinner(lastMatch, lastMatch.homeTeam) }"
-                >{{ openPlayScore(lastMatch, 'home') }}</span
-              >
-              <span class="last-sep">–</span>
-              <span
-                class="last-num"
-                :class="{ winner: isTeamWinner(lastMatch, lastMatch.awayTeam) }"
-                >{{ openPlayScore(lastMatch, 'away') }}</span
-              >
-              <span v-if="scoreBadge(lastMatch)" class="last-result-badge">{{ scoreBadge(lastMatch) }}</span>
-            </div>
-
-            <div class="last-team right">
-              <span class="last-name">{{
-                getTeamName(lastMatch.awayTeam)
-              }}</span>
-              <template v-if="getTeamLogo(lastMatch.awayTeam)">
-                <NuxtImg
-                  :src="getTeamLogo(lastMatch.awayTeam)"
-                  :alt="getTeamName(lastMatch.awayTeam)"
-                  width="28"
-                  height="28"
-                  class="last-logo"
-                />
-              </template>
-              <span
-                v-else
-                class="last-logo-initial"
-                :style="{ background: getTeamColor(lastMatch.awayTeam) }"
-                >{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span
-              >
-            </div>
-          </div>
-
-          <div class="last-meta">
-            <span
-              ><Icon name="mdi:calendar-outline" size="11" />
-              {{ formatShortDate(lastMatch.date) }}</span
-            >
-            <span v-if="lastMatch.venue"
-              ><Icon name="mdi:map-marker-outline" size="11" />
-              {{ lastMatch.venue }}</span
-            >
-          </div>
-        </NuxtLink>
-      </div>
-
-      <!-- ── Standings ─────────────────────────────────── -->
-      <div class="mt-4">
-        <div class="section-header">
-          <h2 class="section-title">
-            <Icon name="mdi:table" size="18" />
-            {{ $t("nav.standings") }}
-          </h2>
-          <NuxtLink :to="leaguePath('/standings')" class="section-link">
-            {{ $t("home.fullTable") }}
-            <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="14"
-            />
-          </NuxtLink>
-        </div>
-
-        <div v-if="topStandings.length" class="standings-card">
-          <table class="mini-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th class="th-team">{{ $t("standings.team") }}</th>
-                <th>{{ $t("standings.played") }}</th>
-                <th>{{ $t("standings.points") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(team, i) in topStandings"
-                :key="team.slug"
-                class="table-row"
-                @click="navigateTo(leaguePath(`/teams/${team.slug}`))"
-              >
-                <td>
-                  <span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{
-                    i + 1
-                  }}</span>
-                </td>
-                <td class="team-cell">
-                  <NuxtImg
-                    v-if="team.logo"
-                    :src="team.logo"
-                    :alt="team.title"
-                    width="22"
-                    height="22"
-                    class="mini-logo"
-                  />
-                  <span
-                    v-else
-                    class="mini-logo-initial"
-                    :style="{ background: team.color }"
-                    >{{ team.title?.charAt(0) }}</span
-                  >
-                  <span>{{ team.title }}</span>
-                </td>
-                <td class="num-cell">{{ team.P }}</td>
-                <td class="pts-cell">{{ team.Pts }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="empty-panel">
-          <Icon name="mdi:table-off" size="22" />
-          <p>{{ $t("home.noStandings") }}</p>
-        </div>
-      </div>
-
-      <!-- ── Teams ─────────────────────────────────────── -->
-      <div class="mt-4">
-        <div class="section-header">
-          <h2 class="section-title">
-            <Icon name="mdi:shield-outline" size="18" />
-            {{ $t("nav.teams") }}
-          </h2>
-          <NuxtLink :to="leaguePath('/teams')" class="section-link">
-            {{ $t("home.allTeams") }}
-            <Icon
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="14"
-            />
-          </NuxtLink>
-        </div>
-
-        <div v-if="teams?.length" class="row g-2">
-          <div
-            v-for="team in teams.slice(0, 8)"
-            :key="team.slug"
-            class="col-6 col-md-3"
-          >
-            <NuxtLink :to="leaguePath(`/teams/${team.slug}`)" class="team-card">
-              <NuxtImg
-                v-if="team.logo"
-                :src="team.logo"
-                :alt="team.title"
-                width="44"
-                height="44"
-                loading="lazy"
-                class="team-card-logo"
-              />
-              <div
-                v-else
-                class="team-card-logo-initial"
-                :style="{ background: team.color }"
-              >
-                {{ team.title?.charAt(0) }}
-              </div>
-              <span class="team-card-name">{{ team.title }}</span>
-              <span class="team-card-pts"
-                >{{ getTeamPoints(team.slug) }}
-                <small>{{ $t("standings.points") }}</small></span
-              >
-            </NuxtLink>
-          </div>
-        </div>
-        <div v-else class="empty-panel">
-          <Icon name="mdi:shield-off-outline" size="22" />
-          <p>{{ $t("home.noTeams") }}</p>
-        </div>
-      </div>
-
-      <!-- ── Quick explore ─────────────────────────────── -->
-      <div class="mt-4 mb-2">
-        <div class="section-header">
-          <h2 class="section-title">
-            <Icon name="mdi:compass-outline" size="18" />
-            {{ $t("home.explore") }}
-          </h2>
-        </div>
-        <div class="quick-grid">
           <NuxtLink
-            v-for="item in quickLinks"
-            :key="item.key"
-            :to="leaguePath(item.to)"
-            class="quick-card"
+            :to="leaguePath(`/matches/${finalMatch.slug}`)"
+            class="hero-btn"
           >
-            <span class="quick-icon" :style="{ background: item.tint }">
-              <Icon :name="item.icon" size="20" />
-            </span>
-            <span class="quick-label">{{ $t(item.label) }}</span>
+            {{ $t("home.viewMatch") }}
             <Icon
-              class="quick-arrow"
-              :name="locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'"
-              size="16"
+              :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+              size="15"
             />
           </NuxtLink>
         </div>
-      </div>
 
-      <!-- Mini ball game when there IS a next match (fun footer filler) -->
-      <div v-if="nextMatch?.slug || champion" class="mt-4">
-        <div class="section-label">
-          <Icon name="mdi:gamepad-variant-outline" size="14" />
-          {{ $t("home.playBall") }}
+        <!-- ── Next Match ─────────────────────────────────── -->
+        <div v-else-if="nextMatch?.slug" class="hero-card">
+          <div v-if="!nextMatchIsLive" class="hero-badge">
+            <Icon name="mdi:clock-outline" size="14" />
+            {{ $t("home.nextMatch") }}
+          </div>
+
+          <div class="hero-teams">
+            <div class="hero-team">
+              <NuxtLink
+                :to="leaguePath(`/teams/${nextMatch.homeTeam}`)"
+                class="hero-logo-wrap"
+              >
+                <template v-if="getTeamLogo(nextMatch.homeTeam)">
+                  <NuxtImg
+                    :src="getTeamLogo(nextMatch.homeTeam)"
+                    :alt="getTeamName(nextMatch.homeTeam)"
+                    width="64"
+                    height="64"
+                    class="hero-logo"
+                  />
+                </template>
+                <div
+                  v-else
+                  class="hero-logo-initial"
+                  :style="{ background: getTeamColor(nextMatch.homeTeam) }"
+                >
+                  {{ getTeamName(nextMatch.homeTeam)?.charAt(0) }}
+                </div>
+              </NuxtLink>
+              <span class="hero-team-name">{{
+                getTeamName(nextMatch.homeTeam)
+              }}</span>
+            </div>
+
+            <div class="hero-center">
+              <template v-if="nextMatchIsLive">
+                <span class="hero-live">
+                  <span class="live-dot" /> {{ $t("match.live") }}
+                </span>
+                <span
+                  v-if="nextMatch.homeScore != null"
+                  class="hero-live-score"
+                >
+                  {{ formatScore(nextMatch) }}
+                </span>
+              </template>
+              <template v-else>
+                <span class="hero-time">{{
+                  showTime ? formatMatchTime(nextMatch.date) : "--:--"
+                }}</span>
+                <span class="hero-date">{{
+                  showTime ? formatMatchDate(nextMatch.date) : ""
+                }}</span>
+                <span v-if="showTime && countdownText" class="hero-countdown">{{
+                  countdownText
+                }}</span>
+              </template>
+              <span v-if="nextMatch.venue" class="hero-venue">
+                <Icon name="mdi:map-marker-outline" size="12" />
+                {{ nextMatch.venue }}
+              </span>
+            </div>
+
+            <div class="hero-team">
+              <NuxtLink
+                :to="leaguePath(`/teams/${nextMatch.awayTeam}`)"
+                class="hero-logo-wrap"
+              >
+                <template v-if="getTeamLogo(nextMatch.awayTeam)">
+                  <NuxtImg
+                    :src="getTeamLogo(nextMatch.awayTeam)"
+                    :alt="getTeamName(nextMatch.awayTeam)"
+                    width="64"
+                    height="64"
+                    class="hero-logo"
+                  />
+                </template>
+                <div
+                  v-else
+                  class="hero-logo-initial"
+                  :style="{ background: getTeamColor(nextMatch.awayTeam) }"
+                >
+                  {{ getTeamName(nextMatch.awayTeam)?.charAt(0) }}
+                </div>
+              </NuxtLink>
+              <span class="hero-team-name">{{
+                getTeamName(nextMatch.awayTeam)
+              }}</span>
+            </div>
+          </div>
+
+          <NuxtLink
+            :to="leaguePath(`/matches/${nextMatch.slug}`)"
+            class="hero-btn"
+          >
+            {{ $t("home.viewMatch") }}
+            <Icon
+              :name="locale === 'ar' ? 'mdi:arrow-left' : 'mdi:arrow-right'"
+              size="15"
+            />
+          </NuxtLink>
         </div>
-        <BallPhysics>
-          <p>{{ $t("home.dragBall") }}</p>
+
+        <!-- ── Empty / No Matches ────────────────────────── -->
+        <BallPhysics v-else>
+          <span class="empty-icon" aria-hidden="true">⚽</span>
+          <p>{{ $t("match.noUpcoming") }}</p>
+          <span class="empty-hint">{{ $t("home.dragBall") }}</span>
         </BallPhysics>
-      </div>
-    </template>
+
+        <!-- ── League snapshot ───────────────────────────── -->
+        <div class="stats-strip mt-4">
+          <div class="stat-pill">
+            <Icon name="mdi:shield-outline" size="16" />
+            <div class="stat-pill-body">
+              <span class="stat-pill-val">{{ leagueStats.teams }}</span>
+              <span class="stat-pill-label">{{ $t("home.stats.teams") }}</span>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <Icon name="mdi:soccer-field" size="16" />
+            <div class="stat-pill-body">
+              <span class="stat-pill-val">{{ leagueStats.played }}</span>
+              <span class="stat-pill-label">{{ $t("home.stats.played") }}</span>
+            </div>
+          </div>
+          <div class="stat-pill">
+            <Icon name="mdi:soccer" size="16" />
+            <div class="stat-pill-body">
+              <span class="stat-pill-val">{{ leagueStats.goals }}</span>
+              <span class="stat-pill-label">{{ $t("home.stats.goals") }}</span>
+            </div>
+          </div>
+          <div class="stat-pill stat-pill-leader">
+            <Icon name="mdi:trophy-outline" size="16" />
+            <div class="stat-pill-body">
+              <span class="stat-pill-val" :title="leagueStats.leader || ''">{{
+                leagueStats.leader || "—"
+              }}</span>
+              <span class="stat-pill-label">{{ $t("home.stats.leader") }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Last Match ────────────────────────────────── -->
+        <div v-if="lastMatch?.slug" class="mt-4">
+          <div class="section-label">
+            <Icon name="mdi:clock-check-outline" size="14" />
+            {{ $t("home.lastMatch") }}
+          </div>
+
+          <NuxtLink
+            :to="leaguePath(`/matches/${lastMatch.slug}`)"
+            class="last-card"
+          >
+            <div class="last-teams">
+              <div class="last-team">
+                <template v-if="getTeamLogo(lastMatch.homeTeam)">
+                  <NuxtImg
+                    :src="getTeamLogo(lastMatch.homeTeam)"
+                    :alt="getTeamName(lastMatch.homeTeam)"
+                    width="28"
+                    height="28"
+                    class="last-logo"
+                  />
+                </template>
+                <span
+                  v-else
+                  class="last-logo-initial"
+                  :style="{ background: getTeamColor(lastMatch.homeTeam) }"
+                  >{{ getTeamName(lastMatch.homeTeam)?.charAt(0) }}</span
+                >
+                <span class="last-name">{{
+                  getTeamName(lastMatch.homeTeam)
+                }}</span>
+              </div>
+
+              <div class="last-score">
+                <span
+                  class="last-num"
+                  :class="{
+                    winner: isTeamWinner(lastMatch, lastMatch.homeTeam),
+                  }"
+                  >{{ openPlayScore(lastMatch, "home") }}</span
+                >
+                <span class="last-sep">–</span>
+                <span
+                  class="last-num"
+                  :class="{
+                    winner: isTeamWinner(lastMatch, lastMatch.awayTeam),
+                  }"
+                  >{{ openPlayScore(lastMatch, "away") }}</span
+                >
+                <span v-if="scoreBadge(lastMatch)" class="last-result-badge">{{
+                  scoreBadge(lastMatch)
+                }}</span>
+              </div>
+
+              <div class="last-team right">
+                <span class="last-name">{{
+                  getTeamName(lastMatch.awayTeam)
+                }}</span>
+                <template v-if="getTeamLogo(lastMatch.awayTeam)">
+                  <NuxtImg
+                    :src="getTeamLogo(lastMatch.awayTeam)"
+                    :alt="getTeamName(lastMatch.awayTeam)"
+                    width="28"
+                    height="28"
+                    class="last-logo"
+                  />
+                </template>
+                <span
+                  v-else
+                  class="last-logo-initial"
+                  :style="{ background: getTeamColor(lastMatch.awayTeam) }"
+                  >{{ getTeamName(lastMatch.awayTeam)?.charAt(0) }}</span
+                >
+              </div>
+            </div>
+
+            <div class="last-meta">
+              <span
+                ><Icon name="mdi:calendar-outline" size="11" />
+                {{ formatShortDate(lastMatch.date) }}</span
+              >
+              <span v-if="lastMatch.venue"
+                ><Icon name="mdi:map-marker-outline" size="11" />
+                {{ lastMatch.venue }}</span
+              >
+            </div>
+          </NuxtLink>
+        </div>
+
+        <!-- ── Knockout Bracket ──────────────────────────── -->
+        <div v-if="hasKnockout" class="mt-4">
+          <div class="section-header">
+            <h2 class="section-title">
+              <Icon name="mdi:tournament" size="18" />
+              {{ $t("nav.bracket") }}
+            </h2>
+            <NuxtLink :to="leaguePath('/bracket')" class="section-link">
+              {{ $t("home.fullTable") }}
+              <Icon
+                :name="
+                  locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'
+                "
+                size="14"
+              />
+            </NuxtLink>
+          </div>
+          <div class="knockout-bracket" :class="{ 'is-rtl': locale === 'ar' }">
+            <div v-if="quarterfinals.length" class="kt-stage">
+              <div class="kt-stage-label">{{ $t("bracket.quarterfinal") }}</div>
+              <div class="kt-cards">
+                <BracketMatchCard
+                  v-for="m in quarterfinals"
+                  :key="m.slug"
+                  :match="m"
+                  :get-team-name="getTeamName"
+                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
+                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
+                />
+              </div>
+            </div>
+            <div v-if="quarterfinals.length && semifinals.length" class="kt-connector-col">
+              <BracketConnectorLines :from="quarterfinals.length" :to="semifinals.length" />
+            </div>
+            <div v-if="semifinals.length" class="kt-stage">
+              <div class="kt-stage-label">{{ $t("bracket.semifinal") }}</div>
+              <div class="kt-cards">
+                <BracketMatchCard
+                  v-for="m in semifinals"
+                  :key="m.slug"
+                  :match="m"
+                  :get-team-name="getTeamName"
+                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
+                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
+                />
+              </div>
+            </div>
+            <div v-if="semifinals.length && finals.length" class="kt-connector-col">
+              <BracketConnectorLines :from="semifinals.length" :to="finals.length" />
+            </div>
+            <div v-if="finals.length" class="kt-stage kt-stage-final">
+              <div class="kt-stage-label kt-stage-label-final">
+                <Icon name="mdi:trophy" size="14" />
+                {{ $t("bracket.final") }}
+              </div>
+              <div class="kt-cards">
+                <BracketMatchCard
+                  v-for="m in finals"
+                  :key="m.slug"
+                  :match="m"
+                  :get-team-name="getTeamName"
+                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
+                  :final="true"
+                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Standings ─────────────────────────────────── -->
+        <div v-else class="mt-4">
+          <div class="section-header">
+            <h2 class="section-title">
+              <Icon name="mdi:table" size="18" />
+              {{ $t("nav.standings") }}
+            </h2>
+            <NuxtLink :to="leaguePath('/standings')" class="section-link">
+              {{ $t("home.fullTable") }}
+              <Icon
+                :name="
+                  locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'
+                "
+                size="14"
+              />
+            </NuxtLink>
+          </div>
+
+          <div v-if="topStandings.length" class="standings-card">
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="th-team">{{ $t("standings.team") }}</th>
+                  <th>{{ $t("standings.played") }}</th>
+                  <th>{{ $t("standings.points") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(team, i) in topStandings"
+                  :key="team.slug"
+                  class="table-row"
+                  @click="navigateTo(leaguePath(`/teams/${team.slug}`))"
+                >
+                  <td>
+                    <span class="pos-badge" :class="{ 'pos-top': i < 2 }">{{
+                      i + 1
+                    }}</span>
+                  </td>
+                  <td class="team-cell">
+                    <NuxtImg
+                      v-if="team.logo"
+                      :src="team.logo"
+                      :alt="team.title"
+                      width="22"
+                      height="22"
+                      class="mini-logo"
+                    />
+                    <span
+                      v-else
+                      class="mini-logo-initial"
+                      :style="{ background: team.color }"
+                      >{{ team.title?.charAt(0) }}</span
+                    >
+                    <span>{{ team.title }}</span>
+                  </td>
+                  <td class="num-cell">{{ team.P }}</td>
+                  <td class="pts-cell">{{ team.Pts }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="empty-panel">
+            <Icon name="mdi:table-off" size="22" />
+            <p>{{ $t("home.noStandings") }}</p>
+          </div>
+        </div>
+
+        <!-- ── Teams ─────────────────────────────────────── -->
+        <div class="mt-4">
+          <div class="section-header">
+            <h2 class="section-title">
+              <Icon name="mdi:shield-outline" size="18" />
+              {{ $t("nav.teams") }}
+            </h2>
+            <NuxtLink :to="leaguePath('/teams')" class="section-link">
+              {{ $t("home.allTeams") }}
+              <Icon
+                :name="
+                  locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'
+                "
+                size="14"
+              />
+            </NuxtLink>
+          </div>
+
+          <div v-if="teams?.length" class="row g-2">
+            <div
+              v-for="team in teams.slice(0, 8)"
+              :key="team.slug"
+              class="col-6 col-md-3"
+            >
+              <NuxtLink
+                :to="leaguePath(`/teams/${team.slug}`)"
+                class="team-card"
+              >
+                <NuxtImg
+                  v-if="team.logo"
+                  :src="team.logo"
+                  :alt="team.title"
+                  width="44"
+                  height="44"
+                  loading="lazy"
+                  class="team-card-logo"
+                />
+                <div
+                  v-else
+                  class="team-card-logo-initial"
+                  :style="{ background: team.color }"
+                >
+                  {{ team.title?.charAt(0) }}
+                </div>
+                <span class="team-card-name">{{ team.title }}</span>
+                <span class="team-card-pts"
+                  >{{ getTeamPoints(team.slug) }}
+                  <small>{{ $t("standings.points") }}</small></span
+                >
+              </NuxtLink>
+            </div>
+          </div>
+          <div v-else class="empty-panel">
+            <Icon name="mdi:shield-off-outline" size="22" />
+            <p>{{ $t("home.noTeams") }}</p>
+          </div>
+        </div>
+
+        <!-- ── Quick explore ─────────────────────────────── -->
+        <div class="mt-4 mb-2">
+          <div class="section-header">
+            <h2 class="section-title">
+              <Icon name="mdi:compass-outline" size="18" />
+              {{ $t("home.explore") }}
+            </h2>
+          </div>
+          <div class="quick-grid">
+            <NuxtLink
+              v-for="item in quickLinks"
+              :key="item.key"
+              :to="leaguePath(item.to)"
+              class="quick-card"
+            >
+              <span class="quick-icon" :style="{ background: item.tint }">
+                <Icon :name="item.icon" size="20" />
+              </span>
+              <span class="quick-label">{{ $t(item.label) }}</span>
+              <Icon
+                class="quick-arrow"
+                :name="
+                  locale === 'ar' ? 'mdi:chevron-left' : 'mdi:chevron-right'
+                "
+                size="16"
+              />
+            </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Mini ball game when there IS a next match (fun footer filler) -->
+        <div v-if="nextMatch?.slug || champion" class="mt-4">
+          <div class="section-label">
+            <Icon name="mdi:gamepad-variant-outline" size="14" />
+            {{ $t("home.playBall") }}
+          </div>
+          <BallPhysics>
+            <p>{{ $t("home.dragBall") }}</p>
+          </BallPhysics>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -432,10 +545,13 @@ import { enUS } from "date-fns/locale";
 import { syrianAr } from "~/utils/syrianAr";
 
 const { locale } = useI18n();
-const { leaguePath } = useCurrentLeague()
+const { leaguePath } = useCurrentLeague();
 const { fetchMatches, fetchTeams } = useLeagueData();
-const notifCenter = useNotificationCenter()
-const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime('matches', ['INSERT', 'UPDATE'])
+const notifCenter = useNotificationCenter();
+const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime(
+  "matches",
+  ["INSERT", "UPDATE"],
+);
 const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const [
@@ -459,7 +575,7 @@ const [
       limit: 1,
     }).then((r) => r?.[0] || null),
   ),
-  useAsyncData("home-all-matches", () => fetchMatches({ status: "played" })),
+  useAsyncData("home-all-matches", () => fetchMatches()),
   useAsyncData("home-teams", () => fetchTeams()),
   useAsyncData("home-final", () =>
     fetchMatches({ group: "F" }).then((r) => r?.[0] || null),
@@ -467,63 +583,81 @@ const [
 ]);
 
 // ── Skeleton guard: show skeleton until client confirms fresh data ──
-const pageReady = ref(false)
-let refreshTimer = null
-let resultTimer = null
+const pageReady = ref(false);
+let refreshTimer = null;
+let resultTimer = null;
 onMounted(async () => {
-  showTime.value = true
+  showTime.value = true;
   // Force fresh data on every page load to avoid stale SSR content
   await Promise.allSettled([
-    refreshNext(), refreshLast(), refreshAll(), refreshTeams(), refreshFinal(),
-  ])
-  pageReady.value = true
+    refreshNext(),
+    refreshLast(),
+    refreshAll(),
+    refreshTeams(),
+    refreshFinal(),
+  ]);
+  pageReady.value = true;
   // Reactive timer for auto-live status
-  now.value = Date.now()
-  refreshTimer = setInterval(() => { now.value = Date.now() }, 10000)
+  now.value = Date.now();
+  refreshTimer = setInterval(() => {
+    now.value = Date.now();
+  }, 10000);
   // Realtime: auto-refresh when matches change
   subMatches(() => {
-    refreshNext()
-    refreshLast()
-  })
+    refreshNext();
+    refreshLast();
+  });
   // Fallback poll every 60s in case Realtime misses an update
   resultTimer = setInterval(() => {
-    refreshNext()
-    refreshLast()
-  }, 60000)
-})
+    refreshNext();
+    refreshLast();
+  }, 60000);
+});
 onUnmounted(() => {
-  if (refreshTimer) clearInterval(refreshTimer)
-  if (resultTimer) clearInterval(resultTimer)
-  unsubMatches()
-})
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (resultTimer) clearInterval(resultTimer);
+  unsubMatches();
+});
 
-const pending = computed(() => nextPending.value || lastPending.value || matchesPending.value || teamsPending.value || finalPending.value || !pageReady.value);
+const pending = computed(
+  () =>
+    nextPending.value ||
+    lastPending.value ||
+    matchesPending.value ||
+    teamsPending.value ||
+    finalPending.value ||
+    !pageReady.value,
+);
 
 // ── Reactive time-based status ──
-const now = ref(0)
+const now = ref(0);
 const computeStatus = (dateStr) => {
-  if (!dateStr) return 'upcoming'
-  if (!now.value) return 'upcoming'
-  const matchDate = new Date(dateStr)
-  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000)
-  if (now.value > matchEnd) return 'played'
-  if (now.value >= matchDate) return 'live'
-  return 'upcoming'
-}
-const nextMatchIsLive = computed(() => nextMatch.value ? computeStatus(nextMatch.value.date) === 'live' : false)
+  if (!dateStr) return "upcoming";
+  if (!now.value) return "upcoming";
+  const matchDate = new Date(dateStr);
+  const matchEnd = new Date(matchDate.getTime() + 2 * 60 * 60 * 1000);
+  if (now.value > matchEnd) return "played";
+  if (now.value >= matchDate) return "live";
+  return "upcoming";
+};
+const nextMatchIsLive = computed(() =>
+  nextMatch.value ? computeStatus(nextMatch.value.date) === "live" : false,
+);
 
 const countdownText = computed(() => {
-  if (!nextMatch.value?.date || !now.value || nextMatchIsLive.value) return ''
-  const diff = new Date(nextMatch.value.date).getTime() - now.value
-  if (diff <= 0) return ''
-  const totalMin = Math.floor(diff / 60000)
-  const days = Math.floor(totalMin / (60 * 24))
-  const hours = Math.floor((totalMin % (60 * 24)) / 60)
-  const mins = totalMin % 60
-  if (days > 0) return locale.value === 'ar' ? `${days}ي ${hours}س` : `${days}d ${hours}h`
-  if (hours > 0) return locale.value === 'ar' ? `${hours}س ${mins}د` : `${hours}h ${mins}m`
-  return locale.value === 'ar' ? `${mins}د` : `${mins}m`
-})
+  if (!nextMatch.value?.date || !now.value || nextMatchIsLive.value) return "";
+  const diff = new Date(nextMatch.value.date).getTime() - now.value;
+  if (diff <= 0) return "";
+  const totalMin = Math.floor(diff / 60000);
+  const days = Math.floor(totalMin / (60 * 24));
+  const hours = Math.floor((totalMin % (60 * 24)) / 60);
+  const mins = totalMin % 60;
+  if (days > 0)
+    return locale.value === "ar" ? `${days}ي ${hours}س` : `${days}d ${hours}h`;
+  if (hours > 0)
+    return locale.value === "ar" ? `${hours}س ${mins}د` : `${hours}h ${mins}m`;
+  return locale.value === "ar" ? `${mins}د` : `${mins}m`;
+});
 
 const {
   isTeamWinner,
@@ -561,25 +695,42 @@ const getTeamName = (slug) => teamMap.value[slug]?.title ?? slug;
 const getTeamLogo = (slug) => (slug ? teamMap.value[slug]?.logo || null : null);
 const getTeamColor = (slug) => teamMap.value[slug]?.color || "#22c55e";
 
-const showTime = ref(false)
+const showTime = ref(false);
 
 const formatMatchTime = (dateStr) => {
   if (!dateStr) return "--:--";
   try {
     return format(parseISO(dateStr), "h:mm a", { locale: dateLocale.value });
-  } catch { return "--:--"; }
+  } catch {
+    return "--:--";
+  }
 };
 
 const formatMatchDate = (dateStr) => {
   if (!dateStr) return "";
   try {
-    return format(parseISO(dateStr), "EEEE d MMMM", { locale: dateLocale.value });
-  } catch { return ""; }
+    return format(parseISO(dateStr), "EEEE d MMMM", {
+      locale: dateLocale.value,
+    });
+  } catch {
+    return "";
+  }
 };
 
 const confettiStyle = (i) => {
-  const colors = ['#f59e0b','#22c55e','#ef4444','#3b82f6','#a855f7','#ec4899','#14b8a6'];
-  const s = (n) => { const x = Math.sin(n) * 10000; return x - Math.floor(x); };
+  const colors = [
+    "#f59e0b",
+    "#22c55e",
+    "#ef4444",
+    "#3b82f6",
+    "#a855f7",
+    "#ec4899",
+    "#14b8a6",
+  ];
+  const s = (n) => {
+    const x = Math.sin(n) * 10000;
+    return x - Math.floor(x);
+  };
   return {
     left: `${s(i * 1) * 100}%`,
     animationDelay: `${s(i * 7) * 3}s`,
@@ -587,7 +738,7 @@ const confettiStyle = (i) => {
     backgroundColor: colors[i % colors.length],
     width: `${6 + s(i * 5) * 8}px`,
     height: `${6 + s(i * 11) * 8}px`,
-    borderRadius: s(i * 3) > 0.5 ? '50%' : '2px',
+    borderRadius: s(i * 3) > 0.5 ? "50%" : "2px",
   };
 };
 
@@ -595,7 +746,9 @@ const formatShortDate = (dateStr) => {
   if (!dateStr) return "";
   try {
     return format(parseISO(dateStr), "d MMM", { locale: dateLocale.value });
-  } catch { return ""; }
+  } catch {
+    return "";
+  }
 };
 
 const { standingsMap: _standingsMap } = useStandings();
@@ -608,33 +761,79 @@ const getTeamPoints = (slug) => standingsData.value[slug]?.Pts ?? 0;
 
 const topStandings = computed(() =>
   [...(teams.value ?? [])]
-    .map((t) => ({ ...t, ...(standingsData.value[t.slug] ?? { P: 0, Pts: 0, GD: 0 }) }))
+    .map((t) => ({
+      ...t,
+      ...(standingsData.value[t.slug] ?? { P: 0, Pts: 0, GD: 0 }),
+    }))
     .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD)
     .slice(0, 4),
 );
 
+const quarterfinals = computed(() =>
+  (allMatches.value || [])
+    .filter((m) => m.group === "QF")
+    .sort((a, b) => new Date(a.date) - new Date(b.date)),
+)
+const semifinals = computed(() =>
+  (allMatches.value || [])
+    .filter((m) => m.group === "SF")
+    .sort((a, b) => new Date(a.date) - new Date(b.date)),
+)
+const finals = computed(() =>
+  (allMatches.value || [])
+    .filter((m) => m.group === "FINAL" || m.group === "F")
+    .sort((a, b) => new Date(a.date) - new Date(b.date)),
+)
+const hasKnockout = computed(
+  () => quarterfinals.value.length > 0 || semifinals.value.length > 0 || finals.value.length > 0,
+)
+
 const leagueStats = computed(() => {
-  const list = teams.value || []
-  const matches = allMatches.value || []
+  const list = teams.value || [];
+  const matches = (allMatches.value || []).filter((m) => m.status === 'played');
   const goals = matches.reduce(
     (sum, m) => sum + (Number(m.homeScore) || 0) + (Number(m.awayScore) || 0),
     0,
-  )
-  const leader = topStandings.value[0]
+  );
+  const leader = topStandings.value[0];
   return {
     teams: list.length,
     played: matches.length,
     goals,
     leader: leader?.title || null,
-  }
-})
+  };
+});
 
 const quickLinks = [
-  { key: 'fixtures', to: '/fixtures', label: 'nav.fixtures', icon: 'mdi:calendar-month-outline', tint: 'rgba(34,197,94,0.12)' },
-  { key: 'standings', to: '/standings', label: 'nav.standings', icon: 'mdi:table', tint: 'rgba(59,130,246,0.12)' },
-  { key: 'stats', to: '/stats', label: 'nav.stats', icon: 'mdi:chart-bar', tint: 'rgba(168,85,247,0.12)' },
-  { key: 'bracket', to: '/bracket', label: 'nav.bracket', icon: 'mdi:tournament', tint: 'rgba(245,158,11,0.12)' },
-]
+  {
+    key: "fixtures",
+    to: "/fixtures",
+    label: "nav.fixtures",
+    icon: "mdi:calendar-month-outline",
+    tint: "rgba(34,197,94,0.12)",
+  },
+  {
+    key: "standings",
+    to: "/standings",
+    label: "nav.standings",
+    icon: "mdi:table",
+    tint: "rgba(59,130,246,0.12)",
+  },
+  {
+    key: "stats",
+    to: "/stats",
+    label: "nav.stats",
+    icon: "mdi:chart-bar",
+    tint: "rgba(168,85,247,0.12)",
+  },
+  {
+    key: "bracket",
+    to: "/bracket",
+    label: "nav.bracket",
+    icon: "mdi:tournament",
+    tint: "rgba(245,158,11,0.12)",
+  },
+];
 
 useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") });
 </script>
@@ -653,18 +852,30 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   height: 200px;
   border-radius: 20px;
   margin-bottom: 20px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 }
 .skeleton-table {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 20px;
 }
 .skeleton-row {
   height: 48px;
   border-radius: 10px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 }
@@ -677,11 +888,20 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 .skeleton-card {
   height: 100px;
   border-radius: 14px;
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-surface) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: sh 1.4s linear infinite;
 }
-@keyframes sh { to { background-position: -200% 0; } }
+@keyframes sh {
+  to {
+    background-position: -200% 0;
+  }
+}
 
 .section-header {
   display: flex;
@@ -776,9 +996,9 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 .hero-badge-live {
-  background: rgba(22,163,74,0.12);
+  background: rgba(22, 163, 74, 0.12);
   color: #16a34a;
-  border-color: rgba(22,163,74,0.25);
+  border-color: rgba(22, 163, 74, 0.25);
 }
 
 .live-dot-sm {
@@ -791,17 +1011,27 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 
 // ── Champion Card ──────────────────────────────────────
 .champion-card {
-  background: linear-gradient(160deg, #fef9c3 0%, #fde047 60%, #fef9c3 100%) !important;
+  background: linear-gradient(
+    160deg,
+    #fef9c3 0%,
+    #fde047 60%,
+    #fef9c3 100%
+  ) !important;
   :root.dark & {
-    background: linear-gradient(160deg, #1a1500 0%, #2a2200 60%, #1a1500 100%) !important;
+    background: linear-gradient(
+      160deg,
+      #1a1500 0%,
+      #2a2200 60%,
+      #1a1500 100%
+    ) !important;
   }
   padding: 40px 24px !important;
 }
 
 .champion-badge {
-  background: rgba(234,179,8,0.15) !important;
+  background: rgba(234, 179, 8, 0.15) !important;
   color: #ca8a04 !important;
-  border-color: rgba(234,179,8,0.3) !important;
+  border-color: rgba(234, 179, 8, 0.3) !important;
   z-index: 2 !important;
 }
 
@@ -810,7 +1040,11 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(234,179,8,0.12) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(234, 179, 8, 0.12) 0%,
+    transparent 70%
+  );
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -887,8 +1121,13 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 @keyframes champ-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .hero-teams {
@@ -970,7 +1209,7 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   font-size: 0.9rem;
   font-weight: 800;
   color: #16a34a;
-  background: rgba(22,163,74,0.1);
+  background: rgba(22, 163, 74, 0.1);
   padding: 6px 16px;
   border-radius: 8px;
   letter-spacing: 0.5px;
@@ -993,8 +1232,15 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
 }
 
 @keyframes pulse-green {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.7); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.7);
+  }
 }
 
 .hero-time {
@@ -1059,8 +1305,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     background: color-mix(in srgb, var(--primary) 85%, #000);
   }
 }
-
-
 
 // ── Last Match ─────────────────────────────────────────────
 .last-card {
@@ -1191,7 +1435,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   }
 }
 
-
 .stat-pill {
   display: flex;
   align-items: center;
@@ -1306,7 +1549,10 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
   border: 1px solid var(--border-color);
   border-radius: 14px;
   text-decoration: none;
-  transition: border-color 0.15s, transform 0.12s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.12s,
+    background 0.15s;
   min-width: 0;
   &:hover {
     border-color: var(--primary);
@@ -1469,6 +1715,68 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     font-size: 0.62rem;
     font-weight: 500;
     color: var(--text-muted);
+  }
+}
+
+// ── Knockout Bracket ──────────────────────────────────
+.knockout-bracket {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  padding: 24px 4px;
+  -webkit-overflow-scrolling: touch;
+  min-height: 320px;
+  scrollbar-width: thin;
+  &.is-rtl { flex-direction: row-reverse; }
+}
+.kt-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 160px;
+  max-width: 200px;
+  @media (max-width: 520px) {
+    min-width: 130px;
+    max-width: 150px;
+  }
+}
+.kt-stage-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  @media (max-width: 520px) {
+    font-size: 0.58rem;
+    margin-bottom: 10px;
+  }
+}
+.kt-stage-label-final { color: #ca8a04; font-size: 0.76rem; }
+.kt-cards {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  flex: 1;
+  gap: 16px;
+  width: 100%;
+  @media (max-width: 520px) { gap: 10px; }
+}
+.kt-connector-col {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  padding-top: 36px;
+  @media (max-width: 520px) {
+    width: 28px;
+    padding-top: 28px;
   }
 }
 </style>

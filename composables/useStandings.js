@@ -3,9 +3,12 @@ export const useStandings = () => {
 
   const calculateStandings = (teamList, allMatches) => {
     if (!teamList || !allMatches) return []
+    const groupMatches = allMatches.filter(
+      (m) => !['QF', 'SF', 'F', 'FINAL'].includes(m.group),
+    )
     return teamList
       .map((team) => {
-        const teamMatches = allMatches.filter(
+        const teamMatches = groupMatches.filter(
           (m) =>
             (m.homeTeam === team.slug || m.awayTeam === team.slug) &&
             m.status === "played",
