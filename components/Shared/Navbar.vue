@@ -121,7 +121,7 @@
         <div class="mobile-nav" @click.stop>
           <template v-if="isLeagueRoute">
             <NuxtLink
-              v-for="item in navItems"
+              v-for="item in mobileNavItems"
               :key="item.key"
               :to="item.to"
               class="mobile-nav-item"
@@ -137,7 +137,6 @@
                 aria-hidden="true"
               />
             </NuxtLink>
-            <div class="mobile-nav-divider" />
           </template>
 
           <div class="mobile-nav-divider" />
@@ -345,6 +344,15 @@ const navItems = computed(() => {
   ]
 })
 
+const mobileNavItems = computed(() => {
+  if (!isLeagueRoute.value) return navItems.value
+  const bottomKeys = ['home', 'standings', 'fixtures', 'bracket', 'teams']
+  return [
+    { key: "portal", label: "nav.leagues", icon: "mdi:apps", to: "/" },
+    ...navItems.value.filter(item => !bottomKeys.includes(item.key)),
+  ]
+})
+
 const toggleColorMode = () => {
   theme.toggleMode();
 };
@@ -402,7 +410,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 100%;
-  gap: 16px;
+  gap: 8px;
 }
 
 // ── Brand ─────────────────────────────────────────────────────────────────────

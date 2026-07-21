@@ -144,6 +144,21 @@
     </div>
 
     <div class="settings-card">
+      <h3 class="form-section-title">سحب الأدوار الإقصائية</h3>
+      <p class="form-desc">حدد مباريات الأدوار الإقصائية (ربع النهائي، نصف النهائي، النهائي). عند النشر، سيظهر المخطط الكامل في الصفحة الرئيسية بدلاً من جدول الترتيب</p>
+      <AdminDrawEditor
+        v-model="drawForm"
+        :groups="form.groups"
+        :teams="teamsList"
+      />
+      <div class="form-actions">
+        <SharedUiButtonBase variant="primary" @click="handleSaveDraw">
+          حفظ السحب
+        </SharedUiButtonBase>
+      </div>
+    </div>
+
+    <div class="settings-card">
       <h3 class="form-section-title">إشعار فوري</h3>
       <p class="form-desc">أرسل إشعارًا فوريًا لجميع المشتركين</p>
       <SharedUiFormBaseInput
@@ -238,6 +253,9 @@ const adForm = reactive({
   link: "",
 })
 
+const drawForm = ref({ published: false, slots: [] })
+const teamsList = ref([])
+
 onMounted(async () => {
   const s = await admin.getSettings()
   if (s) {
@@ -249,9 +267,33 @@ onMounted(async () => {
       adForm.description = s.ad.description || ""
       adForm.link = s.ad.link || ""
     }
+    if (s.knockout_draw) {
+      drawForm.value = JSON.parse(JSON.stringify(s.knockout_draw))
+    }
   }
+  const { fetchTeams } = useLeagueData()
+  const teams = await fetchTeams()
+  teamsList.value = teams || []
   loading.value = false
 })
+
+const handleSaveDraw = async () => {
+  const clean = JSON.parse(JSON.stringify(drawForm.value))
+  clean.slots = clean.slots.map(s => {
+    const { _key, ...rest } = s
+    return rest
+  })
+  try {
+    const s = await admin.getSettings()
+    await admin.saveSettings({
+      season: s?.season || form.season,
+      knockout_draw: clean,
+    })
+    showAlert('success', '✅ تم الحفظ', 'تم حفظ سحب الأدوار الإقصائية بنجاح')
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل حفظ السحب')
+  }
+}
 
 const handleSave = async () => {
   try {

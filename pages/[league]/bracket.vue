@@ -106,11 +106,14 @@
 
         <!-- ══════════════ KNOCKOUT STAGE ══════════════ -->
         <div v-else class="bracket-content">
-          <div v-if="hasKnockout" class="knockout-wrapper">
-
-            <!-- ── Knockout bracket ── -->
+          <BracketTree
+            v-if="draw?.published"
+            :rounds="bracketRounds"
+            :get-team-name="getTeamName"
+            :league-path="leaguePath"
+          />
+          <div v-else-if="hasLegacyKnockout" class="knockout-wrapper">
             <div class="knockout-bracket" :class="{ 'is-rtl': locale === 'ar' }">
-
               <div v-if="quarterfinals.length" class="kt-stage">
                 <div class="kt-stage-label">{{ $t("bracket.quarterfinal") }}</div>
                 <div class="kt-cards">
@@ -124,11 +127,9 @@
                   />
                 </div>
               </div>
-
               <div v-if="quarterfinals.length && semifinals.length" class="kt-connector-col">
                 <BracketConnectorLines :from="quarterfinals.length" :to="semifinals.length" />
               </div>
-
               <div v-if="semifinals.length" class="kt-stage">
                 <div class="kt-stage-label">{{ $t("bracket.semifinal") }}</div>
                 <div class="kt-cards">
@@ -142,11 +143,9 @@
                   />
                 </div>
               </div>
-
               <div v-if="semifinals.length && finals.length" class="kt-connector-col">
                 <BracketConnectorLines :from="semifinals.length" :to="finals.length" />
               </div>
-
               <div v-if="finals.length" class="kt-stage kt-stage-final">
                 <div class="kt-stage-label kt-stage-label-final">
                   <Icon name="mdi:trophy" size="14" />
@@ -164,10 +163,8 @@
                   />
                 </div>
               </div>
-
             </div>
           </div>
-
           <SharedUiFeedbackEmptyState
             v-else
             :title="$t('bracket.placeholder')"
@@ -183,7 +180,7 @@
 const { locale, t } = useI18n();
 const { leaguePath } = useCurrentLeague();
 const { name: appTitle } = useAppTitle();
-const { fetchTeams, fetchMatches } = useLeagueData();
+const { fetchTeams, fetchMatches, fetchSettings } = useLeagueData();
 const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
 
@@ -195,10 +192,19 @@ const tabs = computed(() => [
 const [
   { data: teamsData, pending: teamsPending, refresh: refreshTeams },
   { data: matchesData, pending: matchesPending, error, refresh: refreshMatches },
+  { data: settingsData },
 ] = await Promise.all([
   useAsyncData("bracket-teams", () => fetchTeams()),
   useAsyncData("bracket-matches", () => fetchMatches()),
+  useAsyncData("bracket-settings", () => fetchSettings()),
 ]);
+
+const draw = computed(() => settingsData.value?.knockout_draw || null)
+const { buildBracket } = useKnockoutBracket();
+const bracketRounds = computed(() => {
+  if (!draw.value || !draw.value.published) return []
+  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: matches.value || [], locale: locale.value }).rounds
+})
 
 // Fallback: on client, re-fetch if SSR returned empty (e.g. Supabase unavailable during SSR)
 onMounted(() => {
@@ -265,7 +271,7 @@ const quarterfinals = computed(() =>
     .sort((a, b) => new Date(a.date) - new Date(b.date)),
 );
 
-const hasKnockout = computed(
+const hasLegacyKnockout = computed(
   () => quarterfinals.value.length > 0 || semifinals.value.length > 0 || finals.value.length > 0,
 );
 

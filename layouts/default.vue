@@ -11,7 +11,7 @@
     <SharedAdsBanner />
     <slot />
     <ClientOnly>
-      <SharedUiNavigationMobileBottomBar :items="bottomNavItems" />
+      <SharedUiNavigationMobileBottomBar v-if="!isHomePage" :items="bottomNavItems" />
     </ClientOnly>
     <LazySharedFooter hydrate-on-idle />
   </div>
@@ -19,8 +19,11 @@
 
 <script setup>
 const { locale, t } = useI18n();
+const route = useRoute();
 const { name: appName } = useAppTitle();
 const { isLeagueRoute, leaguePath } = useCurrentLeague();
+
+const isHomePage = computed(() => route.path === '/')
 
 const defaultTitle = computed(() =>
   locale.value === "ar" ? "دوري القرية السنوي" : "Village League"

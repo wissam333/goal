@@ -175,7 +175,7 @@
         </BallPhysics>
 
         <!-- ── League snapshot ───────────────────────────── -->
-        <div class="stats-strip mt-4">
+        <div v-if="!hasKnockout" class="stats-strip mt-4">
           <div class="stat-pill">
             <Icon name="mdi:shield-outline" size="16" />
             <div class="stat-pill-body">
@@ -314,57 +314,11 @@
               />
             </NuxtLink>
           </div>
-          <div class="knockout-bracket" :class="{ 'is-rtl': locale === 'ar' }">
-            <div v-if="quarterfinals.length" class="kt-stage">
-              <div class="kt-stage-label">{{ $t("bracket.quarterfinal") }}</div>
-              <div class="kt-cards">
-                <BracketMatchCard
-                  v-for="m in quarterfinals"
-                  :key="m.slug"
-                  :match="m"
-                  :get-team-name="getTeamName"
-                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
-                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
-                />
-              </div>
-            </div>
-            <div v-if="quarterfinals.length && semifinals.length" class="kt-connector-col">
-              <BracketConnectorLines :from="quarterfinals.length" :to="semifinals.length" />
-            </div>
-            <div v-if="semifinals.length" class="kt-stage">
-              <div class="kt-stage-label">{{ $t("bracket.semifinal") }}</div>
-              <div class="kt-cards">
-                <BracketMatchCard
-                  v-for="m in semifinals"
-                  :key="m.slug"
-                  :match="m"
-                  :get-team-name="getTeamName"
-                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
-                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
-                />
-              </div>
-            </div>
-            <div v-if="semifinals.length && finals.length" class="kt-connector-col">
-              <BracketConnectorLines :from="semifinals.length" :to="finals.length" />
-            </div>
-            <div v-if="finals.length" class="kt-stage kt-stage-final">
-              <div class="kt-stage-label kt-stage-label-final">
-                <Icon name="mdi:trophy" size="14" />
-                {{ $t("bracket.final") }}
-              </div>
-              <div class="kt-cards">
-                <BracketMatchCard
-                  v-for="m in finals"
-                  :key="m.slug"
-                  :match="m"
-                  :get-team-name="getTeamName"
-                  :is-winner="(match, slug) => match.status === 'played' && isTeamWinner(match, slug)"
-                  :final="true"
-                  @click="navigateTo(leaguePath('/matches/' + m.slug))"
-                />
-              </div>
-            </div>
-          </div>
+          <BracketTree
+            :rounds="bracketRounds"
+            :get-team-name="getTeamName"
+            :league-path="leaguePath"
+          />
         </div>
 
         <!-- ── Standings ─────────────────────────────────── -->
@@ -546,7 +500,7 @@ import { syrianAr } from "~/utils/syrianAr";
 
 const { locale } = useI18n();
 const { leaguePath } = useCurrentLeague();
-const { fetchMatches, fetchTeams } = useLeagueData();
+const { fetchMatches, fetchTeams, fetchSettings } = useLeagueData();
 const notifCenter = useNotificationCenter();
 const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime(
   "matches",
@@ -560,6 +514,7 @@ const [
   { data: allMatches, pending: matchesPending, refresh: refreshAll },
   { data: teams, pending: teamsPending, refresh: refreshTeams },
   { data: finalMatch, pending: finalPending, refresh: refreshFinal },
+  { data: settingsData, pending: settingsPending, refresh: refreshSettings },
 ] = await Promise.all([
   useAsyncData("home-next", () =>
     fetchMatches({
@@ -580,7 +535,16 @@ const [
   useAsyncData("home-final", () =>
     fetchMatches({ group: "F" }).then((r) => r?.[0] || null),
   ),
+  useAsyncData("home-settings", () => fetchSettings()),
 ]);
+
+const draw = computed(() => settingsData.value?.knockout_draw || null)
+const { buildBracket } = useKnockoutBracket();
+const bracketRounds = computed(() => {
+  if (!draw.value || !draw.value.published) return []
+  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: allMatches.value || [], locale: locale.value }).rounds
+})
+const hasKnockout = computed(() => !!draw.value?.published)
 
 // ── Skeleton guard: show skeleton until client confirms fresh data ──
 const pageReady = ref(false);
@@ -769,24 +733,7 @@ const topStandings = computed(() =>
     .slice(0, 4),
 );
 
-const quarterfinals = computed(() =>
-  (allMatches.value || [])
-    .filter((m) => m.group === "QF")
-    .sort((a, b) => new Date(a.date) - new Date(b.date)),
-)
-const semifinals = computed(() =>
-  (allMatches.value || [])
-    .filter((m) => m.group === "SF")
-    .sort((a, b) => new Date(a.date) - new Date(b.date)),
-)
-const finals = computed(() =>
-  (allMatches.value || [])
-    .filter((m) => m.group === "FINAL" || m.group === "F")
-    .sort((a, b) => new Date(a.date) - new Date(b.date)),
-)
-const hasKnockout = computed(
-  () => quarterfinals.value.length > 0 || semifinals.value.length > 0 || finals.value.length > 0,
-)
+
 
 const leagueStats = computed(() => {
   const list = teams.value || [];
@@ -1715,68 +1662,6 @@ useSeoMeta({ title: () => (locale.value === "ar" ? "الرئيسية" : "Home") 
     font-size: 0.62rem;
     font-weight: 500;
     color: var(--text-muted);
-  }
-}
-
-// ── Knockout Bracket ──────────────────────────────────
-.knockout-bracket {
-  display: flex;
-  align-items: stretch;
-  overflow-x: auto;
-  padding: 24px 4px;
-  -webkit-overflow-scrolling: touch;
-  min-height: 320px;
-  scrollbar-width: thin;
-  &.is-rtl { flex-direction: row-reverse; }
-}
-.kt-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  min-width: 160px;
-  max-width: 200px;
-  @media (max-width: 520px) {
-    min-width: 130px;
-    max-width: 150px;
-  }
-}
-.kt-stage-label {
-  font-size: 0.68rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  @media (max-width: 520px) {
-    font-size: 0.58rem;
-    margin-bottom: 10px;
-  }
-}
-.kt-stage-label-final { color: #ca8a04; font-size: 0.76rem; }
-.kt-cards {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  flex: 1;
-  gap: 16px;
-  width: 100%;
-  @media (max-width: 520px) { gap: 10px; }
-}
-.kt-connector-col {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 48px;
-  padding-top: 36px;
-  @media (max-width: 520px) {
-    width: 28px;
-    padding-top: 28px;
   }
 }
 </style>

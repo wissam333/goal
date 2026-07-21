@@ -76,6 +76,7 @@
   "bottomNav": "Bottom Navigation",
   "nav": {
     "home": "Home",
+    "leagues": "Leagues",
     "standings": "Standings",
     "fixtures": "Fixtures",
     "teams": "Teams",
@@ -195,7 +196,13 @@
     "placeholder": "Data coming soon",
     "final": "Final",
     "semifinal": "Semi-Final",
-    "quarterfinal": "Quarter-Final"
+    "quarterfinal": "Quarter-Final",
+    "home": "Home",
+    "away": "Away",
+    "addSlot": "Add match slot",
+    "slotNum": "Match {n}",
+    "publishDraw": "Show bracket on homepage",
+    "drawNotPublished": "Knockout draw not published yet"
   },
   "player": {
     "goals": "Goals",

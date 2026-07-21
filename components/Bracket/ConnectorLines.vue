@@ -7,18 +7,19 @@
     preserveAspectRatio="none"
   >
     <polyline
-      v-for="(pts, i) in lines"
+      v-for="(ln, i) in lines"
       :key="i"
-      :points="pts"
-      class="conn-line"
+      :points="ln.pts"
+      :class="['conn-line', { 'conn-win': ln.win }]"
     />
   </svg>
 </template>
 
 <script setup>
 const props = defineProps({
-  from: { type: Number, required: true }, // cards on the left  (e.g. 4 QF)
-  to:   { type: Number, required: true }, // cards on the right (e.g. 2 SF)
+  from: { type: Number, required: true },
+  to:   { type: Number, required: true },
+  winners: { type: Array, default: () => [] },
 });
 
 const svgEl = ref(null);
@@ -54,26 +55,25 @@ function midpoints(count, H) {
 const lines = computed(() => {
   const H    = svgH.value;
   const W    = 48;
-  const mid  = W / 2; // 24 — the vertical pivot x
+  const mid  = W / 2;
   const fromY = midpoints(props.from, H);
   const toY   = midpoints(props.to,   H);
 
-  const pts = [];
-  const ratio = props.from / props.to; // how many "from" cards per "to" card
+  const result = [];
+  const ratio = props.from / props.to;
 
   toY.forEach((ty, ti) => {
-    // which "from" cards feed into this "to" card?
     const start = Math.round(ti * ratio);
-    const end   = Math.round((ti + 1) * ratio); // exclusive
+    const end   = Math.round((ti + 1) * ratio);
 
     for (let fi = start; fi < end; fi++) {
       const fy = fromY[fi];
-      // horizontal from left edge → mid, vertical mid → target, horizontal mid → right edge
-      pts.push(`0,${fy} ${mid},${fy} ${mid},${ty} ${W},${ty}`);
+      const pts = `0,${fy} ${mid},${fy} ${mid},${ty} ${W},${ty}`;
+      result.push({ pts, win: !!props.winners[fi] });
     }
   });
 
-  return pts;
+  return result;
 });
 </script>
 
@@ -86,10 +86,14 @@ const lines = computed(() => {
 
   .conn-line {
     fill: none;
-    stroke: var(--primary-mid);
+    stroke: var(--border-color);
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+    transition: stroke 0.2s;
+  }
+  .conn-win {
+    stroke: var(--primary);
   }
 }
 </style>
