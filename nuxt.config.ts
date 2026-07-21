@@ -94,11 +94,7 @@ export default defineNuxtConfig({
         dir: "ltr",
       },
     ],
-    detectBrowserLanguage: {
-      useCookie: true,
-      cookieKey: "i18n_redirected",
-      redirectOn: "root",
-    },
+    detectBrowserLanguage: false,
     bundle: { optimizeTranslationDirective: false },
   },
 
