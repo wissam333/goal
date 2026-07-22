@@ -10,14 +10,11 @@
           class="ad-card"
         >
           <div class="ad-image">
-            <NuxtImg
+            <img
               v-if="ad.image"
               :src="ad.image"
               :alt="ad.title || ''"
-              width="280"
-              height="160"
-              format="webp"
-              loading="lazy"
+              class="ad-img"
             />
           </div>
           <div class="ad-body">
@@ -32,14 +29,11 @@
         </a>
         <div v-else class="ad-card">
           <div class="ad-image">
-            <NuxtImg
+            <img
               v-if="ad.image"
               :src="ad.image"
               :alt="ad.title || ''"
-              width="280"
-              height="160"
-              format="webp"
-              loading="lazy"
+              class="ad-img"
             />
           </div>
           <div v-if="ad.title || ad.description" class="ad-body">
@@ -59,15 +53,27 @@
 
 <script setup>
 const { fetchSettings } = useLeagueData();
+const { leagueSlug } = useCurrentLeague();
 const ad = ref(null);
 const visible = ref(true);
 
-onMounted(async () => {
+async function loadAd() {
   const settings = await fetchSettings();
   if (settings?.ad?.image) {
     ad.value = settings.ad;
+    visible.value = true;
+  } else {
+    ad.value = null;
   }
-});
+}
+
+watch(leagueSlug, (slug) => {
+  if (slug) {
+    loadAd();
+  } else {
+    ad.value = null;
+  }
+}, { immediate: true })
 </script>
 
 <style lang="scss" scoped>

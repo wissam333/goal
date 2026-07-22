@@ -74,8 +74,12 @@ const handleFile = async (file) => {
     })
     const base64 = await blobToBase64(blob)
     if (props.upload) {
-      const url = await props.upload(blob, base64)
-      emit("update:modelValue", url)
+      try {
+        const url = await props.upload(blob, base64)
+        emit("update:modelValue", url)
+      } catch {
+        emit("update:modelValue", base64)
+      }
     } else {
       emit("update:modelValue", base64)
     }

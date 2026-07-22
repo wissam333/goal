@@ -305,6 +305,7 @@
             class="vote-prompt"
           >
             {{ $t("match.predictPrompt") }}
+            <span class="predict-guest-hint">{{ $t("match.predictGuestHint") }}</span>
           </p>
           <p
             v-else-if="liveStatus === 'upcoming' && alreadyPredicted"
@@ -312,6 +313,9 @@
           >
             <Icon name="mdi:check-circle" size="16" />
             {{ $t("match.predicted") }}
+            <span v-if="!auth.user.value" class="predict-guest-hint">
+              {{ $t("match.predictPointsHint") }}
+            </span>
           </p>
           <p v-else class="vote-done-msg" style="color: var(--text-muted)">
             <Icon name="mdi:lock-outline" size="16" />
@@ -621,9 +625,49 @@
           </div>
         </div>
 
-        <!-- ⑧ Share -->
+        <!-- ⑧ Share + result card -->
         <div class="share-section">
           <div class="share-label">{{ $t("match.share") }}</div>
+
+          <!-- Result card (looks like the site — score, goals, cards) -->
+          <div
+            v-if="liveStatus !== 'upcoming'"
+            class="result-card-actions"
+          >
+            <button
+              type="button"
+              class="result-card-btn primary"
+              :disabled="cardExporting"
+              @click="handleShareResultCard"
+            >
+              <Icon
+                :name="cardExporting ? 'mdi:loading' : 'mdi:image-area'"
+                size="18"
+                :class="{ spin: cardExporting }"
+              />
+              <span>
+                {{
+                  cardExporting
+                    ? $t("match.resultCardExporting")
+                    : $t("match.shareResultCard")
+                }}
+              </span>
+            </button>
+            <button
+              type="button"
+              class="result-card-btn"
+              :disabled="cardExporting"
+              @click="handleDownloadResultCard"
+            >
+              <Icon name="mdi:download" size="18" />
+              <span>{{ $t("match.downloadResultCard") }}</span>
+            </button>
+            <p class="result-card-hint">
+              <Icon name="mdi:facebook" size="14" />
+              {{ $t("match.shareResultCardHint") }}
+            </p>
+          </div>
+
           <div class="share-row">
             <button
               v-if="supportsShare"
@@ -647,7 +691,6 @@
             >
               <Icon name="mdi:facebook-messenger" size="20" />
             </button>
-            <!--
             <button
               class="share-btn facebook"
               title="Facebook"
@@ -655,20 +698,6 @@
             >
               <Icon name="mdi:facebook" size="20" />
             </button>
-            <button
-              class="share-btn telegram"
-              title="Telegram"
-              @click="sharePlatform('telegram')"
-            >
-              <Icon name="mdi:telegram" size="20" />
-            </button>
-            <button
-              class="share-btn twitter"
-              title="Twitter"
-              @click="sharePlatform('twitter')"
-            >
-              <Icon name="mdi:twitter" size="20" />
-            </button>-->
             <button class="share-btn copy" title="Copy link" @click="copyLink">
               <Icon name="mdi:link-variant" size="20" />
             </button>
@@ -1141,17 +1170,23 @@ const getPredictionPercent = (teamSlug) => {
 };
 
 const castPrediction = async (teamSlug) => {
-  if (!auth.user.value) {
-    authModalOpen.value = true;
-    return;
-  }
   if (alreadyPredicted.value || !match.value?.slug) return;
+  if (liveStatus.value !== "upcoming") return;
   predictingTeam.value = teamSlug;
   const { error } = await submitPrediction(match.value.slug, teamSlug);
   predictingTeam.value = null;
   if (!error) {
     alreadyPredicted.value = true;
     predictedTeam.value = teamSlug;
+    // Optimistic count bump
+    predictionResults.value = {
+      ...predictionResults.value,
+      [teamSlug]: (predictionResults.value[teamSlug] || 0) + 1,
+    };
+  } else if (error === "already_predicted") {
+    alreadyPredicted.value = true;
+    predictedTeam.value =
+      (await getPredictedTeam(match.value.slug)) || teamSlug;
   }
 };
 
@@ -1255,14 +1290,78 @@ const matchWinnerTitle = computed(() => {
   return awayTeam.value?.title || match.value?.awayTeam || "";
 });
 
-// ── Share ──────────────────────────────────────────────────────────────────────
+// ── Share + result card ────────────────────────────────────────────────────────
+const {
+  exporting: cardExporting,
+  getCardUrl,
+  downloadResultCard,
+  shareResultCard,
+} = useMatchResultCard();
+
+const currentLeagueSlug = computed(() => {
+  const fromRoute = route.params.league;
+  if (fromRoute && typeof fromRoute === "string") return fromRoute;
+  try {
+    return useCurrentLeague()?.leagueSlug?.value || "";
+  } catch {
+    return "";
+  }
+});
+
+const resultCardUrl = computed(() => {
+  if (!match.value?.slug) return "/logo.png";
+  return getCardUrl(match.value.slug, {
+    league: currentLeagueSlug.value,
+    locale: locale.value,
+  });
+});
+
 const shareText = () => {
   if (!match.value) return "";
   const score = formatScore(match.value, locale.value);
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
   const name = appTitle.name || "دوري القرية";
-  return `${ht} ${score} ${at} 🏆 | ${name}`;
+  const lines = [`${ht} ${score} ${at} 🏆`, name];
+
+  const goals = match.value.goalScorers || [];
+  if (goals.length) {
+    lines.push(locale.value === "ar" ? "الأهداف:" : "Goals:");
+    for (const g of [...goals].sort(
+      (a, b) => (Number(a.minute) || 0) - (Number(b.minute) || 0),
+    )) {
+      const min =
+        g.minute !== null && g.minute !== undefined && g.minute !== ""
+          ? `${g.minute}' `
+          : "";
+      lines.push(`⚽ ${min}${getPlayerName(g.player)}`);
+    }
+  }
+
+  const cardsList = match.value.cards || [];
+  if (cardsList.length) {
+    lines.push(locale.value === "ar" ? "البطاقات:" : "Cards:");
+    for (const c of [...cardsList].sort(
+      (a, b) => (Number(a.minute) || 0) - (Number(b.minute) || 0),
+    )) {
+      const icon = c.type === "red" ? "🟥" : "🟨";
+      const min =
+        c.minute !== null && c.minute !== undefined && c.minute !== ""
+          ? `${c.minute}' `
+          : "";
+      lines.push(`${icon} ${min}${getPlayerName(c.player)}`);
+    }
+  }
+
+  if (match.value.venue) {
+    lines.push(
+      locale.value === "ar"
+        ? `الملعب: ${match.value.venue}`
+        : `Venue: ${match.value.venue}`,
+    );
+  }
+
+  return lines.join("\n");
 };
 
 const supportsShare = computed(
@@ -1305,19 +1404,60 @@ const copyLink = async () => {
   }
 };
 
+const handleDownloadResultCard = async () => {
+  if (!match.value?.slug) return;
+  const ok = await downloadResultCard(match.value.slug, {
+    league: currentLeagueSlug.value,
+    locale: locale.value,
+  });
+  if (!ok && import.meta.client) {
+    window.open(resultCardUrl.value, "_blank");
+  }
+};
+
+const handleShareResultCard = async () => {
+  if (!match.value?.slug) return;
+  const title =
+    `${homeTeam.value?.title || ""} ${scoreParts.value.compact || ""} ${awayTeam.value?.title || ""}`.trim();
+  await shareResultCard(match.value.slug, {
+    league: currentLeagueSlug.value,
+    locale: locale.value,
+    title: title || "Green Ball",
+    text: shareText(),
+    pageUrl: typeof window !== "undefined" ? window.location.href : "",
+  });
+};
+
 const onImgError = (e) => {
   e.target.src = "/default-avatar.jpg";
   e.target.onerror = null;
 };
 
-// ── SEO ────────────────────────────────────────────────────────────────────────
+// ── SEO (rich Facebook / WhatsApp link preview) ────────────────────────────────
+const seoTitle = computed(() => {
+  const name = appTitle.name || "دوري القرية";
+  if (!match.value) return "Match Details";
+  const ht = homeTeam.value?.title || match.value.homeTeam;
+  const at = awayTeam.value?.title || match.value.awayTeam;
+  if (liveStatus.value === "upcoming") return `${ht} vs ${at} | ${name}`;
+  const score = formatScore(match.value, locale.value);
+  return `${ht} ${score} ${at} | ${name}`;
+});
+
+const seoDescription = computed(() => shareText());
+
 useSeoMeta({
-  title: () => {
-    const name = appTitle.value || "دوري القرية";
-    return match.value
-      ? `${homeTeam.value?.title} vs ${awayTeam.value?.title} | ${name}`
-      : "Match Details";
-  },
+  title: () => seoTitle.value,
+  description: () => seoDescription.value,
+  ogTitle: () => seoTitle.value,
+  ogDescription: () => seoDescription.value,
+  ogImage: () => resultCardUrl.value,
+  ogImageAlt: () => seoTitle.value,
+  ogType: "website",
+  twitterCard: "summary_large_image",
+  twitterTitle: () => seoTitle.value,
+  twitterDescription: () => seoDescription.value,
+  twitterImage: () => resultCardUrl.value,
 });
 </script>
 
@@ -1931,15 +2071,25 @@ useSeoMeta({
   color: var(--text-muted);
   font-size: 0.85rem;
   margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .vote-done-msg {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   color: var(--primary);
   font-size: 0.85rem;
   font-weight: 600;
   margin: 0 0 16px;
+}
+.predict-guest-hint {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .motm-teams {
@@ -2191,11 +2341,73 @@ useSeoMeta({
   letter-spacing: 0.06em;
 }
 
+.result-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.result-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: min(100%, 320px);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  &.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.28);
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.98);
+  }
+}
+
+.result-card-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 .share-row {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.spin {
+  animation: spin-rc 0.8s linear infinite;
+}
+
+@keyframes spin-rc {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .share-btn {

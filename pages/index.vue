@@ -186,13 +186,14 @@
 <script setup>
 const { locale, t } = useI18n();
 const { getLeagues } = useLeagues();
-const supabase = useSupabase()
+const supabase = useSupabase();
 const leagues = ref([]);
 const archived = ref([]);
 const pending = ref(true);
 const error = ref(null);
 
-const getTeamName = (snapshot, slug) => snapshot?.teams?.find(t => t.slug === slug)?.title || slug
+const getTeamName = (snapshot, slug) =>
+  snapshot?.teams?.find((t) => t.slug === slug)?.title || slug;
 
 const featureChips = [
   { key: "live", icon: "mdi:broadcast", label: "portal.chipLive" },
@@ -244,18 +245,20 @@ onMounted(async () => {
     leagues.value = await getLeagues();
     if (supabase) {
       const { data } = await supabase
-        .from('seasons')
-        .select('id, name, slug, snapshot, league_id, archived_at, leagues!inner(slug, name)')
-        .not('is_active', 'eq', true)
-        .not('snapshot', 'is', null)
-        .order('archived_at', { ascending: false })
+        .from("seasons")
+        .select(
+          "id, name, slug, snapshot, league_id, archived_at, leagues!inner(slug, name)",
+        )
+        .not("is_active", "eq", true)
+        .not("snapshot", "is", null)
+        .order("archived_at", { ascending: false });
       if (data) {
-        archived.value = data.map(s => ({
+        archived.value = data.map((s) => ({
           ...s,
           league_slug: s.leagues?.slug,
           league_name: s.leagues?.name,
           leagues: undefined,
-        }))
+        }));
       }
     }
   } catch {
@@ -375,7 +378,9 @@ useSeoMeta({
 
 .hero-logo {
   border-radius: 18px;
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--primary) 25%, transparent);
+  filter: drop-shadow(
+    0 8px 28px color-mix(in srgb, var(--primary) 25%, transparent)
+  );
 }
 
 .hero-title {
@@ -764,43 +769,69 @@ useSeoMeta({
   }
 }
 
-.archive-section { margin-top: 32px; }
+.archive-section {
+  margin-top: 32px;
+}
 .archive-grid {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .archive-card {
-  display: flex; align-items: center; gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   text-decoration: none;
   transition: all 0.15s;
-  &:hover { border-color: var(--primary); background: var(--primary-soft); }
+  &:hover {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
 }
 .archive-trophy {
-  width: 40px; height: 40px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
   background: color-mix(in srgb, #f59e0b 16%, transparent);
   color: #f59e0b;
 }
 .archive-body {
-  flex: 1; display: flex; flex-direction: column; gap: 2px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 .archive-league {
-  font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 .archive-season {
-  font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 .archive-champion {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.75rem; font-weight: 600; color: #f59e0b;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f59e0b;
 }
 .archive-arrow {
-  flex-shrink: 0; color: var(--text-muted);
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 </style>
