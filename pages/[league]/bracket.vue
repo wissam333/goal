@@ -178,17 +178,23 @@
 
 <script setup>
 const { locale, t } = useI18n();
-const { leaguePath } = useCurrentLeague();
+const { leaguePath, leagueSlug } = useCurrentLeague();
 const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches, fetchSettings } = useLeagueData();
 import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
 
-const tabs = computed(() => [
-  { value: "groups", label: "bracket.groupStage", icon: "mdi:table" },
-  { value: "knockout", label: "bracket.knockout", icon: "mdi:trophy-outline" },
-]);
+const tabs = computed(() => {
+  const list = [
+    { value: "groups", label: "bracket.groupStage", icon: "mdi:table" },
+  ]
+  // ponytail: hide knockout for biemra until data is ready
+  if (leagueSlug.value !== 'biemra') {
+    list.push({ value: "knockout", label: "bracket.knockout", icon: "mdi:trophy-outline" })
+  }
+  return list
+});
 
 const [
   { data: teamsData, pending: teamsPending, refresh: refreshTeams },
