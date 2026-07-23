@@ -104,6 +104,7 @@ const { name: appName } = useAppTitle()
 const { user, profile, loading: authLoading } = auth
 const { getUserVotes } = useVotes()
 const { getUserPredictions } = useMatchPredictions()
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { fetchTeams, fetchMatches, fetchPlayers } = useLeagueData()
 
 const predictions = ref([])
@@ -140,7 +141,7 @@ onMounted(async () => {
   if (user.value) {
     const [allTeams, allMatches, allPlayers, userPredictions, userVotes] = await Promise.all([
       fetchTeams(),
-      fetchMatches(),
+      fetchMatches({ select: MATCH_LIST_COLS }),
       fetchPlayers(),
       getUserPredictions(),
       getUserVotes(),

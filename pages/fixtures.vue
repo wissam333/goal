@@ -216,13 +216,14 @@ import { syrianAr } from "~/utils/syrianAr";
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
 const { fetchMatches, fetchTeams } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 
 const [
   { data: matchesData, pending, error, refresh: refreshMatches },
   { data: teamsData },
 ] = await Promise.all([
   useAsyncData("fixtures-matches", () =>
-    fetchMatches({ orderBy: { field: "date", dir: "asc" } }),
+    fetchMatches({ select: MATCH_LIST_COLS, orderBy: { field: "date", dir: "asc" } }),
   ),
   useAsyncData("fixtures-teams", () => fetchTeams()),
 ]);

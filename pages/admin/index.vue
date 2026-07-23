@@ -128,7 +128,6 @@
 definePageMeta({ layout: "admin-layer1" })
 
 const { getAllLeagues, saveLeague, deleteLeague } = useLeagues()
-const admin = useAdminData()
 
 const list = ref([])
 const loading = ref(true)

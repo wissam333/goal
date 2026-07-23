@@ -183,6 +183,7 @@
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
 
@@ -196,7 +197,7 @@ const [
   { data: matchesData, pending: matchesPending, error, refresh: refreshMatches },
 ] = await Promise.all([
   useAsyncData("bracket-teams", () => fetchTeams()),
-  useAsyncData("bracket-matches", () => fetchMatches()),
+  useAsyncData("bracket-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
 ]);
 
 // Fallback: on client, re-fetch if SSR returned empty (e.g. Supabase unavailable during SSR)

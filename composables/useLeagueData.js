@@ -1,3 +1,6 @@
+export const MATCH_LIST_COLS =
+  'slug,title,date,group,venue,status,homeTeam,awayTeam,homeScore,awayScore,homeScoreAET,awayScoreAET,homePenalties,awayPenalties,resultMethod,motmWinner,league_id'
+
 const parseJsonFields = (match) => {
   if (typeof match.goalScorers === "string")
     match.goalScorers = JSON.parse(match.goalScorers)
@@ -10,11 +13,21 @@ const parseJsonFields = (match) => {
   return match
 }
 
+const stripPrefixes = (record, fields = ['slug'], leagueSlug) => {
+  if (!record || !leagueSlug) return record
+  const p = leagueSlug + '::'
+  for (const f of fields) {
+    if (record[f] && record[f].startsWith(p)) record[f] = record[f].slice(p.length)
+  }
+  return record
+}
+
 export const useLeagueData = (leagueId = null) => {
   const supabase = useSupabase()
   const route = useRoute()
 
   const _id = computed(() => leagueId || useCurrentLeague().leagueId.value)
+  const _leagueSlug = computed(() => route.params.league)
 
   const _resolveLeague = async () => {
     let lid = _id.value
@@ -52,41 +65,53 @@ export const useLeagueData = (leagueId = null) => {
     }
   }
 
+  const prefix = (s) => {
+    if (!_leagueSlug.value || !s) return s
+    const p = _leagueSlug.value + '::'
+    return s.startsWith(p) ? s : p + s
+  }
+
   const fetchTeams = async () => {
     const data = await fromSupabase("teams")
-    return data || []
+    if (!data) return []
+    const ls = _leagueSlug.value
+    return data.map(t => stripPrefixes(t, ['slug'], ls))
   }
 
   const fetchTeam = async (slug) => {
     const data = await fromSupabase("teams", {
-      eq: { slug },
+      eq: { slug: prefix(slug) },
       select: "*",
       limit: 1,
     })
-    return data?.length ? data[0] : null
+    if (!data?.length) return null
+    return stripPrefixes(data[0], ['slug'], _leagueSlug.value)
   }
 
   const fetchPlayers = async (filters = {}) => {
     const query = { select: "*" }
     const eqs = {}
-    if (filters.team) eqs.team = filters.team
+    if (filters.team) eqs.team = prefix(filters.team)
     if (Object.keys(eqs).length) query.eq = eqs
     if (filters.order) query.order = filters.order
     const data = await fromSupabase("players", query)
-    return data || []
+    if (!data) return []
+    const ls = _leagueSlug.value
+    return data.map(p => stripPrefixes(p, ['slug', 'team'], ls))
   }
 
   const fetchPlayer = async (slug) => {
     const data = await fromSupabase("players", {
-      eq: { slug },
+      eq: { slug: prefix(slug) },
       select: "*",
       limit: 1,
     })
-    return data?.length ? data[0] : null
+    if (!data?.length) return null
+    return stripPrefixes(data[0], ['slug', 'team'], _leagueSlug.value)
   }
 
   const fetchMatches = async (filters = {}) => {
-    const query = { select: "*" }
+    const query = { select: filters.select || "*" }
     const eqs = {}
     if (filters.status) eqs.status = filters.status
     if (filters.group) eqs.group = filters.group
@@ -99,23 +124,34 @@ export const useLeagueData = (leagueId = null) => {
       }
     if (filters.limit) query.limit = filters.limit
     if (filters.team)
-      query.or = [`homeTeam.eq.${filters.team},awayTeam.eq.${filters.team}`]
+      query.or = [`homeTeam.eq.${prefix(filters.team)},awayTeam.eq.${prefix(filters.team)}`]
     if (filters.statusIn)
       query.in = [{ column: "status", values: filters.statusIn }]
     const data = await fromSupabase("matches", query)
-    if (data) return data.map(parseJsonFields)
-    return []
+    if (!data) return []
+    const ls = _leagueSlug.value
+    return data.map(m => {
+      parseJsonFields(m)
+      if (m.goalScorers?.length) {
+        for (const g of m.goalScorers) stripPrefixes(g, ['player', 'team'], ls)
+      }
+      if (m.cards?.length) {
+        for (const c of m.cards) stripPrefixes(c, ['player', 'team'], ls)
+      }
+      stripPrefixes(m, ['motmWinner'], ls)
+      return stripPrefixes(m, ['homeTeam', 'awayTeam', 'slug'], ls)
+    })
   }
 
   const fetchMatch = async (slug) => {
-    const matches = await fetchMatches({ slug })
+    const matches = await fetchMatches({ slug: prefix(slug) })
     return matches?.[0] || null
   }
 
   const fetchManagers = async (teamSlug) => {
     const data = await fromSupabase("managers", {
       select: "*",
-      eq: { team_slug: teamSlug },
+      eq: { team_slug: prefix(teamSlug) },
     })
     return data || []
   }

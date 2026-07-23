@@ -56,7 +56,12 @@ export const useAdminData = (leagueId = null) => {
     const payload = { ...team }
     const lid = await _resolveLeague()
     if (lid) payload.league_id = lid
-    const { data: existing } = await supabase.from("teams").select("slug").eq("slug", payload.slug).maybeSingle()
+    const { leagueSlug } = useCurrentLeague()
+    const ls = leagueSlug.value
+    if (ls && !payload.slug.startsWith(ls + '::')) payload.slug = ls + '::' + payload.slug
+    let q = supabase.from("teams").select("slug").eq("slug", payload.slug)
+    if (lid) q = q.eq("league_id", lid)
+    const { data: existing } = await q.maybeSingle()
     let error
     if (existing) {
       ;({ error } = await supabase.from("teams").update(payload).eq("slug", payload.slug))
@@ -81,7 +86,12 @@ export const useAdminData = (leagueId = null) => {
     const payload = { ...player }
     const lid = await _resolveLeague()
     if (lid) payload.league_id = lid
-    const { data: existing } = await supabase.from("players").select("slug").eq("slug", payload.slug).maybeSingle()
+    const { leagueSlug } = useCurrentLeague()
+    const ls = leagueSlug.value
+    if (ls && !payload.slug.startsWith(ls + '::')) payload.slug = ls + '::' + payload.slug
+    let q = supabase.from("players").select("slug").eq("slug", payload.slug)
+    if (lid) q = q.eq("league_id", lid)
+    const { data: existing } = await q.maybeSingle()
     let error
     if (existing) {
       ;({ error } = await supabase.from("players").update(payload).eq("slug", payload.slug))
@@ -141,7 +151,12 @@ export const useAdminData = (leagueId = null) => {
     const payload = { ...match }
     const lid = await _resolveLeague()
     if (lid) payload.league_id = lid
-    const { data: existing } = await supabase.from("matches").select("slug").eq("slug", payload.slug).maybeSingle()
+    const { leagueSlug } = useCurrentLeague()
+    const ls = leagueSlug.value
+    if (ls && !payload.slug.startsWith(ls + '::')) payload.slug = ls + '::' + payload.slug
+    let q = supabase.from("matches").select("slug").eq("slug", payload.slug)
+    if (lid) q = q.eq("league_id", lid)
+    const { data: existing } = await q.maybeSingle()
     let error
     if (existing) {
       ;({ error } = await supabase.from("matches").update(payload).eq("slug", payload.slug))

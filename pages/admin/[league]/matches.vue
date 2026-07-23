@@ -650,6 +650,7 @@
 definePageMeta({ layout: "admin-layer2" });
 
 const admin = useAdminData();
+const { unprefixSlug } = useCurrentLeague();
 const { awardPoints } = usePredictionPoints();
 const {
   formatScore,
@@ -1083,25 +1084,17 @@ const onPlayerSelect = (index, playerSlug) => {
 };
 
 const syncPlayerGoals = async () => {
-  const allMatches = await admin.getMatches();
-  const goalCount = {};
-  for (const m of allMatches) {
-    if (m.goalScorers?.length) {
-      for (const g of m.goalScorers) {
-        if (g.player) {
-          goalCount[g.player] = (goalCount[g.player] || 0) + 1;
-        }
-      }
-    }
+  const supabase = useSupabase()
+  if (!supabase) return
+  const _route = useRoute()
+  const { leagueId } = useCurrentLeague()
+  let lid = leagueId.value
+  if (!lid && _route.params.league) {
+    const { data } = await supabase.from('leagues').select('id').eq('slug', _route.params.league).maybeSingle()
+    if (data) lid = data.id
   }
-  const supabase = useSupabase();
-  if (!supabase) return;
-  const changed = players.value
-    .filter((p) => (goalCount[p.slug] || 0) !== p.goals)
-    .map((p) => ({ ...p, goals: goalCount[p.slug] || 0 }));
-  if (changed.length) {
-    await supabase.from("players").upsert(changed, { onConflict: "slug" });
-  }
+  if (!lid) return
+  await supabase.rpc('recalculate_player_goals', { p_league_id: lid })
 };
 
 const goalScorerPlayerOptions = computed(() => {
@@ -1127,8 +1120,6 @@ const goalScorerPlayerOptions = computed(() => {
     },
   ];
 });
-
-onMounted(loadData);
 
 const sortedMatches = computed(() => {
   return [...matches.value].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1477,7 +1468,7 @@ const generateSlug = () => {
         : form.group === "FINAL"
           ? "f"
           : `g${(form.group || "a").toLowerCase()}`;
-  return `${prefix}-${form.homeTeam}-vs-${form.awayTeam}`;
+  return `${prefix}-${unprefixSlug(form.homeTeam)}-vs-${unprefixSlug(form.awayTeam)}`;
 };
 
 const resetForm = () => {

@@ -181,6 +181,7 @@ const { locale, t } = useI18n();
 const { leaguePath } = useCurrentLeague();
 const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches, fetchSettings } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
 
@@ -195,7 +196,7 @@ const [
   { data: settingsData },
 ] = await Promise.all([
   useAsyncData("bracket-teams", () => fetchTeams()),
-  useAsyncData("bracket-matches", () => fetchMatches()),
+  useAsyncData("bracket-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
   useAsyncData("bracket-settings", () => fetchSettings()),
 ]);
 

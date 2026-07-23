@@ -128,6 +128,7 @@
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings } = useStandings();
 
 const [
@@ -135,7 +136,7 @@ const [
   { data: matchesData, pending: matchesPending, error: matchesError },
 ] = await Promise.all([
   useAsyncData("standings-teams", () => fetchTeams()),
-  useAsyncData("standings-matches", () => fetchMatches()),
+  useAsyncData("standings-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
 ]);
 
 const pending = computed(() => teamsPending.value || matchesPending.value);

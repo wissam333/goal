@@ -223,6 +223,7 @@ const route = useRoute();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();
 const { fetchTeam, fetchPlayers, fetchManagers, fetchMatches, fetchTeams } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const slug = computed(() => route.params.slug);
 
 const [
@@ -235,7 +236,7 @@ const [
   useAsyncData(`team-${slug.value}`, () => fetchTeam(slug.value)),
   useAsyncData(`team-players-${slug.value}`, () => fetchPlayers({ team: slug.value })),
   useAsyncData(`team-managers-${slug.value}`, () => fetchManagers(slug.value)),
-  useAsyncData(`team-matches-${slug.value}`, () => fetchMatches({ team: slug.value })),
+  useAsyncData(`team-matches-${slug.value}`, () => fetchMatches({ select: MATCH_LIST_COLS, team: slug.value })),
   useAsyncData(`all-teams-${slug.value}`, () => fetchTeams()),
 ]);
 
@@ -276,10 +277,11 @@ const upcomingMatches = computed(() =>
 
 const { getTeamOutcome, getOpenPlayScore, formatScore } = useMatchResult();
 
-// Stats calculation — W/D/L respects penalties / AET
+// Stats calculation — W/D/L respects penalties / AET, group stage only
+const KO_STAGES = ["R16", "QF", "SF", "FINAL"]
 const teamStats = computed(() => {
   let W = 0, D = 0, L = 0, GF = 0, GA = 0;
-  teamMatches.value.filter(m => m.status === 'played').forEach(m => {
+  teamMatches.value.filter(m => m.status === 'played' && !KO_STAGES.includes(m.group)).forEach(m => {
     const isHome = m.homeTeam === slug.value;
     const open = getOpenPlayScore(m);
     const scored = isHome ? (open.home || 0) : (open.away || 0);

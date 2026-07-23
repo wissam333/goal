@@ -31,6 +31,13 @@ export const useMatchPredictions = (leagueId = null) => {
     return typeof s === "string" ? s : ""
   }
 
+  const prefixSlug = (s) => {
+    const ls = leagueSlugParam()
+    if (!ls || !s) return s
+    const p = ls + '::'
+    return s.startsWith(p) ? s : p + s
+  }
+
   const getUserId = () => (user.value ? user.value.id : null)
 
   const getIdentity = () => {
@@ -53,7 +60,11 @@ export const useMatchPredictions = (leagueId = null) => {
   const readLocal = (matchSlug) => {
     if (!import.meta.client) return null
     try {
-      return localStorage.getItem(localKey(matchSlug))
+      const v = localStorage.getItem(localKey(matchSlug))
+      if (!v) return null
+      const ls = leagueSlugParam()
+      const pfx = ls ? ls + '::' : ''
+      return pfx && v.startsWith(pfx) ? v.slice(pfx.length) : v
     } catch {
       return null
     }
@@ -72,7 +83,7 @@ export const useMatchPredictions = (leagueId = null) => {
         },
       })
       if (res?.ok) {
-        cacheLocal(matchSlug, res.team_slug || teamSlug)
+        cacheLocal(matchSlug, teamSlug)
         if (res.already) return { error: "already_predicted", team: res.team_slug }
         return { data: res, error: null }
       }
@@ -100,8 +111,8 @@ export const useMatchPredictions = (leagueId = null) => {
     // Logged-in: try direct insert first
     const lid = await _resolveLeague()
     const payload = {
-      match_slug: matchSlug,
-      team_slug: teamSlug,
+      match_slug: prefixSlug(matchSlug),
+      team_slug: prefixSlug(teamSlug),
       voter_id: identity.voterId,
       user_id: identity.userId,
     }
@@ -135,21 +146,25 @@ export const useMatchPredictions = (leagueId = null) => {
 
   const getPredictions = async (matchSlug) => {
     const lid = await _resolveLeague()
+    const ls = leagueSlugParam()
     let q = supabase
       .from("match_predictions")
       .select("team_slug")
-      .eq("match_slug", matchSlug)
+      .eq("match_slug", prefixSlug(matchSlug))
     if (lid) q = q.eq("league_id", lid)
     const { data, error } = await q
     if (error || !data) return {}
+    const pfx = ls ? ls + '::' : ''
     return data.reduce((acc, row) => {
-      acc[row.team_slug] = (acc[row.team_slug] || 0) + 1
+      const clean = pfx && row.team_slug?.startsWith(pfx) ? row.team_slug.slice(pfx.length) : row.team_slug
+      acc[clean] = (acc[clean] || 0) + 1
       return acc
     }, {})
   }
 
   const _queryOwnPrediction = async (matchSlug) => {
     const identity = getIdentity()
+    const dbSlug = prefixSlug(matchSlug)
     const local = readLocal(matchSlug)
 
     if (!identity) {
@@ -160,7 +175,7 @@ export const useMatchPredictions = (leagueId = null) => {
     let q = supabase
       .from("match_predictions")
       .select("team_slug, user_id, voter_id")
-      .eq("match_slug", matchSlug)
+      .eq("match_slug", dbSlug)
 
     if (lid) q = q.eq("league_id", lid)
 
@@ -173,7 +188,10 @@ export const useMatchPredictions = (leagueId = null) => {
     const { data } = await q.limit(1)
     const row = Array.isArray(data) ? data[0] : data
     if (row) {
-      cacheLocal(matchSlug, row.team_slug)
+      const ls = leagueSlugParam()
+      const pfx = ls ? ls + '::' : ''
+      const clean = pfx && row.team_slug?.startsWith(pfx) ? row.team_slug.slice(pfx.length) : row.team_slug
+      cacheLocal(matchSlug, clean)
       return row
     }
     return local ? { team_slug: local } : null
@@ -183,7 +201,10 @@ export const useMatchPredictions = (leagueId = null) => {
 
   const getPredictedTeam = async (matchSlug) => {
     const row = await _queryOwnPrediction(matchSlug)
-    return row?.team_slug || null
+    if (!row?.team_slug) return null
+    const ls = leagueSlugParam()
+    const pfx = ls ? ls + '::' : ''
+    return pfx && row.team_slug.startsWith(pfx) ? row.team_slug.slice(pfx.length) : row.team_slug
   }
 
   const getUserPredictions = async () => {

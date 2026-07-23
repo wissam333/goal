@@ -136,13 +136,14 @@ const logoLink = computed(() => {
 })
 
 const { fetchTeams } = useLeagueData();
-const { data: teamCount } = await useAsyncData(
+const { data: teamCount, refresh: refreshTeamCount } = await useAsyncData(
   `footer-team-count-${leagueSlug.value || 'portal'}`,
   async () => {
     const teams = await fetchTeams();
     return teams?.length || 0;
   },
 );
+watch(() => leagueSlug.value, () => refreshTeamCount())
 
 const navItems = computed(() => {
   if (!isLeagueRoute.value) {

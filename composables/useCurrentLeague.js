@@ -56,10 +56,23 @@ export const useCurrentLeague = () => {
     return `/${slug}${p.startsWith('/') ? p : '/' + p}`
   }
 
+  const prefixSlug = (cleanSlug) => {
+    const ls = leagueSlug.value
+    if (!ls || !cleanSlug) return cleanSlug || ''
+    return `${ls}::${cleanSlug}`
+  }
+
+  const unprefixSlug = (prefixedSlug) => {
+    const ls = leagueSlug.value
+    if (!ls || !prefixedSlug) return prefixedSlug || ''
+    const p = ls + '::'
+    return prefixedSlug.startsWith(p) ? prefixedSlug.slice(p.length) : prefixedSlug
+  }
+
   if (import.meta.client) {
     watch(() => route.params.league, fetch, { immediate: !import.meta.client })
     onMounted(() => { if (!league.value) fetch() })
   }
 
-  return { league, leagueId, leagueSlug, isLeagueRoute, pending, error, fetch, leaguePath }
+  return { league, leagueId, leagueSlug, isLeagueRoute, pending, error, fetch, leaguePath, prefixSlug, unprefixSlug }
 }

@@ -50,7 +50,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify match exists
-  let matchQ = supabase.from("matches").select("slug, league_id, status").eq("slug", matchSlug)
+  const dbMatchSlug = leagueSlug ? leagueSlug + '::' + matchSlug : matchSlug
+  let matchQ = supabase.from("matches").select("slug, league_id, status").eq("slug", dbMatchSlug)
   if (leagueId) matchQ = matchQ.eq("league_id", leagueId)
   const { data: matchRows } = await matchQ.limit(1)
   const match = matchRows?.[0]
@@ -58,6 +59,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Match not found" })
   }
   if (!leagueId && match.league_id) leagueId = match.league_id
+
+  const dbTeamSlug = leagueSlug ? leagueSlug + '::' + teamSlug : teamSlug
 
   // Only upcoming matches accept new predictions
   if (match.status && match.status !== "upcoming") {
@@ -68,7 +71,7 @@ export default defineEventHandler(async (event) => {
   let existingQ = supabase
     .from("match_predictions")
     .select("id, team_slug")
-    .eq("match_slug", matchSlug)
+    .eq("match_slug", dbMatchSlug)
 
   if (userId) {
     existingQ = existingQ.or(`voter_id.eq.${voterId},user_id.eq.${userId}`)
@@ -88,8 +91,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const payload: Record<string, any> = {
-    match_slug: matchSlug,
-    team_slug: teamSlug,
+    match_slug: dbMatchSlug,
+    team_slug: dbTeamSlug,
     voter_id: voterId,
     user_id: userId,
   }
@@ -104,7 +107,7 @@ export default defineEventHandler(async (event) => {
   if (error) {
     // Unique race
     if (error.code === "23505" || /duplicate|unique/i.test(error.message || "")) {
-      return { ok: true, already: true, team_slug: teamSlug }
+      return { ok: true, already: true, team_slug: dbTeamSlug }
     }
     throw createError({ statusCode: 500, statusMessage: error.message })
   }
@@ -112,7 +115,7 @@ export default defineEventHandler(async (event) => {
   return {
     ok: true,
     already: false,
-    team_slug: inserted?.team_slug || teamSlug,
+    team_slug: inserted?.team_slug || dbTeamSlug,
     id: inserted?.id,
   }
 })

@@ -691,12 +691,8 @@
             >
               <Icon name="mdi:facebook-messenger" size="20" />
             </button>
-            <button
-              class="share-btn facebook"
-              title="Facebook"
-              @click="sharePlatform('facebook')"
-            >
-              <Icon name="mdi:facebook" size="20" />
+            <button class="share-btn copy" title="Copy text" @click="copyShareText">
+              <Icon name="mdi:content-paste" size="20" />
             </button>
             <button class="share-btn copy" title="Copy link" @click="copyLink">
               <Icon name="mdi:link-variant" size="20" />
@@ -837,6 +833,7 @@ const { locale, t } = useI18n();
 const appTitle = useAppTitle();
 const { fetchMatch, fetchTeams, fetchPlayers, fetchMatches } = useLeagueData();
 const { isTeamWinner, formatScoreParts, formatScore, getWinnerSlug, getTeamOutcome } = useMatchResult();
+const { league, leaguePath } = useCurrentLeague();
 const auth = useAuth();
 const slug = computed(() => route.params.slug);
 const authModalOpen = ref(false);
@@ -1025,6 +1022,9 @@ const getPlayerPhoto = (slug) => playerMap.value[slug]?.photo || null;
 const getPlayerTeamName = (slug) => {
   const teamSlug = playerMap.value[slug]?.team;
   return teamMap.value[teamSlug]?.title || "";
+};
+const getTeamTitle = (teamSlug) => {
+  return teamMap.value[teamSlug]?.title || teamMap.value[teamSlug.replace(/::[^-]+-/, '::')]?.title || teamSlug;
 };
 
 const homePlayers = computed(() =>
@@ -1321,11 +1321,23 @@ const shareText = () => {
   const score = formatScore(match.value, locale.value);
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;
-  const name = appTitle.name || "دوري القرية";
-  const lines = [`${ht} ${score} ${at} 🏆`, name];
+  const name = league.value?.name || appTitle.name.value || "دوري القرية";
+  const lines = [`#${name.replace(/\s+/g, '_')}`, "", `${ht} ${score} ${at} 🏆`];
+
+  if (match.value.date) {
+    try {
+      const dt = parseISO(match.value.date);
+      const datePart = format(dt, "EEEE، d MMMM yyyy", { locale: dateFnsLocale.value });
+      const timePart = format(dt, "h:mm a");
+      lines.push(`🕐 ${datePart} - ${timePart}`);
+    } catch {
+      lines.push(match.value.date);
+    }
+  }
 
   const goals = match.value.goalScorers || [];
   if (goals.length) {
+    lines.push("");
     lines.push(locale.value === "ar" ? "الأهداف:" : "Goals:");
     for (const g of [...goals].sort(
       (a, b) => (Number(a.minute) || 0) - (Number(b.minute) || 0),
@@ -1334,12 +1346,13 @@ const shareText = () => {
         g.minute !== null && g.minute !== undefined && g.minute !== ""
           ? `${g.minute}' `
           : "";
-      lines.push(`⚽ ${min}${getPlayerName(g.player)}`);
+      lines.push(`⚽ ${min}${getPlayerName(g.player)} (${getTeamTitle(g.team)})`);
     }
   }
 
   const cardsList = match.value.cards || [];
   if (cardsList.length) {
+    lines.push("");
     lines.push(locale.value === "ar" ? "البطاقات:" : "Cards:");
     for (const c of [...cardsList].sort(
       (a, b) => (Number(a.minute) || 0) - (Number(b.minute) || 0),
@@ -1349,16 +1362,14 @@ const shareText = () => {
         c.minute !== null && c.minute !== undefined && c.minute !== ""
           ? `${c.minute}' `
           : "";
-      lines.push(`${icon} ${min}${getPlayerName(c.player)}`);
+      lines.push(`${icon} ${min}${getPlayerName(c.player)} (${getTeamTitle(c.team)})`);
     }
   }
 
-  if (match.value.venue) {
-    lines.push(
-      locale.value === "ar"
-        ? `الملعب: ${match.value.venue}`
-        : `Venue: ${match.value.venue}`,
-    );
+  if (motmWinnerResolved.value) {
+    lines.push("");
+    lines.push(`🏅 ${getPlayerName(motmWinnerResolved.value)} (${locale.value === "ar" ? "أفضل لاعب" : "MOTM"})`);
+    lines.push("");
   }
 
   return lines.join("\n");
@@ -1389,6 +1400,20 @@ const sharePlatform = (platform) => {
     twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + "\n" + url)}`,
   };
   window.open(urls[platform], "_blank", "width=600,height=500");
+};
+
+const copyShareText = async () => {
+  const text = shareText() + "\n" + window.location.href;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
 };
 
 const copyLink = async () => {
@@ -1435,7 +1460,7 @@ const onImgError = (e) => {
 
 // ── SEO (rich Facebook / WhatsApp link preview) ────────────────────────────────
 const seoTitle = computed(() => {
-  const name = appTitle.name || "دوري القرية";
+  const name = league.value?.name || appTitle.name.value || "دوري القرية";
   if (!match.value) return "Match Details";
   const ht = homeTeam.value?.title || match.value.homeTeam;
   const at = awayTeam.value?.title || match.value.awayTeam;

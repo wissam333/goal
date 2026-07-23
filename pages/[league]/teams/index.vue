@@ -117,6 +117,7 @@ const { leaguePath } = useCurrentLeague();
 const { locale, t } = useI18n();
 const appTitle = useAppTitle();
 const { fetchTeams, fetchMatches } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 
 const {
   data: teamsData,
@@ -125,7 +126,7 @@ const {
 } = useAsyncData("teams-list", () => fetchTeams());
 const { data: matchesData, pending: matchesPending } = useAsyncData(
   "teams-matches",
-  () => fetchMatches(),
+  () => fetchMatches({ select: MATCH_LIST_COLS }),
 );
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
@@ -136,9 +137,10 @@ const matches = computed(() => matchesData.value || []);
 const { getTeamOutcome, getOpenPlayScore } = useMatchResult();
 
 // Calculate per-team stats — W/D/L respects penalties / AET
+const KO_STAGES = ["R16", "QF", "SF", "FINAL"]
 const calculateTeamStats = (team) => {
   const teamMatches = matches.value.filter(
-    (m) => (m.homeTeam === team.slug || m.awayTeam === team.slug) && m.homeScore != null,
+    (m) => (m.homeTeam === team.slug || m.awayTeam === team.slug) && m.homeScore != null && !KO_STAGES.includes(m.group),
   );
   let W = 0,
     D = 0,

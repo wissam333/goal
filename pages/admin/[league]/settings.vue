@@ -271,8 +271,7 @@ onMounted(async () => {
       drawForm.value = JSON.parse(JSON.stringify(s.knockout_draw))
     }
   }
-  const { fetchTeams } = useLeagueData()
-  const teams = await fetchTeams()
+  const teams = await admin.getTeams()
   teamsList.value = teams || []
   loading.value = false
 })

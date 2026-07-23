@@ -451,6 +451,8 @@
 definePageMeta({ layout: 'admin-layer2' })
 
 const admin = useAdminData()
+const { prefixSlug, unprefixSlug } = useCurrentLeague()
+const leagueSlug = computed(() => route.params.league)
 
 const teams = ref([])
 const loading = ref(true)
@@ -777,7 +779,7 @@ const showAlert = (type, text) => {
 }
 
 const uploadTeamLogo = async (blob) => {
-  const name = form.slug || generateSlug(form.title)
+  const name = prefixSlug(form.slug || generateSlug(form.title))
   return await admin.uploadToStorage(blob, 'team-logos', name)
 }
 
@@ -814,7 +816,7 @@ const openAddModal = () => {
 const openEditModal = (team) => {
   Object.assign(form, {
     title: team.title,
-    slug: team.slug,
+    slug: unprefixSlug(team.slug),
     color: team.color || '#22c55e',
     group: team.group || '',
     logo: team.logo || null,
@@ -834,11 +836,7 @@ const handleSave = async () => {
     return
   }
 
-  if (!form.slug.trim()) {
-    form.slug = generateSlug(form.title)
-  } else if (!modal.isEdit) {
-    form.slug = generateSlug(form.slug)
-  }
+  const cleanSlug = form.slug.trim() || generateSlug(form.title)
 
   if (!form.group) {
     form.group = 'A'
@@ -847,7 +845,7 @@ const handleSave = async () => {
   modal.saving = true
   try {
     const teamObj = {
-      slug: form.slug,
+      slug: prefixSlug(cleanSlug),
       title: form.title.trim(),
       color: form.color,
       logo: form.logo,
@@ -857,17 +855,20 @@ const handleSave = async () => {
     if (modal.isEdit) {
       const supabase = useSupabase()
       const oldSlug = modal.editingSlug
-      const newSlug = form.slug
+      const newSlug = teamObj.slug
       if (oldSlug !== newSlug) {
+        const { error: insErr } = await supabase.from('teams').insert({ ...teamObj, slug: newSlug })
+        if (insErr) throw insErr
+        await supabase.from('managers').update({ team_slug: newSlug }).eq('team_slug', oldSlug)
         await supabase.from('matches').update({ homeTeam: newSlug }).eq('homeTeam', oldSlug)
         await supabase.from('matches').update({ awayTeam: newSlug }).eq('awayTeam', oldSlug)
         await supabase.from('players').update({ team: newSlug }).eq('team', oldSlug)
+        const { error: delErr } = await supabase.from('teams').delete().eq('slug', oldSlug)
+        if (delErr) throw delErr
+      } else {
+        const { error } = await supabase.from('teams').update(teamObj).eq('slug', oldSlug)
+        if (error) throw error
       }
-      const { error } = await supabase
-        .from('teams')
-        .update(teamObj)
-        .eq('slug', oldSlug)
-      if (error) throw error
     } else {
       await admin.saveTeam(teamObj)
     }

@@ -501,6 +501,7 @@ import { syrianAr } from "~/utils/syrianAr";
 const { locale } = useI18n();
 const { leaguePath } = useCurrentLeague();
 const { fetchMatches, fetchTeams, fetchSettings } = useLeagueData();
+import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const notifCenter = useNotificationCenter();
 const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime(
   "matches",
@@ -509,32 +510,12 @@ const { subscribe: subMatches, unsubscribe: unsubMatches } = useRealtime(
 const dateLocale = computed(() => (locale.value === "ar" ? syrianAr : enUS));
 
 const [
-  { data: nextMatch, pending: nextPending, refresh: refreshNext },
-  { data: lastMatch, pending: lastPending, refresh: refreshLast },
   { data: allMatches, pending: matchesPending, refresh: refreshAll },
   { data: teams, pending: teamsPending, refresh: refreshTeams },
-  { data: finalMatch, pending: finalPending, refresh: refreshFinal },
   { data: settingsData, pending: settingsPending, refresh: refreshSettings },
 ] = await Promise.all([
-  useAsyncData("home-next", () =>
-    fetchMatches({
-      statusIn: ["upcoming", "live"],
-      orderBy: { field: "date", dir: "asc" },
-      limit: 1,
-    }).then((r) => r?.[0] || null),
-  ),
-  useAsyncData("home-last", () =>
-    fetchMatches({
-      status: "played",
-      orderBy: { field: "date", dir: "desc" },
-      limit: 1,
-    }).then((r) => r?.[0] || null),
-  ),
-  useAsyncData("home-all-matches", () => fetchMatches()),
+  useAsyncData("home-all-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
   useAsyncData("home-teams", () => fetchTeams()),
-  useAsyncData("home-final", () =>
-    fetchMatches({ group: "F" }).then((r) => r?.[0] || null),
-  ),
   useAsyncData("home-settings", () => fetchSettings()),
 ]);
 
@@ -546,6 +527,16 @@ const bracketRounds = computed(() => {
 })
 const hasKnockout = computed(() => !!draw.value?.published)
 
+const nextMatch = computed(() => {
+  const upcoming = (allMatches.value || []).filter(m => m.status === 'upcoming' || m.status === 'live').sort((a, b) => new Date(a.date) - new Date(b.date))
+  return upcoming[0] || null
+})
+const lastMatch = computed(() => {
+  const played = (allMatches.value || []).filter(m => m.status === 'played').sort((a, b) => new Date(b.date) - new Date(a.date))
+  return played[0] || null
+})
+const finalMatch = computed(() => (allMatches.value || []).find(m => m.group === 'FINAL') || null)
+
 // ── Skeleton guard: show skeleton until client confirms fresh data ──
 const pageReady = ref(false);
 let refreshTimer = null;
@@ -554,11 +545,9 @@ onMounted(async () => {
   showTime.value = true;
   // Force fresh data on every page load to avoid stale SSR content
   await Promise.allSettled([
-    refreshNext(),
-    refreshLast(),
     refreshAll(),
     refreshTeams(),
-    refreshFinal(),
+    refreshSettings(),
   ]);
   pageReady.value = true;
   // Reactive timer for auto-live status
@@ -568,13 +557,11 @@ onMounted(async () => {
   }, 10000);
   // Realtime: auto-refresh when matches change
   subMatches(() => {
-    refreshNext();
-    refreshLast();
+    refreshAll();
   });
   // Fallback poll every 60s in case Realtime misses an update
   resultTimer = setInterval(() => {
-    refreshNext();
-    refreshLast();
+    refreshAll();
   }, 60000);
 });
 onUnmounted(() => {
@@ -585,11 +572,9 @@ onUnmounted(() => {
 
 const pending = computed(
   () =>
-    nextPending.value ||
-    lastPending.value ||
     matchesPending.value ||
     teamsPending.value ||
-    finalPending.value ||
+    settingsPending.value ||
     !pageReady.value,
 );
 
