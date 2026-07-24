@@ -46,7 +46,8 @@
         </div>
       </template>
       <template #cell-group="{ value }">
-        <span v-if="value === 'QF'" class="round-badge">ربع النهائي</span>
+        <span v-if="value === 'R16'" class="round-badge">دور الـ 16</span>
+        <span v-else-if="value === 'QF'" class="round-badge">ربع النهائي</span>
         <span v-else-if="value === 'SF'" class="round-badge">نصف النهائي</span>
         <span v-else-if="value === 'FINAL'" class="round-badge final">النهائي</span>
         <span v-else class="round-badge group">المجموعة {{ value }}</span>
@@ -84,6 +85,13 @@
             label="الدور"
             :options="groupOptions"
             placeholder="اختر الدور"
+          />
+          <SharedUiFormBaseSelect
+            v-if="['R16','QF','SF','FINAL'].includes(form.group)"
+            v-model="form.bracketSlot"
+            label="موقع السحب"
+            :options="bracketSlotOptions"
+            placeholder="اختر موقع المباراة"
           />
           <SharedUiFormBaseInput
             v-model="form.venue"
@@ -948,6 +956,7 @@ async function sendPushNotification(title, body, url) {
 const form = reactive({
   date: "",
   group: "",
+  bracketSlot: "",
   venue: "الملعب الرئيسي",
   homeTeam: "",
   awayTeam: "",
@@ -964,6 +973,7 @@ const form = reactive({
 const defaultForm = () => ({
   date: "",
   group: "",
+  bracketSlot: "",
   venue: "الملعب الرئيسي",
   homeTeam: "",
   awayTeam: "",
@@ -984,6 +994,7 @@ const loadData = async () => {
   matches.value = await admin.getMatches();
   const s = await admin.getSettings();
   if (s?.groups?.length) settings.value.groups = [...s.groups];
+  if (s?.knockout_draw) settings.value.draw = s.knockout_draw;
   loading.value = false;
 };
 
@@ -1140,13 +1151,15 @@ const getMatchTitle = (match) => {
   const away = teams.value.find((t) => t.slug === match.awayTeam);
   if (!home || !away) return "";
   const prefix =
-    match.group === "QF"
-      ? "ربع النهائي: "
-      : match.group === "SF"
-        ? "نصف النهائي: "
-        : match.group === "FINAL"
-          ? "النهائي: "
-          : "";
+    match.group === "R16"
+      ? "دور الـ 16: "
+      : match.group === "QF"
+        ? "ربع النهائي: "
+        : match.group === "SF"
+          ? "نصف النهائي: "
+          : match.group === "FINAL"
+            ? "النهائي: "
+            : "";
   return `${prefix}${home.title} vs ${away.title}`;
 };
 
@@ -1180,7 +1193,7 @@ const motmPlayerOptions = computed(() => {
   ];
 });
 
-const settings = ref({ groups: ["A", "B"] });
+const settings = ref({ groups: ["A", "B"], draw: null });
 
 const groupOptions = computed(() => {
   const groups = (settings.value.groups || ["A", "B"]).map((g) => ({
@@ -1189,10 +1202,25 @@ const groupOptions = computed(() => {
   }));
   return [
     ...groups,
+    { label: "دور الـ 16", value: "R16" },
     { label: "ربع النهائي", value: "QF" },
     { label: "نصف النهائي", value: "SF" },
     { label: "النهائي", value: "FINAL" },
   ];
+});
+
+const bracketSlotOptions = computed(() => {
+  const draw = settings.value.draw;
+  if (!draw?.slots?.length) return [];
+  const round = form.group;
+  if (!round || !['R16', 'QF', 'SF', 'FINAL'].includes(round)) return [];
+  return draw.slots
+    .filter(s => s.round === round)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(s => ({
+      label: s.id.toUpperCase().replace('-', ' '),
+      value: s.id,
+    }));
 });
 
 function computeStandingsForGroup(group) {
@@ -1261,7 +1289,7 @@ const filteredTeamOptions = computed(() => {
   if (!form.group)
     return teams.value.map((t) => ({ label: t.title, value: t.slug }));
 
-  const isGroupStage = !["QF", "SF", "FINAL"].includes(form.group);
+  const isGroupStage = !["R16", "QF", "SF", "FINAL"].includes(form.group);
   if (isGroupStage) {
     return teams.value
       .filter((t) => t.group === form.group)
@@ -1269,8 +1297,11 @@ const filteredTeamOptions = computed(() => {
   }
 
   let eligible = [];
-  if (form.group === "QF") {
+  if (form.group === "R16") {
     eligible = getQualifiedTeams();
+  } else if (form.group === "QF") {
+    const winners = getStageWinners("R16");
+    eligible = winners.length ? winners : getStageParticipants("R16");
   } else if (form.group === "SF") {
     const winners = getStageWinners("QF");
     eligible = winners.length ? winners : getStageParticipants("QF");
@@ -1461,13 +1492,15 @@ const formatDate = (dateStr) => {
 
 const generateSlug = () => {
   const prefix =
-    form.group === "QF"
-      ? "qf"
-      : form.group === "SF"
-        ? "sf"
-        : form.group === "FINAL"
-          ? "f"
-          : `g${(form.group || "a").toLowerCase()}`;
+    form.group === "R16"
+      ? "r16"
+      : form.group === "QF"
+        ? "qf"
+        : form.group === "SF"
+          ? "sf"
+          : form.group === "FINAL"
+            ? "f"
+            : `g${(form.group || "a").toLowerCase()}`;
   return `${prefix}-${unprefixSlug(form.homeTeam)}-vs-${unprefixSlug(form.awayTeam)}`;
 };
 
@@ -1505,6 +1538,7 @@ const openEditModal = (match) => {
   form.awayPenalties = match.awayPenalties ?? null;
   form.resultMethod = match.resultMethod || "ft";
   form.motmWinner = match.motmWinner || "";
+  form.bracketSlot = match.bracket_slot || "";
   if (match.goalScorers?.length) {
     goalScorers.value = JSON.parse(JSON.stringify(match.goalScorers)).map(
       (g) => ({
@@ -1571,6 +1605,7 @@ const handleSave = async () => {
     awayTeam: form.awayTeam,
     ...resultFields,
     motmWinner: form.motmWinner || null,
+    bracket_slot: form.bracketSlot || null,
     photos: editingMatch.value?.photos || [],
     videos: editingMatch.value?.videos || [],
   };

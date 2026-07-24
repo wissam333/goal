@@ -147,17 +147,47 @@ function getWinnerSlug(match) {
   return open.home > open.away ? match.homeTeam : match.awayTeam
 }
 
-function matchSlotToDbMatch(slot, matches) {
-  const homeSlug = slot._home?.teamSlug
-  const awaySlug = slot._away?.teamSlug
-  if (!homeSlug || !awaySlug) return null
+function sideTeamPool(side, allSlots, teams) {
+  if (!side) return []
+  if (side.type === 'team') return side.slug ? [side.slug] : []
+  if (side.type === 'winner' && side.of) {
+    const src = (allSlots || []).find(s => s.id === side.of)
+    if (src) return [...sideTeamPool(src.home, allSlots, teams), ...sideTeamPool(src.away, allSlots, teams)]
+  }
+  if (side.type === 'seed' && side.group) {
+    return (teams || []).filter(t => (t.group || 'A') === side.group).map(t => t.slug)
+  }
+  return []
+}
+
+function matchSlotToDbMatch(slot, matches, allSlots, teams, assignedRef) {
   const round = slot.round
-  return (matches || []).find(m => {
-    const mr = normalizeRound(m.group)
-    if (mr !== round) return false
-    if (m.homeTeam === homeSlug && m.awayTeam === awaySlug) return true
-    return false
-  }) || null
+  const roundMatches = (matches || [])
+    .filter(m => normalizeRound(m.group) === round && m.homeTeam && m.awayTeam)
+  const unassigned = assignedRef ? roundMatches.filter(m => !assignedRef.has(m.slug)) : roundMatches
+  if (!unassigned.length) return null
+
+  if (slot._home?.teamSlug && slot._away?.teamSlug) {
+    const exact = unassigned.find(m => m.homeTeam === slot._home.teamSlug && m.awayTeam === slot._away.teamSlug)
+    if (exact) return exact
+  }
+
+  if (slot.id) {
+    const bySlot = unassigned.find(m => m.bracket_slot === slot.id)
+    if (bySlot) return bySlot
+  }
+
+  const homePool = sideTeamPool(slot.home, allSlots, teams)
+  const awayPool = sideTeamPool(slot.away, allSlots, teams)
+  if (homePool.length && awayPool.length) {
+    const byTeams = unassigned.find(m => !m.bracket_slot && homePool.includes(m.homeTeam) && awayPool.includes(m.awayTeam))
+    if (byTeams) return byTeams
+  }
+
+  const ordered = [...unassigned]
+    .filter(m => !m.bracket_slot)
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
+  return ordered[0] || null
 }
 
 export function useKnockoutBracket() {
@@ -186,9 +216,13 @@ export function useKnockoutBracket() {
       slot._away = resolveSide(slot.away, teams, matches, teamMap, getGroupStandings, null, locale)
     })
 
+    const assigned = new Set()
     slots.forEach(slot => {
-      const match = matchSlotToDbMatch(slot, matches)
-      if (match) slot._match = match
+      const match = matchSlotToDbMatch(slot, matches, slots, teams, assigned)
+      if (match) {
+        slot._match = match
+        assigned.add(match.slug)
+      }
     })
 
     slots.forEach(slot => {

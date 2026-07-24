@@ -155,7 +155,6 @@ export const useAdminData = (leagueId = null) => {
     const ls = leagueSlug.value
     if (ls && !payload.slug.startsWith(ls + '::')) payload.slug = ls + '::' + payload.slug
     let q = supabase.from("matches").select("slug").eq("slug", payload.slug)
-    if (lid) q = q.eq("league_id", lid)
     const { data: existing } = await q.maybeSingle()
     let error
     if (existing) {
@@ -168,11 +167,7 @@ export const useAdminData = (leagueId = null) => {
 
   const deleteMatch = async (slug) => {
     checkDb()
-    const lid = await _resolveLeague()
-    let q = supabase.from("matches").delete()
-    if (lid) q = q.eq("league_id", lid)
-    q = q.eq("slug", slug)
-    const { error } = await q
+    const { error } = await supabase.from("matches").delete().eq("slug", slug)
     if (error) throw error
   }
 
