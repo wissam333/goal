@@ -717,7 +717,9 @@ async function sendNotif(type) {
   const awayTitle =
     teams.value.find((t) => t.slug === editingMatch.value.awayTeam)?.title ||
     editingMatch.value.awayTeam;
-  const matchUrl = `${siteUrl}/matches/${editingMatch.value.slug}`;
+  const matchSlug = editingMatch.value.slug;
+  const matchLeague = matchSlug.includes('::') ? matchSlug.split('::')[0] : '';
+  const matchUrl = matchLeague ? `${siteUrl}/${matchLeague}/matches/${matchSlug}` : `${siteUrl}/matches/${matchSlug}`;
 
   if (type === "started") {
     const title = "🔴 المباراة بدأت";
@@ -910,7 +912,9 @@ function triggerMatchNotifications(oldMatch, matchObj, newStatus) {
   const matchTitle = `${homeTitle} vs ${awayTitle}`;
   let notifTitle = "";
   let notifBody = "";
-  let notifUrl = `${siteUrl}/matches/${matchObj.slug}`;
+  const notifSlug = matchObj.slug;
+  const notifLeague = notifSlug.includes('::') ? notifSlug.split('::')[0] : '';
+  let notifUrl = notifLeague ? `${siteUrl}/${notifLeague}/matches/${notifSlug}` : `${siteUrl}/matches/${notifSlug}`;
 
   if (!oldMatch) {
     notifTitle = "⚽ مباراة جديدة";
