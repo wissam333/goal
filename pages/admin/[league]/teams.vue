@@ -720,13 +720,16 @@ const openPlayerEdit = (player) => {
   })
 }
 
-const makeSlug = (title) => title.trim().replace(/\s+/g, '-')
+const makeSlug = (title, team) => {
+  const base = title.trim().replace(/\s+/g, '-')
+  return team ? `${team}-${base}` : base
+}
 
 const handlePlayerSave = async () => {
   if (!playerForm.title.trim()) return
   playerForm.saving = true
   const payload = {
-    slug: playerForm.editingSlug || makeSlug(playerForm.title),
+    slug: playerForm.editingSlug || makeSlug(playerForm.title, playerForm.team),
     title: playerForm.title.trim(),
     team: playerForm.team,
     number: playerForm.number ? Number(playerForm.number) : null,
@@ -784,7 +787,7 @@ const uploadTeamLogo = async (blob) => {
 }
 
 const uploadPlayerPhoto = async (blob) => {
-  const name = playerForm.editingSlug || makeSlug(playerForm.title)
+  const name = playerForm.editingSlug || makeSlug(playerForm.title, playerForm.team)
   return await admin.uploadToStorage(blob, 'player-photos', name)
 }
 

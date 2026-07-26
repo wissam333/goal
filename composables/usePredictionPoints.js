@@ -5,7 +5,7 @@ export const usePredictionPoints = () => {
   const awardPoints = async (matchSlug) => {
     const { data: match } = await supabase
       .from("matches")
-      .select("homeTeam, awayTeam, homeScore, awayScore, homeScoreAET, awayScoreAET, homePenalties, awayPenalties, resultMethod, motmWinner, status")
+      .select("homeTeam, awayTeam, homeScore, awayScore, homeScoreAET, awayScoreAET, homePenalties, awayPenalties, resultMethod, status")
       .eq("slug", matchSlug)
       .single()
 
@@ -29,21 +29,6 @@ export const usePredictionPoints = () => {
     if (predictions?.length) {
       for (const p of predictions) {
         if (p.user_id) allIds.add(p.user_id)
-      }
-    }
-
-    // 2. Award points for correct MOTM predictions
-    if (match.motmWinner) {
-      const { data: votes } = await supabase
-        .from("votes")
-        .select("user_id")
-        .eq("match_slug", matchSlug)
-        .eq("player_slug", match.motmWinner)
-
-      if (votes?.length) {
-        for (const v of votes) {
-          if (v.user_id) allIds.add(v.user_id)
-        }
       }
     }
 

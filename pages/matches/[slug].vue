@@ -966,7 +966,7 @@ const awayTeam = computed(() => teamMap.value[match.value?.awayTeam]);
 const DRAW_SLUG = "__draw__";
 const drawAllowed = computed(() => {
   const g = match.value?.group;
-  return g === "A" || g === "B";
+  return g && !["R16", "QF", "SF", "FINAL"].includes(g);
 });
 
 // ── Realtime match updates ────────────────────────────────────────────────────
