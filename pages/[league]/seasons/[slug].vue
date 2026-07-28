@@ -104,7 +104,7 @@ const snapshot = ref({ teams: [], matches: [], groups: [] })
 const groups = computed(() => snapshot.value?.groups || [])
 const groupTeams = computed(() => snapshot.value?.teams || [])
 const groupMatchesArr = computed(() => snapshot.value?.matches || [])
-const knockoutMatches = computed(() => groupMatchesArr.value.filter(m => ['QF', 'SF', 'F'].includes(m.group)))
+const knockoutMatches = computed(() => groupMatchesArr.value.filter(m => ['QF', 'SF', 'FINAL'].includes(m.group)))
 
 const { isTeamWinner, formatScore, getWinnerSlug, getOpenPlayScore, getTeamOutcome } = useMatchResult()
 const teamName = (slug) => groupTeams.value.find(t => t.slug === slug)?.title || slug

@@ -4,7 +4,7 @@ export const useStandings = () => {
   const calculateStandings = (teamList, allMatches) => {
     if (!teamList || !allMatches) return []
     const groupMatches = allMatches.filter(
-      (m) => !['R16', 'QF', 'SF', 'F', 'FINAL'].includes(m.group),
+      (m) => !['R16', 'QF', 'SF', 'FINAL'].includes(m.group),
     )
     return teamList
       .map((team) => {
