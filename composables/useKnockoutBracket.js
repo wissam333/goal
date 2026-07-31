@@ -147,12 +147,16 @@ function getWinnerSlug(match) {
   return open.home > open.away ? match.homeTeam : match.awayTeam
 }
 
-function sideTeamPool(side, allSlots, teams) {
+function sideTeamPool(side, allSlots, teams, visited = new Set()) {
   if (!side) return []
   if (side.type === 'team') return side.slug ? [side.slug] : []
   if (side.type === 'winner' && side.of) {
+    if (visited.has(side.of)) return [] // ponytail: cycle guard, broken draw data must not crash
     const src = (allSlots || []).find(s => s.id === side.of)
-    if (src) return [...sideTeamPool(src.home, allSlots, teams), ...sideTeamPool(src.away, allSlots, teams)]
+    if (src) {
+      visited.add(side.of)
+      return [...sideTeamPool(src.home, allSlots, teams, visited), ...sideTeamPool(src.away, allSlots, teams, visited)]
+    }
   }
   if (side.type === 'seed' && side.group) {
     return (teams || []).filter(t => (t.group || 'A') === side.group).map(t => t.slug)
@@ -200,12 +204,16 @@ export function useKnockoutBracket() {
 
     const teamMap = buildTeamMap(teams)
 
+    // ponytail: draw stores prefixed slugs (admin format), public pages strip them — normalize once
+    const cleanSide = (side) =>
+      side?.type === 'team' && side.slug ? { ...side, slug: String(side.slug).split('::').pop() } : side
+
     const slots = draw.slots.map(s => ({
       id: s.id,
       round: s.round,
       order: s.order ?? 0,
-      home: s.home,
-      away: s.away,
+      home: cleanSide(s.home),
+      away: cleanSide(s.away),
       _home: null,
       _away: null,
       _match: null,

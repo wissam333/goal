@@ -20,11 +20,11 @@
           <div class="draw-slot-sides">
             <div class="draw-side">
               <span class="draw-side-label">الفريق الأول</span>
-              <AdminDrawSideType :side="slot.home" :groups="groups" :teams="teams" :winner-slots="winnerSlotOptions" @update="v => updateSide(slot._key, 'home', v)" />
+              <AdminDrawSideType :side="slot.home" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot._key, 'home', v)" />
             </div>
             <div class="draw-side">
               <span class="draw-side-label">الفريق الثاني</span>
-              <AdminDrawSideType :side="slot.away" :groups="groups" :teams="teams" :winner-slots="winnerSlotOptions" @update="v => updateSide(slot._key, 'away', v)" />
+              <AdminDrawSideType :side="slot.away" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot._key, 'away', v)" />
             </div>
           </div>
         </div>
@@ -57,6 +57,8 @@ function togglePublish(e) {
 }
 
 const roundKeys = ['R16', 'QF', 'SF', 'FINAL']
+
+const ROUND_ORDER = { R16: 0, QF: 1, SF: 2, FINAL: 3 }
 
 function roundLabel(key) {
   return key === 'R16' ? 'دور الـ 16' : key === 'QF' ? 'ربع النهائي' : key === 'SF' ? 'نصف النهائي' : 'النهائي'
@@ -97,6 +99,12 @@ const winnerSlotOptions = computed(() =>
     away: s.away,
   }))
 )
+
+// ponytail: a match can only feed a LATER round — filtering by round kills all cycles by construction
+function winnerOptionsFor(round) {
+  const cur = ROUND_ORDER[round] ?? 99
+  return winnerSlotOptions.value.filter(s => (ROUND_ORDER[s.round] ?? -1) < cur)
+}
 
 function updateSide(slotKey, side, value) {
   const slots = (draw.value.slots || []).map(s => {

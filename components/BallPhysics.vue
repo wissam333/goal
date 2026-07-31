@@ -104,30 +104,30 @@
 <script setup>
 /**
  * Smooth ball physics mini-game.
- * Goalkeeper stands in front of a depth-drawn net; light, mobile-first fun.
+ * Sharp keeper + tighter goal — place shots carefully to score.
  */
-const GRAVITY = 0.26;
-const FRICTION = 0.993;
-const BOUNCE = 0.62;
-const BALL_SIZE_DESKTOP = 46;
-const BALL_SIZE_MOBILE = 36;
-const MAX_V = 28;
+const GRAVITY = 0.28;
+const FRICTION = 0.991;
+const BOUNCE = 0.58;
+const BALL_SIZE_DESKTOP = 44;
+const BALL_SIZE_MOBILE = 34;
+const MAX_V = 24;
 const REST_EPS = 0.08;
 const MOBILE_BREAKPOINT = 480;
 
-// Mobile touch tuning
-const TOUCH_GRAB_MULT = 1.85;
-const TOUCH_THROW_BOOST = 1.28;
+// Mobile touch tuning — slightly less free power so placement matters
+const TOUCH_GRAB_MULT = 1.75;
+const TOUCH_THROW_BOOST = 1.12;
 
-// Goal opening height as % of container (larger = easier + more visible)
-const GOAL_HEIGHT_RATIO_DESKTOP = 0.52;
-const GOAL_HEIGHT_RATIO_MOBILE = 0.5;
+// Goal opening height as % of container (smaller = harder)
+const GOAL_HEIGHT_RATIO_DESKTOP = 0.42;
+const GOAL_HEIGHT_RATIO_MOBILE = 0.4;
 
-// Goalkeeper size — classic shape, smaller so corners stay open
-const KEEPER_W_DESKTOP = 18;
-const KEEPER_H_DESKTOP = 34;
-const KEEPER_W_MOBILE = 15;
-const KEEPER_H_MOBILE = 28;
+// Goalkeeper size — bulkier so corners are harder to sneak past
+const KEEPER_W_DESKTOP = 24;
+const KEEPER_H_DESKTOP = 44;
+const KEEPER_W_MOBILE = 20;
+const KEEPER_H_MOBILE = 38;
 
 // Syrian / Arabic taunts when the keeper saves
 const KEEPER_TAUNTS = [
@@ -153,12 +153,12 @@ const KEEPER_TAUNTS = [
   "بدك علمك؟",
 ];
 
-// AI: deliberately slow / laggy so scoring feels fair and fun
-const KEEPER_SPEED = 0.65;
-const KEEPER_DIVE_SPEED = 1.05;
-const KEEPER_REACTION_LAG = 0.78; // 0 = perfect, 1 = very lazy
-const KEEPER_GAP_FROM_NET_DESKTOP = 18; // px in front of net mouth
-const KEEPER_GAP_FROM_NET_MOBILE = 14;
+// AI: sharp, fast keeper — corners and fakes still work, but mid-shots die
+const KEEPER_SPEED = 1.35;
+const KEEPER_DIVE_SPEED = 2.45;
+const KEEPER_REACTION_LAG = 0.28; // 0 = perfect, 1 = very lazy
+const KEEPER_GAP_FROM_NET_DESKTOP = 16; // px in front of net mouth
+const KEEPER_GAP_FROM_NET_MOBILE = 12;
 
 // Steel goal posts — solid colliders
 const POST_THICK_DESKTOP = 6;
@@ -538,7 +538,7 @@ function triggerGoal() {
 
   setTimeout(() => {
     goalCooldown = false;
-  }, 850);
+  }, 1100);
 }
 
 function triggerSave() {
@@ -559,7 +559,7 @@ function triggerSave() {
     saveCooldown = false;
   }, 1100);
 
-  // Parry with angle based on contact height — fun rebounds
+  // Stronger parry — rebounds farther so follow-up shots are harder
   const ballCenterY = y + ballSize / 2;
   const keeperCenterY = keeperY + keeperH / 2;
   const offset = clamp(
@@ -567,21 +567,22 @@ function triggerSave() {
     -1,
     1,
   );
-  const power = Math.max(5.5, Math.abs(vx) * 0.8);
+  const power = Math.max(7.5, Math.abs(vx) * 0.95);
   vx = -power;
-  vy = clamp(vy * 0.4 + offset * 5.5 - 1.2, -11, 9);
+  vy = clamp(vy * 0.35 + offset * 6.5 - 1.5, -13, 10);
   x = clamp(keeperX - ballSize + 2, 0, containerW);
 }
 
 function checkGoal(hitRightWall, incomingVx) {
   if (!container.value || !hitRightWall) return;
-  if (incomingVx <= 1.8) return;
+  // Need real power — soft rolls into the net no longer count
+  if (incomingVx <= 2.6) return;
   const frame = goalFrame();
   const ballCenterY = y + ballSize / 2;
   const thick = frame.thick;
   // Must pass cleanly between the steel bars (not through posts)
-  const openTop = frame.top + thick * 0.55;
-  const openBottom = frame.bottom - thick * 0.55;
+  const openTop = frame.top + thick * 0.75;
+  const openBottom = frame.bottom - thick * 0.75;
   if (ballCenterY >= openTop && ballCenterY <= openBottom) {
     triggerGoal();
   }
@@ -590,22 +591,22 @@ function checkGoal(hitRightWall, incomingVx) {
 function updateKeeper() {
   if (!container.value) return;
   const band = goalVerticalBand();
-  // Keep him mostly in the middle third so top/bottom corners are open
-  const minY = band.top + (band.bottom - band.top) * 0.12;
+  // Cover almost the full mouth — only extreme corners stay open
+  const minY = band.top - keeperH * 0.02;
   const maxY = Math.max(
     minY,
-    band.bottom - keeperH - (band.bottom - band.top) * 0.08,
+    band.bottom - keeperH * 0.72,
   );
   const ballCenterY = y + ballSize / 2;
   const keeperCenterY = keeperY + keeperH / 2;
 
-  // Only reacts late — ball must be closer before he dives
-  const incoming = dragging.value || (vx > 1.8 && x > containerW * 0.52);
+  // Reacts early — starts reading the shot from midfield
+  const incoming = dragging.value || (vx > 1.1 && x > containerW * 0.28);
   const mobile = isMobileViewport();
-  const diveSpeed = mobile ? KEEPER_DIVE_SPEED * 0.85 : KEEPER_DIVE_SPEED;
-  // Even slower while you're aiming so fakes work
+  const diveSpeed = mobile ? KEEPER_DIVE_SPEED * 0.92 : KEEPER_DIVE_SPEED;
+  // Still tracks while aiming so soft placements get punished
   const speed = dragging.value
-    ? diveSpeed * 0.55
+    ? diveSpeed * 0.78
     : incoming
       ? diveSpeed
       : KEEPER_SPEED;
@@ -616,44 +617,44 @@ function updateKeeper() {
 
   let desiredCenter = ballCenterY;
   if (incoming && !dragging.value && Math.abs(vx) > 0.4) {
-    // Very little look-ahead — easy to place the ball past him
+    // Strong look-ahead — anticipates flight path into the box
     const framesToKeeper = Math.max(1, (keeperX - x) / Math.max(vx, 0.5));
-    desiredCenter = ballCenterY + vy * Math.min(framesToKeeper, 5) * 0.18;
+    desiredCenter = ballCenterY + vy * Math.min(framesToKeeper, 14) * 0.72;
   } else if (dragging.value) {
-    // Tracks slowly while aiming; not glued to the ball
-    desiredCenter = ballCenterY * 0.55 + (fullH / 2) * 0.45;
+    // Sticks closer to the ball while you aim — fakes need commitment
+    desiredCenter = ballCenterY * 0.82 + (fullH / 2) * 0.18;
   } else {
     desiredCenter = fullH / 2;
   }
 
-  // Heavy reaction lag
+  // Light reaction lag — still human, not telepathic
   const lag = dragging.value
-    ? Math.min(0.92, KEEPER_REACTION_LAG + 0.1)
+    ? Math.min(0.42, KEEPER_REACTION_LAG + 0.06)
     : incoming
-      ? KEEPER_REACTION_LAG * 0.85
+      ? KEEPER_REACTION_LAG * 0.7
       : KEEPER_REACTION_LAG;
   keeperTargetY += (desiredCenter - keeperH / 2 - keeperTargetY) * (1 - lag);
 
   const delta = keeperTargetY + keeperH / 2 - keeperCenterY;
-  // Larger deadzone = less sticky mid-goal coverage
-  if (Math.abs(delta) > 2.4) {
-    keeperY += clamp(delta * 0.4, -speed, speed);
+  // Tight deadzone = sticky coverage across the mouth
+  if (Math.abs(delta) > 0.9) {
+    keeperY += clamp(delta * 0.72, -speed, speed);
   }
   keeperY = clamp(keeperY, minY, maxY);
   applyKeeperTransform();
 }
 
 function ballHitsKeeper() {
-  const ballR = ballSize * 0.38;
+  const ballR = ballSize * 0.42;
   const ballCx = x + ballSize / 2;
   const ballCy = y + ballSize / 2;
-  // Small torso/gloves hitbox — corners and top/bottom go past easily
-  const padX = keeperW * 0.18;
-  const padY = keeperH * 0.22;
+  // Generous gloves/torso hitbox — only tight corners beat him
+  const padX = keeperW * 0.04;
+  const padY = keeperH * 0.06;
   const left = keeperX + padX;
-  const right = keeperX + keeperW - padX * 0.5;
+  const right = keeperX + keeperW - padX * 0.2;
   const top = keeperY + padY;
-  const bottom = keeperY + keeperH - padY;
+  const bottom = keeperY + keeperH - padY * 0.35;
 
   return (
     ballCx + ballR > left &&
@@ -769,9 +770,9 @@ function onPointerDown(e) {
     const dx = localX - cx;
     const dy = localY - cy;
     const len = Math.hypot(dx, dy) || 1;
-    const power = isTouchPointer ? 7.2 : 6;
+    const power = isTouchPointer ? 5.8 : 5;
     vx = (dx / len) * power;
-    vy = (dy / len) * (power * 0.65) - 2;
+    vy = (dy / len) * (power * 0.6) - 1.6;
     kicks.value++;
     ensureLoop();
     return;
@@ -854,11 +855,11 @@ function onPointerUp(e) {
     vy = 0;
   }
 
-  // Tiny flick assist so soft mobile throws still feel snappy
-  if (isTouchPointer && Math.hypot(vx, vy) > 0.6 && Math.hypot(vx, vy) < 4) {
+  // Mild flick assist — soft throws still move, but need real aim
+  if (isTouchPointer && Math.hypot(vx, vy) > 0.6 && Math.hypot(vx, vy) < 3.2) {
     const len = Math.hypot(vx, vy) || 1;
-    vx = (vx / len) * 5.5;
-    vy = (vy / len) * 4.2;
+    vx = (vx / len) * 4.2;
+    vy = (vy / len) * 3.4;
   }
 
   if (Math.hypot(vx, vy) > 1.2) {
@@ -1077,12 +1078,12 @@ onUnmounted(() => {
   }
 }
 
-/* ── Goal (net behind, posts in front) ─────────────── */
+/* ── Goal (net behind, posts in front) — matches GOAL_HEIGHT_RATIO ── */
 .goal {
   position: absolute;
   right: 8px;
-  top: 24%;
-  bottom: 24%;
+  top: 29%;
+  bottom: 29%;
   width: 22%;
   max-width: 72px;
   pointer-events: none;
@@ -1090,8 +1091,8 @@ onUnmounted(() => {
   transition: filter 0.2s ease;
   perspective: 120px;
   @media (max-width: 480px) {
-    top: 25%;
-    bottom: 25%;
+    top: 30%;
+    bottom: 30%;
     width: 20%;
     max-width: 48px;
     right: 5px;
