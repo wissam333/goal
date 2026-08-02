@@ -188,11 +188,8 @@ const activeTab = ref("groups");
 const tabs = computed(() => {
   const list = [
     { value: "groups", label: "bracket.groupStage", icon: "mdi:table" },
+    { value: "knockout", label: "bracket.knockout", icon: "mdi:trophy-outline" },
   ]
-  // ponytail: hide knockout for biemra until data is ready
-  if (leagueSlug.value !== 'biemra') {
-    list.push({ value: "knockout", label: "bracket.knockout", icon: "mdi:trophy-outline" })
-  }
   return list
 });
 
