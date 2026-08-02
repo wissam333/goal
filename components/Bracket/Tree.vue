@@ -81,6 +81,7 @@ function onSlotClick(slot) {
   }
 }
 .kt-stage-label {
+  height: 22px; // + margin-bottom = 36px, matches .kt-connector-col padding-top so lines align with card centers
   font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -92,6 +93,7 @@ function onSlotClick(slot) {
   align-items: center;
   gap: 5px;
   @media (max-width: 520px) {
+    height: 18px; // + margin-bottom = 28px, matches connector padding-top on mobile
     font-size: 0.58rem;
     margin-bottom: 10px;
   }
@@ -100,7 +102,9 @@ function onSlotClick(slot) {
 .kt-cards {
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  // ponytail: space-around (not space-evenly) — card centers land at (i+0.5)*h/n,
+  // exactly what ConnectorLines.midpoints() draws; space-evenly + fixed gap always skews
+  justify-content: space-around;
   flex: 1;
   gap: 16px;
   width: 100%;
@@ -111,10 +115,11 @@ function onSlotClick(slot) {
   align-items: stretch;
   justify-content: center;
   flex-shrink: 0;
-  width: 48px;
-  padding-top: 36px;
+  width: 80px;
+  padding-top: 36px; // offset for the round label height above
+
   @media (max-width: 520px) {
-    width: 28px;
+    width: 44px;
     padding-top: 28px;
   }
 }

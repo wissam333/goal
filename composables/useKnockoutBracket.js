@@ -1,5 +1,6 @@
+// ponytail: legacy 'F' → 'FINAL' shorthand collided with biemra's 8-group stage (group F).
+// No match in the DB stores 'F' for the final — al-jarwiyya stores 'FINAL' explicitly.
 function normalizeRound(group) {
-  if (group === 'F') return 'FINAL'
   return group
 }
 
@@ -256,7 +257,10 @@ export function useKnockoutBracket() {
       }))
       .sort((a, b) => (roundOrder[a.key] ?? 99) - (roundOrder[b.key] ?? 99))
 
-    for (let ri = 1; ri < rounds.length; ri++) {
+    // ponytail: align backwards so each round is ordered by the FINAL order of the next
+    // round — forward alignment broke R16↔QF pairing once QF got reordered under SF,
+    // and connector lines are drawn positionally.
+    for (let ri = rounds.length - 1; ri >= 1; ri--) {
       const prev = rounds[ri - 1].slots
       const curr = rounds[ri].slots
       const reordered = []

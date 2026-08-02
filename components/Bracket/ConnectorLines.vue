@@ -2,7 +2,7 @@
   <svg
     ref="svgEl"
     class="connector-svg"
-    :viewBox="`0 0 48 ${svgH}`"
+    :viewBox="`0 0 80 ${svgH}`"
     xmlns="http://www.w3.org/2000/svg"
     preserveAspectRatio="none"
   >
@@ -54,7 +54,7 @@ function midpoints(count, H) {
  */
 const lines = computed(() => {
   const H    = svgH.value;
-  const W    = 48;
+  const W    = 80;
   const mid  = W / 2;
   const fromY = midpoints(props.from, H);
   const toY   = midpoints(props.to,   H);
@@ -80,7 +80,7 @@ const lines = computed(() => {
 <style lang="scss" scoped>
 .connector-svg {
   width: 100%;
-  max-width: 48px;
+  max-width: 80px;
   height: 100%;
   display: block;
 

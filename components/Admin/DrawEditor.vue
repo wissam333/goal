@@ -11,20 +11,20 @@
       <div v-for="round in roundKeys" :key="round" class="draw-round">
         <div class="draw-round-title">{{ roundLabel(round) }}</div>
 
-        <div v-for="(slot, si) in roundSlots(round)" :key="slot._key" class="draw-slot">
+        <div v-for="(slot, si) in roundSlots(round)" :key="slot._key || slot.id">
           <div class="draw-slot-header">
             <span class="draw-slot-num">المباراة {{ si + 1 }}</span>
-            <button class="draw-slot-remove" @click="removeSlot(slot._key)" type="button">حذف</button>
+            <button class="draw-slot-remove" @click="removeSlot(slot)" type="button">حذف</button>
           </div>
 
           <div class="draw-slot-sides">
             <div class="draw-side">
               <span class="draw-side-label">الفريق الأول</span>
-              <AdminDrawSideType :side="slot.home" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot._key, 'home', v)" />
+              <AdminDrawSideType :side="slot.home" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot, 'home', v)" />
             </div>
             <div class="draw-side">
               <span class="draw-side-label">الفريق الثاني</span>
-              <AdminDrawSideType :side="slot.away" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot._key, 'away', v)" />
+              <AdminDrawSideType :side="slot.away" :groups="groups" :teams="teams" :winner-slots="winnerOptionsFor(slot.round)" @update="v => updateSide(slot, 'away', v)" />
             </div>
           </div>
         </div>
@@ -85,8 +85,12 @@ function addSlot(round) {
   emitUpdate({ slots })
 }
 
-function removeSlot(key) {
-  const slots = (draw.value.slots || []).filter(s => s._key !== key)
+function sameSlot(a, b) {
+  return a._key ? a._key === b._key : a.id === b.id
+}
+
+function removeSlot(slot) {
+  const slots = (draw.value.slots || []).filter(s => !sameSlot(s, slot))
   emitUpdate({ slots })
 }
 
@@ -106,9 +110,9 @@ function winnerOptionsFor(round) {
   return winnerSlotOptions.value.filter(s => (ROUND_ORDER[s.round] ?? -1) < cur)
 }
 
-function updateSide(slotKey, side, value) {
+function updateSide(slot, side, value) {
   const slots = (draw.value.slots || []).map(s => {
-    if (s._key !== slotKey) return s
+    if (!sameSlot(s, slot)) return s
     return { ...s, [side]: value }
   })
   emitUpdate({ slots })

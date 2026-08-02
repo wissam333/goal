@@ -251,8 +251,8 @@ const gdClass = (gd) => (gd > 0 ? "gd-pos" : gd < 0 ? "gd-neg" : "")
 
 const knockoutRounds = computed(() => {
   const rounds = []
-  const groups = ["QF", "SF", "F"]
-  const labels = { QF: "ربع النهائي", SF: "نصف النهائي", F: "النهائي" }
+  const groups = ["QF", "SF", "FINAL"]
+  const labels = { QF: "ربع النهائي", SF: "نصف النهائي", FINAL: "النهائي" }
   for (const g of groups) {
     const matches = snapshotMatches.value.filter(m => m.group === g)
     if (matches.length) rounds.push({ key: g, label: labels[g], matches })
@@ -260,7 +260,7 @@ const knockoutRounds = computed(() => {
   return rounds
 })
 
-const knockoutMatches = computed(() => snapshotMatches.value.filter(m => ["QF", "SF", "F"].includes(m.group)))
+const knockoutMatches = computed(() => snapshotMatches.value.filter(m => ["QF", "SF", "FINAL"].includes(m.group)))
 
 const {
   isTeamWinner,
