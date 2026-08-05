@@ -702,8 +702,14 @@ const formatShortDate = (dateStr) => {
 
 const { standingsMap: _standingsMap } = useStandings();
 
+const tieRulesHome = computed(() =>
+  Array.isArray(settingsData.value?.tie_breakers) && settingsData.value.tie_breakers.length
+    ? settingsData.value.tie_breakers
+    : ["pts", "gd", "gf"],
+);
+
 const standingsData = computed(() =>
-  _standingsMap(teams.value || [], allMatches.value || []),
+  _standingsMap(teams.value || [], allMatches.value || [], tieRulesHome.value),
 );
 
 const getTeamPoints = (slug) => standingsData.value[slug]?.Pts ?? 0;

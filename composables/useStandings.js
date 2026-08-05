@@ -1,12 +1,15 @@
 export const useStandings = () => {
-  const { getTeamOutcome, getOpenPlayScore } = useMatchResult()
+  const { getTeamOutcome, getOpenPlayScore, getWinnerSlug } = useMatchResult()
 
-  const calculateStandings = (teamList, allMatches) => {
+  const DEFAULT_RULES = ['pts', 'gd', 'gf']
+
+  const calculateStandings = (teamList, allMatches, rules = DEFAULT_RULES) => {
     if (!teamList || !allMatches) return []
     const groupMatches = allMatches.filter(
       (m) => !['R16', 'QF', 'SF', 'FINAL'].includes(m.group),
     )
-    return teamList
+
+    const standings = teamList
       .map((team) => {
         const teamMatches = groupMatches.filter(
           (m) =>
@@ -15,6 +18,7 @@ export const useStandings = () => {
         )
 
         let W = 0, D = 0, L = 0, GF = 0, GA = 0
+        let fairPlay = 0
         const formResults = []
 
         const sorted = [...teamMatches].sort(
@@ -29,6 +33,11 @@ export const useStandings = () => {
           const conceded = isHome ? (open.away || 0) : (open.home || 0)
           GF += scored
           GA += conceded
+
+          // Fair play: yellow=1, red=3 (lower is better)
+          for (const c of (m.cards || [])) {
+            if (c.team === team.slug) fairPlay += c.type === 'red' ? 3 : 1
+          }
 
           // W/D/L from final winner (includes penalties)
           const outcome = getTeamOutcome(m, team.slug)
@@ -54,25 +63,51 @@ export const useStandings = () => {
           GA,
           GD: GF - GA,
           Pts: W * 3 + D,
+          FairPlay: fairPlay,
           form: formResults.slice(0, 5).reverse(),
         }
       })
-      .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF)
+
+    const compare = (a, b) => {
+      for (const rule of rules) {
+        let diff = 0
+        if (rule === 'pts') diff = b.Pts - a.Pts
+        else if (rule === 'gd') diff = b.GD - a.GD
+        else if (rule === 'gf') diff = b.GF - a.GF
+        else if (rule === 'fairplay') diff = a.FairPlay - b.FairPlay
+        else if (rule === 'h2h') {
+          // winner of the direct match between the two teams ranks higher
+          const direct = groupMatches.find((m) =>
+            (m.homeTeam === a.slug && m.awayTeam === b.slug) ||
+            (m.homeTeam === b.slug && m.awayTeam === a.slug),
+          )
+          if (direct?.status === 'played') {
+            const winner = getWinnerSlug(direct)
+            if (winner === a.slug) diff = -1
+            else if (winner === b.slug) diff = 1
+          }
+        }
+        if (diff !== 0) return diff
+      }
+      return 0
+    }
+
+    return standings.sort(compare)
   }
 
-  const getGroupStandings = (group, teams, matches) => {
+  const getGroupStandings = (group, teams, matches, rules) => {
     if (!teams || !matches) return []
     const groupTeams = teams.filter((t) => (t.group || "A") === group)
-    return calculateStandings(groupTeams, matches)
+    return calculateStandings(groupTeams, matches, rules)
   }
 
-  const standingsMap = (teamList, allMatches) => {
+  const standingsMap = (teamList, allMatches, rules) => {
     if (!teamList || !allMatches) return {}
-    const arr = calculateStandings(teamList, allMatches)
+    const arr = calculateStandings(teamList, allMatches, rules)
     const map = {}
     arr.forEach((s) => { map[s.slug] = s })
     return map
   }
 
-  return { calculateStandings, getGroupStandings, standingsMap }
+  return { calculateStandings, getGroupStandings, standingsMap, DEFAULT_RULES }
 }

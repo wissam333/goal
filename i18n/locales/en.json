@@ -174,7 +174,17 @@
     "form": "Form",
     "group": "Group",
     "advance": "Advance",
-    "danger": "Danger"
+    "danger": "Danger",
+    "sortBy": "Sorted by",
+    "expand": "Show all columns",
+    "collapse": "Hide columns",
+    "rules": {
+      "pts": "Points",
+      "gd": "Goal Difference",
+      "gf": "Goals Scored",
+      "h2h": "Head-to-Head",
+      "fairplay": "Fair Play (cards)"
+    }
   },
   "fixtures": {
     "all": "All",

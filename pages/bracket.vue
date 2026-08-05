@@ -182,7 +182,7 @@
 <script setup>
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
-const { fetchTeams, fetchMatches } = useLeagueData();
+const { fetchTeams, fetchMatches, fetchSettings } = useLeagueData();
 import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings: _calcGroupStandings } = useStandings();
 const activeTab = ref("groups");
@@ -195,9 +195,11 @@ const tabs = computed(() => [
 const [
   { data: teamsData, pending: teamsPending, refresh: refreshTeams },
   { data: matchesData, pending: matchesPending, error, refresh: refreshMatches },
+  { data: settingsData },
 ] = await Promise.all([
   useAsyncData("bracket-teams", () => fetchTeams()),
   useAsyncData("bracket-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
+  useAsyncData("bracket-settings", () => fetchSettings()),
 ]);
 
 // Fallback: on client, re-fetch if SSR returned empty (e.g. Supabase unavailable during SSR)
@@ -211,6 +213,12 @@ onMounted(() => {
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const teams = computed(() => teamsData.value || []);
 const matches = computed(() => matchesData.value || []);
+
+const tieRulesBracket = computed(() =>
+  Array.isArray(settingsData.value?.tie_breakers) && settingsData.value.tie_breakers.length
+    ? settingsData.value.tie_breakers
+    : ["pts", "gd", "gf"],
+);
 
 const groupNames = computed(() => {
   const g = new Set(teams.value.map((t) => t.group).filter(Boolean));
@@ -226,7 +234,7 @@ const teamMap = computed(() => {
 const getTeamName = (slug) => teamMap.value[slug]?.title || slug;
 
 const getGroupStandings = (group) =>
-  _calcGroupStandings(group, teams.value, matches.value);
+  _calcGroupStandings(group, teams.value, matches.value, tieRulesBracket.value);
 
 const getGroupMatches = (group) => {
   const groupTeamSlugs = teams.value

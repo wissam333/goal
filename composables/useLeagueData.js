@@ -1,5 +1,5 @@
 export const MATCH_LIST_COLS =
-  'slug,title,date,group,bracket_slot,venue,status,homeTeam,awayTeam,homeScore,awayScore,homeScoreAET,awayScoreAET,homePenalties,awayPenalties,resultMethod,motmWinner,league_id'
+  'slug,title,date,group,bracket_slot,venue,status,homeTeam,awayTeam,homeScore,awayScore,homeScoreAET,awayScoreAET,homePenalties,awayPenalties,resultMethod,motmWinner,cards,league_id'
 
 const parseJsonFields = (match) => {
   if (typeof match.goalScorers === "string")

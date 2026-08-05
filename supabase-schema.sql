@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "teamsPerGroup" INTEGER DEFAULT 4,
   ad JSONB DEFAULT NULL,
   knockout_draw JSONB DEFAULT NULL,
+  tie_breakers JSONB DEFAULT '["pts","gd","gf"]'::jsonb,
   league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

@@ -88,6 +88,37 @@
     </div>
 
     <div class="settings-card">
+      <h3 class="form-section-title">ترتيب الفرق في دور المجموعات</h3>
+      <p class="form-desc">حدد قواعد كسر التعادل بالترتيب: القاعدة الأولى تحسم الفرق أولاً، وعند التعادل تنتقل للقاعدة التالية. الافتراضي: النقاط ← فرق الأهداف ← الأهداف المسجلة</p>
+
+      <div class="tie-editor">
+        <div v-for="(rule, i) in form.tieBreakers" :key="i" class="tie-row">
+          <span class="tie-order">{{ i + 1 }}</span>
+          <SharedUiFormBaseSelect
+            v-model="form.tieBreakers[i]"
+            :options="tieSelectOptions(i)"
+            placeholder="اختر قاعدة"
+            class="tie-select"
+          />
+          <div class="tie-actions">
+            <button type="button" class="tie-btn" :disabled="i === 0" @click="moveTieRule(i, -1)">↑</button>
+            <button type="button" class="tie-btn" :disabled="i === form.tieBreakers.length - 1" @click="moveTieRule(i, 1)">↓</button>
+            <button type="button" class="tie-btn tie-btn-remove" :disabled="form.tieBreakers.length <= 1" @click="form.tieBreakers.splice(i, 1)">×</button>
+          </div>
+        </div>
+        <button v-if="form.tieBreakers.length < tieOptions.length" type="button" class="tie-add" @click="addTieRule">
+          + إضافة قاعدة
+        </button>
+      </div>
+
+      <div class="form-actions">
+        <SharedUiButtonBase variant="primary" @click="handleSaveTieBreakers">
+          حفظ الترتيب
+        </SharedUiButtonBase>
+      </div>
+    </div>
+
+    <div class="settings-card">
       <h3 class="form-section-title">الإعلان / البانر</h3>
       <p class="form-desc">سيظهر الإعلان في أعلى جميع صفحات الموقع. اترك الحقول فارغة لإخفاء الإعلان</p>
 
@@ -215,7 +246,53 @@ const showAlert = (type, title, text) => {
 const form = reactive({
   season: "",
   groups: ["A", "B"],
+  tieBreakers: ["pts", "gd", "gf"],
 })
+
+const tieOptions = [
+  { value: "pts", label: "النقاط" },
+  { value: "gd", label: "فرق الأهداف" },
+  { value: "gf", label: "الأهداف المسجلة" },
+  { value: "h2h", label: "المواجهات المباشرة" },
+  { value: "fairplay", label: "اللعب النظيف (البطاقات)" },
+]
+
+const tieSelectOptions = (i) =>
+  tieOptions.map((o) => ({
+    ...o,
+    disabled: form.tieBreakers.includes(o.value) && form.tieBreakers[i] !== o.value,
+  }))
+
+const addTieRule = () => {
+  const used = new Set(form.tieBreakers)
+  const next = tieOptions.find((o) => !used.has(o.value))
+  if (next) form.tieBreakers.push(next.value)
+}
+
+const moveTieRule = (i, dir) => {
+  const j = i + dir
+  if (j < 0 || j >= form.tieBreakers.length) return
+  const arr = form.tieBreakers
+  ;[arr[i], arr[j]] = [arr[j], arr[i]]
+}
+
+const handleSaveTieBreakers = async () => {
+  const rules = [...new Set(form.tieBreakers)]
+  if (!rules.length) {
+    showAlert('error', '❌ خطأ', 'اختر قاعدة واحدة على الأقل')
+    return
+  }
+  try {
+    const s = await admin.getSettings()
+    await admin.saveSettings({
+      season: s?.season || form.season,
+      tie_breakers: rules,
+    })
+    showAlert('success', '✅ تم الحفظ', 'تم حفظ قواعد الترتيب بنجاح')
+  } catch {
+    showAlert('error', '❌ خطأ', 'فشل حفظ قواعد الترتيب')
+  }
+}
 
 const newGroup = ref("")
 
@@ -261,6 +338,9 @@ onMounted(async () => {
   if (s) {
     form.season = s.season || ""
     form.groups = s.groups?.length ? [...s.groups] : ["A", "B"]
+    form.tieBreakers = Array.isArray(s.tie_breakers) && s.tie_breakers.length
+      ? [...s.tie_breakers]
+      : ["pts", "gd", "gf"]
     if (s.ad) {
       adForm.image = s.ad.image || null
       adForm.title = s.ad.title || ""
@@ -296,7 +376,8 @@ const handleSaveDraw = async () => {
 
 const handleSave = async () => {
   try {
-    await admin.saveSettings({ ...form })
+    const { tieBreakers, ...rest } = form
+    await admin.saveSettings({ ...rest })
     if (leagueId.value && form.season) {
       await supabase.from('leagues').update({ season_label: form.season }).eq('id', leagueId.value)
     }
@@ -433,6 +514,66 @@ const res = await $fetch('/api/notifications/send', {
 }
 .groups-input {
   flex: 1;
+}
+
+// ── Tie-breakers ─────────────────────────────────────────────
+.tie-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tie-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tie-order {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--primary-soft, rgba(34,197,94,0.1));
+  color: var(--primary, #22c55e);
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tie-select {
+  flex: 1;
+}
+.tie-actions {
+  display: flex;
+  gap: 4px;
+}
+.tie-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+.tie-btn-remove {
+  color: #ef4444;
+}
+.tie-add {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px dashed var(--primary-mid, rgba(34,197,94,0.4));
+  background: transparent;
+  color: var(--primary, #22c55e);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
 }
 
 // ── Ad section ─────────────────────────────────────────────────

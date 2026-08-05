@@ -30,8 +30,16 @@
 
         <!-- Standings Table -->
         <div class="standings-card">
+          <div class="table-toolbar">
+            <span class="sort-note">
+              {{ $t("standings.sortBy") }}: <b>{{ tieRuleText }}</b>
+            </span>
+            <button class="expand-btn" @click="expandTable = !expandTable">
+              {{ expandTable ? $t("standings.collapse") : $t("standings.expand") }}
+            </button>
+          </div>
           <div class="table-responsive">
-            <table class="standings-table">
+            <table class="standings-table" :class="{ expanded: expandTable }">
               <thead>
                 <tr>
                   <th class="col-pos">#</th>
@@ -127,22 +135,29 @@
 <script setup>
 const { locale, t } = useI18n();
 const { name: appTitle } = useAppTitle();
-const { fetchTeams, fetchMatches } = useLeagueData();
+const { fetchTeams, fetchMatches, fetchSettings } = useLeagueData();
 import { MATCH_LIST_COLS } from '~/composables/useLeagueData'
 const { getGroupStandings } = useStandings();
 
 const [
   { data: teamsData, pending: teamsPending, error: teamsError },
   { data: matchesData, pending: matchesPending, error: matchesError },
+  { data: settingsData },
 ] = await Promise.all([
   useAsyncData("standings-teams", () => fetchTeams()),
   useAsyncData("standings-matches", () => fetchMatches({ select: MATCH_LIST_COLS })),
+  useAsyncData("standings-settings", () => fetchSettings()),
 ]);
 
 const pending = computed(() => teamsPending.value || matchesPending.value);
 const error = computed(() => teamsError.value || matchesError.value);
 const teams = computed(() => teamsData.value || []);
 const matches = computed(() => matchesData.value || []);
+const tieRules = computed(() =>
+  Array.isArray(settingsData.value?.tie_breakers) && settingsData.value.tie_breakers.length
+    ? settingsData.value.tie_breakers
+    : ["pts", "gd", "gf"],
+);
 
 // Groups
 const groups = computed(() => {
@@ -160,11 +175,21 @@ const groupTabs = computed(() =>
 );
 
 const currentGroupStandings = computed(() =>
-  getGroupStandings(activeGroup.value, teams.value, matches.value),
+  getGroupStandings(activeGroup.value, teams.value, matches.value, tieRules.value),
 );
 
 const getGroupStandingsForGroup = (group) =>
-  getGroupStandings(group, teams.value, matches.value);
+  getGroupStandings(group, teams.value, matches.value, tieRules.value);
+
+const expandTable = ref(false);
+
+const tieRuleLabels = computed(() =>
+  tieRules.value.map((r) => t(`standings.rules.${r}`)),
+);
+
+const tieRuleText = computed(() =>
+  tieRuleLabels.value.join(locale.value === "ar" ? " ← " : " → "),
+);
 
 // Position styling
 const posClass = (idx) => {
@@ -303,6 +328,51 @@ useSeoMeta({
 
 .pc-only {
   @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.standings-table.expanded .pc-only {
+  display: table-cell !important;
+}
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+}
+
+.sort-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+
+  b {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+}
+
+.expand-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  @media (min-width: 641px) {
     display: none;
   }
 }

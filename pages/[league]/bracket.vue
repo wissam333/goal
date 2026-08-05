@@ -204,6 +204,11 @@ const [
 ]);
 
 const draw = computed(() => settingsData.value?.knockout_draw || null)
+const tieRulesBracket = computed(() =>
+  Array.isArray(settingsData.value?.tie_breakers) && settingsData.value.tie_breakers.length
+    ? settingsData.value.tie_breakers
+    : ["pts", "gd", "gf"],
+);
 const { buildBracket } = useKnockoutBracket();
 const bracketRounds = computed(() => {
   if (!draw.value || !draw.value.slots?.length) return []
@@ -236,7 +241,7 @@ const teamMap = computed(() => {
 const getTeamName = (slug) => teamMap.value[slug]?.title || slug;
 
 const getGroupStandings = (group) =>
-  _calcGroupStandings(group, teams.value, matches.value);
+  _calcGroupStandings(group, teams.value, matches.value, tieRulesBracket.value);
 
 const getGroupMatches = (group) => {
   const groupTeamSlugs = teams.value
