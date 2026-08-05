@@ -98,6 +98,11 @@
             label="الملعب"
             placeholder="الملعب الرئيسي"
           />
+          <SharedUiFormBaseTextarea
+            v-model="form.description"
+            label="وصف المباراة (اختياري)"
+            placeholder="مثلا: ملاحظات حول المباراة أو الأخبار المتعلقة بها"
+          />
           <SharedUiFormBaseSelect
             v-model="form.homeTeam"
             label="الفريق المضيف"
@@ -766,6 +771,7 @@ async function sendNotif(type) {
       date: matchDate,
       group: form.group || "A",
       venue: form.venue || "الملعب الرئيسي",
+      description: form.description || "",
       status: "played",
       homeTeam: form.homeTeam,
       awayTeam: form.awayTeam,
@@ -850,6 +856,7 @@ async function sendNotif(type) {
     date: matchDate,
     group: form.group || "A",
     venue: form.venue || "الملعب الرئيسي",
+    description: form.description || "",
     status: matchStatus,
     homeTeam: form.homeTeam,
     awayTeam: form.awayTeam,
@@ -962,6 +969,7 @@ const form = reactive({
   group: "",
   bracketSlot: "",
   venue: "الملعب الرئيسي",
+  description: "",
   homeTeam: "",
   awayTeam: "",
   homeScore: null,
@@ -979,6 +987,7 @@ const defaultForm = () => ({
   group: "",
   bracketSlot: "",
   venue: "الملعب الرئيسي",
+  description: "",
   homeTeam: "",
   awayTeam: "",
   homeScore: null,
@@ -1532,6 +1541,7 @@ const openEditModal = (match) => {
   form.date = match.date ? toLocalDateTimeStr(match.date) : "";
   form.group = match.group;
   form.venue = match.venue || "الملعب الرئيسي";
+  form.description = match.description || "";
   form.homeTeam = match.homeTeam;
   form.awayTeam = match.awayTeam;
   form.homeScore = match.homeScore;
@@ -1604,6 +1614,7 @@ const handleSave = async () => {
     date: matchDate,
     group: form.group || "A",
     venue: form.venue || "الملعب الرئيسي",
+    description: form.description || "",
     status: matchStatus,
     homeTeam: form.homeTeam,
     awayTeam: form.awayTeam,

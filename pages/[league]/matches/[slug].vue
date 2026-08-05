@@ -51,6 +51,11 @@
           </span>
         </div>
 
+        <!-- Description -->
+        <p v-if="match.description" class="hero-desc">
+          {{ match.description }}
+        </p>
+
         <!-- Teams + Score -->
         <div class="hero-teams">
           <!-- Home -->
@@ -1671,6 +1676,19 @@ useSeoMeta({
   .iconify {
     margin-inline-end: 4px;
   }
+}
+
+.hero-desc {
+  text-align: center;
+  margin: -6px 0 14px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  white-space: pre-wrap;
 }
 
 .hero-score {

@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS matches (
   photos JSONB DEFAULT '[]'::jsonb,
   videos JSONB DEFAULT '[]'::jsonb,
   cards JSONB DEFAULT '[]'::jsonb,
+  description TEXT DEFAULT '',
   league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
