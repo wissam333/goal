@@ -1,5 +1,5 @@
 export const useStandings = () => {
-  const { getTeamOutcome, getOpenPlayScore, getWinnerSlug } = useMatchResult()
+  const { getTeamOutcome, getOpenPlayScore } = useMatchResult()
 
   const DEFAULT_RULES = ['pts', 'gd', 'gf']
 
@@ -68,31 +68,70 @@ export const useStandings = () => {
         }
       })
 
-    const compare = (a, b) => {
-      for (const rule of rules) {
-        let diff = 0
-        if (rule === 'pts') diff = b.Pts - a.Pts
-        else if (rule === 'gd') diff = b.GD - a.GD
-        else if (rule === 'gf') diff = b.GF - a.GF
-        else if (rule === 'fairplay') diff = a.FairPlay - b.FairPlay
-        else if (rule === 'h2h') {
-          // winner of the direct match between the two teams ranks higher
-          const direct = groupMatches.find((m) =>
-            (m.homeTeam === a.slug && m.awayTeam === b.slug) ||
-            (m.homeTeam === b.slug && m.awayTeam === a.slug),
-          )
-          if (direct?.status === 'played') {
-            const winner = getWinnerSlug(direct)
-            if (winner === a.slug) diff = -1
-            else if (winner === b.slug) diff = 1
+    // Multi-stage group sort: each rule splits the remaining tied buckets,
+    // so h2h (mini-league) always runs among the teams that are actually tied.
+    const ruleValue = (rule, t, h2hPts) => {
+      if (rule === 'pts') return t.Pts
+      if (rule === 'gd') return t.GD
+      if (rule === 'gf') return t.GF
+      if (rule === 'fairplay') return t.FairPlay
+      return h2hPts.get(t.slug) ?? 0
+    }
+    const ruleCmp = (rule) => (rule === 'fairplay')
+      ? (a, b, av, bv) => av - bv
+      : (a, b, av, bv) => bv - av
+
+    const sortBucket = (bucket, rule) => {
+      let h2hPts = null
+      if (rule === 'h2h') {
+        h2hPts = new Map()
+        for (const t of bucket) {
+          let pts = 0
+          for (const o of bucket) {
+            if (o.slug === t.slug) continue
+            const m = groupMatches.find(
+              (mm) =>
+                (mm.homeTeam === t.slug && mm.awayTeam === o.slug) ||
+                (mm.homeTeam === o.slug && mm.awayTeam === t.slug),
+            )
+            if (m?.status === 'played') {
+              const out = getTeamOutcome(m, t.slug)
+              if (out === 'W') pts += 3
+              else if (out === 'D') pts += 1
+            }
           }
+          h2hPts.set(t.slug, pts)
         }
-        if (diff !== 0) return diff
       }
-      return 0
+      const cmp = ruleCmp(rule)
+      const val = (t) => ruleValue(rule, t, h2hPts)
+      const sorted = [...bucket].sort((a, b) => cmp(a, b, val(a), val(b)))
+      // split into runs with equal rule value → each run is still tied
+      const chunks = []
+      let start = 0
+      for (let i = 1; i <= sorted.length; i++) {
+        if (i === sorted.length || val(sorted[i]) !== val(sorted[start])) {
+          chunks.push(sorted.slice(start, i))
+          start = i
+        }
+      }
+      return chunks
     }
 
-    return standings.sort(compare)
+    const sortByRules = (list) => {
+      let buckets = [list]
+      for (const rule of rules) {
+        const next = []
+        for (const b of buckets) {
+          if (b.length < 2) { next.push(b); continue }
+          next.push(...sortBucket(b, rule))
+        }
+        buckets = next
+      }
+      return buckets.flat()
+    }
+
+    return sortByRules(standings)
   }
 
   const getGroupStandings = (group, teams, matches, rules) => {
