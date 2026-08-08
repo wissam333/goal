@@ -84,6 +84,7 @@
                         <span v-else class="team-initial">{{ entry.title?.charAt(0) }}</span>
                       </div>
                       <span class="team-name">{{ entry.title }}</span>
+                      <span v-if="entry.is_struck" class="struck-badge">{{ $t("standings.struck") }}</span>
                     </div>
                   </td>
                   <td class="col-num">{{ entry.P }}</td>
@@ -441,6 +442,16 @@ useSeoMeta({
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.875rem;
+}
+
+.struck-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 // ── Points badge ───────────────────────────────────────────────────────────────

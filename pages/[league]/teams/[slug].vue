@@ -161,7 +161,10 @@
               <span v-else class="opp-initial">{{ getOpponentName(match)?.charAt(0) }}</span>
             </span>
 
-            <span class="match-opp-name">{{ getOpponentName(match) }}</span>
+            <span class="match-opp-name">
+              {{ getOpponentName(match) }}
+              <span v-if="getOpponentStruck(match)" class="opp-struck">{{ $t('standings.struck') }}</span>
+            </span>
 
             <div class="match-score-block">
               <span class="ms-score">{{ formatScore(match) }}</span>
@@ -200,7 +203,10 @@
               />
               <span v-else class="opp-initial">{{ getOpponentName(match)?.charAt(0) }}</span>
             </span>
-            <span class="match-opp-name">{{ getOpponentName(match) }}</span>
+            <span class="match-opp-name">
+              {{ getOpponentName(match) }}
+              <span v-if="getOpponentStruck(match)" class="opp-struck">{{ $t('standings.struck') }}</span>
+            </span>
             <div class="match-score-block">
               <span class="ms-upcoming">{{ formatMatchDate(match.date) }}</span>
             </div>
@@ -310,6 +316,9 @@ const getOpponentName = (match) =>
 
 const getOpponentLogo = (match) =>
   teamMap.value[getOpponentSlug(match)]?.logo || null;
+
+const getOpponentStruck = (match) =>
+  !!teamMap.value[getOpponentSlug(match)]?.is_struck;
 
 const getTeamScore = (match) => {
   const s = getOpenPlayScore(match);
@@ -537,6 +546,15 @@ useSeoMeta({
 .match-opp-name {
   flex: 1; font-size: 0.88rem; font-weight: 600; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.opp-struck {
+  flex-shrink: 0; padding: 1px 6px; font-size: 0.62rem; font-weight: 800;
+  color: var(--danger, #ef4444);
+  background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 30%, transparent);
+  border-radius: 999px; white-space: nowrap;
 }
 
 .match-score-block { text-align: center; }

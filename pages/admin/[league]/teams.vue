@@ -63,6 +63,7 @@
             {{ row.title?.charAt(0) }}
           </div>
           <span class="team-name-text">{{ row.title }}</span>
+          <span v-if="row.is_struck" class="struck-badge">مشطوب</span>
         </div>
       </template>
       <template #cell-group="{ row, value }">
@@ -506,6 +507,7 @@ const teamActions = [
   { key: 'players', icon: 'mdi:account-group-outline', label: 'اللاعبون', class: 'btn-info' },
   { key: 'managers', icon: 'mdi:account-tie-outline', label: 'الإداريون', class: 'btn-info' },
   { key: 'edit', icon: 'mdi:pencil-outline', label: 'تعديل', class: 'btn-warning' },
+  { key: 'strike', icon: 'mdi:minus-circle-outline', label: 'شطب', class: 'btn-danger' },
   { key: 'delete', icon: 'mdi:delete-outline', label: 'حذف', class: 'btn-danger' },
 ]
 
@@ -513,7 +515,19 @@ const handleTeamAction = ({ action, row }) => {
   if (action.key === 'players') showTeamPlayers(row)
   else if (action.key === 'managers') showTeamManagers(row)
   else if (action.key === 'edit') openEditModal(row)
+  else if (action.key === 'strike') toggleStrike(row)
   else if (action.key === 'delete') confirmDelete(row)
+}
+
+const toggleStrike = async (row) => {
+  const next = !row.is_struck
+  try {
+    await admin.saveTeam({ slug: row.slug, title: row.title, is_struck: next })
+    await loadData()
+    showAlert('success', next ? `تم شطب ${row.title} — لن تُحتسب نتائجه في الترتيب` : `تم إلغاء الشطب عن ${row.title}`)
+  } catch (e) {
+    showAlert('error', 'حدث خطأ أثناء الشطب')
+  }
 }
 
 const positions = [
@@ -978,6 +992,16 @@ onMounted(() => {
 .team-name-text {
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.struck-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .group-badge-dt {

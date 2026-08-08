@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS teams (
   logo TEXT,
   founded INTEGER,
   "group" TEXT DEFAULT 'A',
+  is_struck BOOLEAN DEFAULT false,
   league_id UUID NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

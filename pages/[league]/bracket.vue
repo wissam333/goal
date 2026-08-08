@@ -67,6 +67,7 @@
                       />
                       <span v-else class="td-initial">{{ entry.title?.charAt(0) }}</span>
                       <span class="td-name">{{ entry.title }}</span>
+                      <span v-if="entry.is_struck" class="struck-small">{{ $t("standings.struck") }}</span>
                     </td>
                     <td class="td-num">{{ entry.P }}</td>
                     <td class="td-pts">{{ entry.Pts }}</td>
@@ -408,6 +409,7 @@ useSeoMeta({
 .td-logo    { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; }
 .td-initial { font-size: 0.75rem; font-weight: 800; color: var(--primary); }
 .td-name    { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+.struck-small { display: inline-flex; align-items: center; padding: 0 6px; font-size: 0.65rem; font-weight: 800; color: var(--danger, #ef4444); background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent); border: 1px solid color-mix(in srgb, var(--danger, #ef4444) 30%, transparent); border-radius: 999px; white-space: nowrap; }
 .td-num     { text-align: center; color: var(--text-muted); }
 .td-pts     { text-align: center; font-weight: 800; color: var(--primary); }
 

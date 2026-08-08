@@ -21,7 +21,7 @@ function getTeamName(slug, teamMap) {
 }
 
 function getGroupTeamSlugs(group, teams) {
-  return (teams || []).filter(t => (t.group || 'A') === group).map(t => t.slug)
+  return (teams || []).filter(t => (t.group || 'A') === group && !t.is_struck).map(t => t.slug)
 }
 
 function isGroupComplete(group, teams, matches) {
@@ -160,7 +160,7 @@ function sideTeamPool(side, allSlots, teams, visited = new Set()) {
     }
   }
   if (side.type === 'seed' && side.group) {
-    return (teams || []).filter(t => (t.group || 'A') === side.group).map(t => t.slug)
+    return (teams || []).filter(t => (t.group || 'A') === side.group && !t.is_struck).map(t => t.slug)
   }
   return []
 }

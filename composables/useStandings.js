@@ -8,13 +8,19 @@ export const useStandings = () => {
     const groupMatches = allMatches.filter(
       (m) => !['R16', 'QF', 'SF', 'FINAL'].includes(m.group),
     )
+    // Striked teams: their matches are excluded from everyone's record
+    const struckSlugs = new Set(
+      teamList.filter((t) => t.is_struck).map((t) => t.slug),
+    )
 
     const standings = teamList
       .map((team) => {
         const teamMatches = groupMatches.filter(
           (m) =>
             (m.homeTeam === team.slug || m.awayTeam === team.slug) &&
-            m.status === "played",
+            m.status === "played" &&
+            !struckSlugs.has(m.homeTeam) &&
+            !struckSlugs.has(m.awayTeam),
         )
 
         let W = 0, D = 0, L = 0, GF = 0, GA = 0
@@ -119,7 +125,9 @@ export const useStandings = () => {
     }
 
     const sortByRules = (list) => {
-      let buckets = [list]
+      const active = list.filter((t) => !t.is_struck)
+      const struck = list.filter((t) => t.is_struck)
+      let buckets = [active]
       for (const rule of rules) {
         const next = []
         for (const b of buckets) {
@@ -128,7 +136,7 @@ export const useStandings = () => {
         }
         buckets = next
       }
-      return buckets.flat()
+      return [...buckets.flat(), ...struck]
     }
 
     return sortByRules(standings)
