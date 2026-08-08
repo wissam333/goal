@@ -166,6 +166,42 @@
     </SharedUiDialogAppModal>
 
     <SharedUiDialogAppModal
+      v-model="strikeConfirm.open"
+      :title="strikeConfirm.team?.is_struck ? 'تأكيد إلغاء الشطب' : 'تأكيد الشطب'"
+      max-width="420px"
+    >
+      <p class="delete-msg">
+        <template v-if="strikeConfirm.team?.is_struck">
+          هل أنت متأكد من إلغاء شطب
+          <strong>{{ strikeConfirm.team?.title }}</strong>؟
+          <br>ستُحتسب نتائجه في الترتيب من جديد.
+        </template>
+        <template v-else>
+          هل أنت متأكد من شطب
+          <strong>{{ strikeConfirm.team?.title }}</strong>؟
+          <br>لن تُحتسب نتائجه في الترتيب، وتُعامل المجموعة كأنها منقوصة من فريق.
+        </template>
+      </p>
+
+      <template #actions>
+        <SharedUiButtonBase
+          variant="outline"
+          @click="strikeConfirm.open = false"
+        >
+          إلغاء
+        </SharedUiButtonBase>
+        <SharedUiButtonBase
+          variant="error"
+          :loading="strikeConfirm.saving"
+          :disabled="strikeConfirm.saving"
+          @click="handleToggleStrike"
+        >
+          {{ strikeConfirm.team?.is_struck ? 'إلغاء الشطب' : 'شطب' }}
+        </SharedUiButtonBase>
+      </template>
+    </SharedUiDialogAppModal>
+
+    <SharedUiDialogAppModal
       v-model="playersModal.open"
       :title="'لاعبو ' + (playersModal.team?.title || '')"
       max-width="560px"
@@ -460,6 +496,7 @@ const loading = ref(true)
 const alert = reactive({ visible: false, type: 'success', text: '' })
 const modal = reactive({ open: false, isEdit: false, saving: false, editingSlug: null })
 const deleteConfirm = reactive({ open: false, deleting: false, team: null })
+const strikeConfirm = reactive({ open: false, saving: false, team: null })
 
 const defaultForm = () => ({
   title: '',
@@ -515,18 +552,29 @@ const handleTeamAction = ({ action, row }) => {
   if (action.key === 'players') showTeamPlayers(row)
   else if (action.key === 'managers') showTeamManagers(row)
   else if (action.key === 'edit') openEditModal(row)
-  else if (action.key === 'strike') toggleStrike(row)
+  else if (action.key === 'strike') confirmStrike(row)
   else if (action.key === 'delete') confirmDelete(row)
 }
 
-const toggleStrike = async (row) => {
+const confirmStrike = (row) => {
+  strikeConfirm.team = row
+  strikeConfirm.open = true
+}
+
+const handleToggleStrike = async () => {
+  if (!strikeConfirm.team) return
+  const row = strikeConfirm.team
   const next = !row.is_struck
+  strikeConfirm.saving = true
   try {
     await admin.saveTeam({ slug: row.slug, title: row.title, is_struck: next })
     await loadData()
+    strikeConfirm.open = false
     showAlert('success', next ? `تم شطب ${row.title} — لن تُحتسب نتائجه في الترتيب` : `تم إلغاء الشطب عن ${row.title}`)
   } catch (e) {
     showAlert('error', 'حدث خطأ أثناء الشطب')
+  } finally {
+    strikeConfirm.saving = false
   }
 }
 
