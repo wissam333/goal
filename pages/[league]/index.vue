@@ -523,7 +523,7 @@ const draw = computed(() => settingsData.value?.knockout_draw || null)
 const { buildBracket } = useKnockoutBracket();
 const bracketRounds = computed(() => {
   if (!draw.value || !draw.value.published) return []
-  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: allMatches.value || [], locale: locale.value }).rounds
+  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: allMatches.value || [], locale: locale.value, rules: tieRulesHome.value }).rounds
 })
 const hasKnockout = computed(() => !!draw.value?.published)
 

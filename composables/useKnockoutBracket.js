@@ -46,7 +46,7 @@ function getOrdinal(n, locale) {
 
 const AR_TBD = 'تحدد لاحقاً'
 
-function resolveSide(side, teams, matches, teamMap, getGroupStandingsFn, slots, locale) {
+function resolveSide(side, teams, matches, teamMap, getGroupStandingsFn, slots, locale, rules) {
   const tbd = locale === 'ar' ? AR_TBD : 'TBD'
 
   if (!side) return { label: tbd, teamSlug: null, resolved: false }
@@ -73,7 +73,7 @@ function resolveSide(side, teams, matches, teamMap, getGroupStandingsFn, slots, 
   if (side.type === 'seed') {
     const complete = isGroupComplete(side.group, teams, matches)
     if (complete) {
-      const standings = getGroupStandingsFn(side.group, teams, matches)
+      const standings = getGroupStandingsFn(side.group, teams, matches, rules)
       const entry = standings[side.pos - 1]
       if (entry) {
         return {
@@ -198,7 +198,7 @@ function matchSlotToDbMatch(slot, matches, allSlots, teams, assignedRef) {
 export function useKnockoutBracket() {
   const { getGroupStandings } = useStandings()
 
-  function buildBracket({ draw, teams, matches, locale }) {
+  function buildBracket({ draw, teams, matches, locale, rules }) {
     if (!draw || !draw.slots || !draw.slots.length) {
       return { published: false, rounds: [] }
     }
@@ -221,8 +221,8 @@ export function useKnockoutBracket() {
     }))
 
     slots.forEach(slot => {
-      slot._home = resolveSide(slot.home, teams, matches, teamMap, getGroupStandings, null, locale)
-      slot._away = resolveSide(slot.away, teams, matches, teamMap, getGroupStandings, null, locale)
+      slot._home = resolveSide(slot.home, teams, matches, teamMap, getGroupStandings, null, locale, rules)
+      slot._away = resolveSide(slot.away, teams, matches, teamMap, getGroupStandings, null, locale, rules)
     })
 
     const assigned = new Set()
@@ -236,10 +236,10 @@ export function useKnockoutBracket() {
 
     slots.forEach(slot => {
       if (slot.home.type === 'winner') {
-        slot._home = resolveSide(slot.home, teams, matches, teamMap, getGroupStandings, slots, locale)
+        slot._home = resolveSide(slot.home, teams, matches, teamMap, getGroupStandings, slots, locale, rules)
       }
       if (slot.away.type === 'winner') {
-        slot._away = resolveSide(slot.away, teams, matches, teamMap, getGroupStandings, slots, locale)
+        slot._away = resolveSide(slot.away, teams, matches, teamMap, getGroupStandings, slots, locale, rules)
       }
     })
 

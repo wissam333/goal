@@ -213,7 +213,7 @@ const tieRulesBracket = computed(() =>
 const { buildBracket } = useKnockoutBracket();
 const bracketRounds = computed(() => {
   if (!draw.value || !draw.value.slots?.length) return []
-  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: matches.value || [], locale: locale.value }).rounds
+  return buildBracket({ draw: draw.value, teams: teams.value || [], matches: matches.value || [], locale: locale.value, rules: tieRulesBracket.value }).rounds
 })
 
 // Fallback: on client, re-fetch if SSR returned empty (e.g. Supabase unavailable during SSR)
