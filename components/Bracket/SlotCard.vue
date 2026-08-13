@@ -59,13 +59,15 @@ const slotLabel = computed(() => {
 const isPlaceholder = computed(() => !props.slot._match)
 
 const homeLabel = computed(() => {
-  const h = props.slot._home
-  return h?.label || 'TBD'
+  const m = props.slot._match
+  if (m) return props.getTeamName(m.homeTeam)
+  return props.slot._home?.label || 'TBD'
 })
 
 const awayLabel = computed(() => {
-  const a = props.slot._away
-  return a?.label || 'TBD'
+  const m = props.slot._match
+  if (m) return props.getTeamName(m.awayTeam)
+  return props.slot._away?.label || 'TBD'
 })
 
 const match = computed(() => props.slot._match)
