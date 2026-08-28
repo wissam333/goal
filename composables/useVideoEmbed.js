@@ -26,22 +26,25 @@ function cleanFbUrl(url) {
 
 function getFbId(url) {
   if (!url) return null
-  // /videos/ID, /reel/ID, /watch/?v=ID, /video.php?v=ID, fb.watch/ID
-  const m = url.match(/(?:\/videos\/|\/reel\/|\/watch\/?\?v=|\/video\.php\?v=|fb\.watch\/)(\d+)/)
-  if (m) return m[1]
-  const m2 = url.match(/\/videos\/(\d+)/)
-  if (m2) return m2[1]
-  // last numeric segment
-  const m3 = url.match(/(\d{10,})/)
-  return m3 ? m3[1] : null
+  // explicit ?v= / watch / video.php
+  const q = url.match(/[?&]v=(\d{10,})/)
+  if (q) return q[1]
+  // reel or videos: the video id is the LAST 10+ digit number (a page slug/id may come first)
+  const nums = url.match(/(\d{10,})/g)
+  return nums ? nums[nums.length - 1] : null
 }
 
-function buildEmbedUrl(url) {
+function buildEmbedUrl(url, width = 560) {
   if (!url) return ''
   const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)([^&\s/]+)/)
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`
   const fbId = getFbId(url)
-  if (fbId) return `https://www.facebook.com/video/embed?video_id=${fbId}`
+  if (fbId) {
+    // Legal, framable FB embed endpoint (serves a REAL playable stream via DASH).
+    // Use a canonical href that preserves the video ID (cleanFbUrl would drop /watch/?v=).
+    const href = /\/watch\//.test(url) ? `https://www.facebook.com/watch/?v=${fbId}` : cleanFbUrl(url)
+    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(href)}&show_text=false&width=${width}`
+  }
   return cleanFbUrl(url)
 }
 

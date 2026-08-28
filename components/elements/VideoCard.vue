@@ -3,20 +3,22 @@
     class="vc-wrap"
     :class="[`vc-${aspect}`, { 'vc-live': playing }]"
   >
-    <!-- Playing: iframe for both YouTube and Facebook -->
-    <iframe
-      v-if="playing"
-      :key="'f' + loadKey"
-      :src="frameSrc"
-      class="vc-frame"
-      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-      allowfullscreen
-      frameborder="0"
-      scrolling="no"
-    ></iframe>
+    <!-- Playing: native iframe (YouTube + Facebook embed). FB needs a wide frame to use its reliable desktop player -->
+    <div v-if="playing" class="vc-track">
+        <iframe
+          :key="'f' + loadKey"
+          :src="frameSrc"
+          class="vc-frame"
+          :class="{ 'vc-is-fb': isFacebook }"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+          allowfullscreen
+          frameborder="0"
+          scrolling="no"
+        ></iframe>
+    </div>
 
     <!-- Poster (cover before play) -->
-    <div v-else class="vc-poster" @click="play">
+    <div v-if="!playing" class="vc-poster" @click="play">
       <img v-if="poster.image" :src="poster.image" class="vc-poster-img" :alt="poster.title || ''" loading="lazy" @load="onPosterLoad" />
       <div v-else class="vc-poster-fallback" :class="`vc-cover--${platform}`">
         <span v-if="isFacebook" class="vc-brand"><Icon name="mdi:facebook" size="16" /></span>
@@ -26,6 +28,9 @@
       <span v-if="poster.image" class="vc-watch">{{ isFacebook ? $t('match.watchOnFacebook') : $t('match.watchOnYouTube') }}</span>
       <span v-if="poster.title" class="vc-title">{{ poster.title }}</span>
     </div>
+
+    <!-- Facebook embed note -->
+    <p v-if="isFacebook" class="vc-note">{{ $t('match.embedNote') }}</p>
 
     <!-- controls -->
     <div class="vc-controls">
@@ -64,7 +69,7 @@ const props = defineProps({
   embedUrl: { type: String, default: "" },
 })
 
-const { cleanFbUrl } = useVideoEmbed()
+const { cleanFbUrl, buildEmbedUrl } = useVideoEmbed()
 
 const isFacebook = computed(() =>
   /facebook\.com|fb\.watch|fb\.com/.test(props.url || props.embedUrl)
@@ -108,10 +113,10 @@ const setAspect = (key) => {
 }
 
 const onPosterLoad = (e) => {
-  // auto-switch to tall for portrait video (fixes big-width issue)
+  // auto-switch to tall for portrait video (fixes big-width issue); skip for FB (needs a wide player)
   try {
     const img = e.target
-    if (img.naturalWidth && img.naturalHeight && img.naturalWidth < img.naturalHeight && aspect.value === 'wide') {
+    if (!isFacebook.value && img.naturalWidth && img.naturalHeight && img.naturalWidth < img.naturalHeight && aspect.value === 'wide') {
       aspect.value = 'tall'
     }
   } catch {}
@@ -120,7 +125,7 @@ const onPosterLoad = (e) => {
 const play = () => {
   playing.value = true
   loadKey.value++
-  frameSrc.value = embedSrc.value
+  frameSrc.value = embedSrc.value || buildEmbedUrl(originalUrl.value)
 }
 
 const openExternal = () => {
@@ -150,13 +155,29 @@ const fetchPoster = async () => {
 .vc-wrap.vc-tall { aspect-ratio: 9 / 16; max-height: 70vh; }
 .vc-wrap.vc-fit { height: min(70vh, 680px); }
 
-.vc-frame {
+.vc-track {
   position: absolute;
   inset: 0;
-  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.vc-track::-webkit-scrollbar { display: none; }
+
+.vc-frame {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 560px;
   height: 100%;
   border: 0;
 }
+/* FB needs a wide frame to use its reliable desktop player, even for portrait videos */
+.vc-frame.vc-is-fb { min-width: 560px; }
+/* Non-FB (YouTube) portrait can remain narrow-tall */
+.vc-wrap.vc-tall .vc-frame:not(.vc-is-fb) { min-width: 320px; max-height: 70vh; }
 
 .vc-poster {
   position: absolute;
@@ -276,5 +297,13 @@ const fetchPoster = async () => {
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
+}
+
+.vc-note {
+  margin: 8px 2px 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text-muted, #888);
+  text-align: center;
 }
 </style>

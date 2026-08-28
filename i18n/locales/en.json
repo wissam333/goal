@@ -97,6 +97,7 @@
     "watchOnFacebook": "Watch on Facebook",
     "watchOnYouTube": "Watch on YouTube",
     "openExternal": "Open video externally",
+    "embedNote": "If the video doesn't play, enable \"Allow embedding\" on the original Facebook post",
     "share": "Share",
     "shareResultCard": "Result card",
     "downloadResultCard": "Download result image",
