@@ -4,17 +4,23 @@
     :class="[`vc-${aspect}`, { 'vc-live': playing }]"
   >
     <!-- Playing: native iframe (YouTube + Facebook embed). FB needs a wide frame to use its reliable desktop player -->
-    <div v-if="playing" class="vc-track">
+    <div v-if="playing" class="vc-track" ref="trackEl">
         <iframe
           :key="'f' + loadKey"
           :src="frameSrc"
           class="vc-frame"
-          :class="{ 'vc-is-fb': isFacebook }"
+          :class="{ 'vc-is-fb': isFacebook, 'fs-open': fullscreen }"
           allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
           allowfullscreen
           frameborder="0"
           scrolling="no"
         ></iframe>
+        <button
+          v-if="fullscreen"
+          class="vc-fs-exit"
+          @click="exitFullscreen"
+          aria-label="Exit fullscreen"
+        ><Icon name="mdi:close" size="22" /></button>
     </div>
 
     <!-- Poster (cover before play) -->
@@ -59,6 +65,14 @@
       >
         <Icon name="mdi:open-in-new" size="14" />
       </a>
+      <button
+        v-if="playing"
+        class="vc-ctl"
+        :title="fullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+        @click.stop="fullscreen ? exitFullscreen() : requestFullscreen()"
+      >
+        <Icon :name="fullscreen ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'" size="14" />
+      </button>
     </div>
   </div>
 </template>
@@ -84,10 +98,17 @@ const originalUrl = computed(() => cleanHref.value || props.embedUrl)
 const embedSrc = computed(() => props.embedUrl || props.url)
 
 const playing = ref(false)
+const fullscreen = ref(false)
+const trackEl = ref(null)
 const aspect = ref('wide')
 const loadKey = ref(0)
 const poster = ref({ image: null, title: null })
 let fetched = false
+
+const isMobile =
+  import.meta.client &&
+  (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) &&
+  (window.innerWidth < 768 || /Mobi|Android|iPhone|iPad/.test(navigator.userAgent))
 
 const aspectKey = 'league-vid-aspect'
 
@@ -126,6 +147,32 @@ const play = () => {
   playing.value = true
   loadKey.value++
   frameSrc.value = embedSrc.value || buildEmbedUrl(originalUrl.value)
+  // Auto-fullscreen on mobile for a proper video experience
+  if (isMobile) {
+    nextTick(() => requestFullscreen())
+  }
+}
+
+const requestFullscreen = async () => {
+  try {
+    if (document.fullscreenElement) return
+    const el = trackEl.value
+    if (el?.requestFullscreen) await el.requestFullscreen()
+  } catch {}
+}
+
+const exitFullscreen = async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen()
+  } catch {}
+}
+
+const onFsChange = () => {
+  fullscreen.value = !!document.fullscreenElement
+}
+
+if (import.meta.client) {
+  document.addEventListener('fullscreenchange', onFsChange)
 }
 
 const openExternal = () => {
@@ -306,4 +353,24 @@ const fetchPoster = async () => {
   color: var(--text-muted, #888);
   text-align: center;
 }
+
+.vc-fs-exit {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+}
+
+:fullscreen .vc-fs-exit { display: inline-flex; }
+.vc-track.fs-open { background: #000; }
 </style>
