@@ -597,14 +597,12 @@
             {{ $t("match.video") }}
           </h3>
           <div class="video-grid">
-            <div v-for="(v, i) in resolvedVideos" :key="i" class="video-wrap">
-              <iframe
-                :src="v.embedUrl"
-                allowfullscreen
-                loading="lazy"
-                frameborder="0"
-              ></iframe>
-            </div>
+            <ElementsVideoCard
+              v-for="(v, i) in resolvedVideos"
+              :key="i"
+              :url="v.url"
+              :embed-url="v.embedUrl"
+            />
           </div>
         </div>
 
@@ -1250,29 +1248,15 @@ const formatMatchDate = (dateStr) => {
 
 // ── Video embed ────────────────────────────────────────────────────────────────
 const resolvedVideos = ref([])
+const { cleanFbUrl, buildEmbedUrl } = useVideoEmbed()
 
-const embedUrl = (url) => {
-  if (!url) return "";
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  if (url.includes("facebook.com") || url.includes("fb.watch") || url.includes("fb.com"))
-    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=734`;
-  return url;
-};
-
-const resolveVideos = async (videos) => {
+const resolveVideos = (videos) => {
   if (!videos?.length) { resolvedVideos.value = []; return }
-  const resolved = await Promise.all(videos.map(async (v) => {
-    let url = v.url
-    if (url.includes("/share/") && (url.includes("facebook.com") || url.includes("fb.com") || url.includes("fb.watch"))) {
-      try {
-        const { url: resolvedUrl } = await $fetch(`/api/resolve-url?url=${encodeURIComponent(url)}`)
-        if (resolvedUrl && resolvedUrl !== url) url = resolvedUrl
-      } catch {}
-    }
-    return { embedUrl: embedUrl(url) }
-  }))
-  resolvedVideos.value = resolved
+  resolvedVideos.value = videos.map((v) => {
+    const url = v.url || ""
+    const embedUrl = buildEmbedUrl(url)
+    return { url: cleanFbUrl(url), embedUrl }
+  })
 }
 
 watch(() => match.value?.videos, (videos) => {
@@ -2325,20 +2309,6 @@ useSeoMeta({
   gap: 16px;
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-.video-wrap {
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  padding-top: 56.25%;
-  background: #000;
-  iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
   }
 }
 
