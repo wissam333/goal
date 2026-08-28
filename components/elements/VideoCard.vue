@@ -161,14 +161,35 @@ const requestFullscreen = async () => {
   } catch {}
 }
 
+async function lockLandscape() {
+  try {
+    const dir = screen.orientation
+    if (dir?.lock && typeof dir.lock === 'function') {
+      await dir.lock('landscape')
+    }
+  } catch {}
+}
+
+async function unlockOrientation() {
+  try {
+    screen.orientation?.unlock?.()
+  } catch {}
+}
+
 const exitFullscreen = async () => {
   try {
-    if (document.fullscreenElement) await document.exitFullscreen()
+    if (document.fullscreenElement) {
+      await document.exitFullscreen()
+    } else {
+      unlockOrientation()
+    }
   } catch {}
 }
 
 const onFsChange = () => {
   fullscreen.value = !!document.fullscreenElement
+  if (fullscreen.value && isMobile) lockLandscape()
+  else unlockOrientation()
 }
 
 if (import.meta.client) {
